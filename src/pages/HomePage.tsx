@@ -1,4 +1,4 @@
-import Button from "@/components/common/Button";
+import { Button } from "@/components/ui/button";
 
 export const HomePage = () => {
     return (
@@ -13,7 +13,7 @@ export const HomePage = () => {
                 </p>
 
                 <div className="flex gap-4 justify-center flex-wrap mt-8">
-                    <Button variant="primary" size="lg">
+                    <Button size="lg">
                         Khám phá ngay
                     </Button>
                     <Button variant="outline" size="lg">
