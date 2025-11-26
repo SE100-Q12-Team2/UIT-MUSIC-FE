@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/landing/button"
 import { ArrowRight } from "lucide-react"
 
 import artist1 from "@/assets/artist-1.jpg"
@@ -9,6 +8,7 @@ import artist5 from "@/assets/artist-5.jpg"
 import artist6 from "@/assets/artist-6.jpg"
 import artist7 from "@/assets/artist-7.jpg"
 import artist8 from "@/assets/artist-8.jpg"
+import { Button } from "@/shared/components/ui/button"
 
 const row1Images = [
     { src: artist1, alt: "Artist 1" },

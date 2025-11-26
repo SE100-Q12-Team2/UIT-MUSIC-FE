@@ -1,5 +1,6 @@
-import { useInView } from "@/hooks/useInView"
-import { useCountUp } from "@/hooks/useCountUp"
+import { useCountUp } from "@/shared/hooks/useCountUp";
+import { useInView } from "@/shared/hooks/useInView";
+
 
 const stats = [
   { value: 550300, suffix: "e", label: "People register this website" },

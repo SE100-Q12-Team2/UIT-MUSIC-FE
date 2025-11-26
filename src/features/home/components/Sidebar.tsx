@@ -1,7 +1,8 @@
 import React from 'react';
 import { Home, Heart, Library, MessageSquare, ListMusic, Music2, Disc } from 'lucide-react';
-import { Button } from '../ui/button';
-import { cn } from '../../lib/utils';
+import { Button } from '@/shared/components/ui/button';
+import { cn } from '@/lib/utils';
+
 
 const Sidebar: React.FC = () => {
   return (

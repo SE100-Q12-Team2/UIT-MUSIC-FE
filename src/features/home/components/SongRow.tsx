@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heart, GripVertical } from 'lucide-react';
-import { Song } from '../../types';
+import { Song } from '@/features/home/types/home.types';
 
 interface SongRowProps {
   song: Song;

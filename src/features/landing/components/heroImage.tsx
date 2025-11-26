@@ -1,7 +1,7 @@
 import heroArtDark from "@/assets/landing-dark.jpg"
 import heroArtLight from "@/assets/landing-light.jpg"
 import { useTheme } from "@/contexts/ThemeContext"
-import { useInView } from "@/hooks/useInView"
+import { useInView } from "@/shared/hooks/useInView"
 
 const HeroImage = () => {
   const { theme } = useTheme()

@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/landing/button"
-import { useInView } from "@/hooks/useInView"
 
 import artist7 from "@/assets/star-special1.svg"
 import artist8 from "@/assets/star-special2.svg"
+import { Button } from "@/shared/components/ui/button"
+import { useInView } from "@/shared/hooks/useInView"
 
 const CallToAction = () => {
   const { ref, isInView } = useInView({ threshold: 0.2 })

@@ -1,9 +1,9 @@
 import { useTheme } from "@/contexts/ThemeContext"
-import { useInView } from "@/hooks/useInView"
 import Left from "@/assets/left.svg"
 import Right from "@/assets/right.svg"
 import verizonLogoLight from "@/assets/icon2-light.svg"
 import verizonLogoDark from "@/assets/icon2-dark.svg"
+import { useInView } from "@/shared/hooks/useInView"
 
 const Testimonial = () => {
   const { theme } = useTheme()

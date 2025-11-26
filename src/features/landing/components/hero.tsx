@@ -1,5 +1,6 @@
-import { Badge } from "@/components/ui/landing/badge"
-import { useInView } from "@/hooks/useInView"
+import { Badge } from "@/shared/components/ui/badge"
+import { useInView } from "@/shared/hooks/useInView"
+
 
 const Hero = () => {
   const { ref, isInView } = useInView({ threshold: 0.1 })
