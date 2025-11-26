@@ -1,0 +1,169 @@
+.auth-page {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+
+  background-image: url("../assets/background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #020536;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+.auth-container {
+  width: 520px;
+  max-width: 90%;
+  padding: 40px 56px 32px;
+  color: #ffffff;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-title {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 32px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-field label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 6px;
+  opacity: 0.9;
+}
+
+.auth-field input {
+  width: 100%;
+  border-radius: 999px;
+  border: none;
+  padding: 12px 20px;
+  font-size: 14px;
+  outline: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #f9fafb;
+}
+
+.auth-field input::placeholder {
+  color: rgba(249, 250, 251, 0.8);
+}
+
+.auth-extra-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.remember-me {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.remember-me input {
+  accent-color: #4f46e5;
+}
+
+.link-button {
+  border: none;
+  background: none;
+  color: #c4cbff;
+  cursor: pointer;
+  padding: 0;
+}
+
+.auth-submit {
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 999px;
+  border: none;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  background: #f9fafb;
+  color: #111827;
+}
+
+.auth-submit:hover {
+  filter: brightness(0.96);
+}
+
+.auth-social-wrapper {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.auth-social-title {
+  display: block;
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+
+.auth-social {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.social-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.social-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 999px;
+}
+
+.auth-footer-text {
+  margin-top: 18px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.auth-footer-text a {
+  color: #c4cbff;
+  text-decoration: none;
+}
+
+.auth-footer-text a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .auth-container {
+    width: 100%;
+    padding: 32px 24px 24px;
+  }
+}
