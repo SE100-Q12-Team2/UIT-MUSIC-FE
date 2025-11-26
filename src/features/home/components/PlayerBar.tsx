@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pause, SkipBack, SkipForward, Repeat, Shuffle, Mic2, List, Volume2, Maximize2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
+import { Button } from '@/shared/components/ui/button';
+import { Slider } from '@/shared/components/ui/slider';
 
 const PlayerBar: React.FC = () => {
   return (

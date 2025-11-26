@@ -1,12 +1,11 @@
 import React from 'react';
 import { Play, Heart } from 'lucide-react';
-
-import { SectionProps } from '../types';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
 import { ARTIST_UPDATES, ARTISTS_FOLLOW, DAILY_PICK_SONGS, GENRES, PERSONAL_SPACE, RECENTLY_PLAYED_BANNERS, TAILORED_PLAYLISTS } from '@/data/home.data';
-import { Card } from '@/components/ui/card';
-import SongRow from '@/components/common/SongRow';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import SongRow from '@/features/home/components/SongRow';
+import { Input } from '@/shared/components/ui/input';
+import { SectionProps } from '@/features/home/types/home.types';
 
 const Section: React.FC<SectionProps> = ({ title, actionText = "See All", children }) => (
     <div className="px-8 py-6">
