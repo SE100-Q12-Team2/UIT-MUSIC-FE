@@ -1,9 +1,9 @@
-import Header from '@/components/common/HomeHeader';
-import PlayerBar from '@/components/common/PlayerBar';
-import RightSidebar from '@/components/common/RightSidebar';
-import Sidebar from '@/components/common/Sidebar';
-import Home from '@/pages/HomePage';
+import Home from '@/features/home/pages/HomePage';
+import Header from '@/features/home/components/HomeHeader';
+import PlayerBar from '@/features/home/components/PlayerBar';
+import RightSidebar from '@/features/home/components/RightSidebar';
 import React from 'react';
+import Sidebar from '@/features/home/components/Sidebar';
 
 
 const App: React.FC = () => {

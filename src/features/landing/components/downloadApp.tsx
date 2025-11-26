@@ -1,7 +1,7 @@
-import { useInView } from "@/hooks/useInView"
 import brandLogo from "@/assets/LOGO.svg"
 import appStoreBadge from "@/assets/appstore.svg"
 import googlePlayBadge from "@/assets/google.svg"
+import { useInView } from "@/shared/hooks/useInView"
 
 const DownloadApp = () => {
   const { ref, isInView } = useInView({ threshold: 0.2 })

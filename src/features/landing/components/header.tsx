@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/landing/button"
-import { ThemeToggle } from "@/components/ui/landing/themeToggle"
+
 import brandLogo from "@/assets/LOGO.svg"
+import { ThemeToggle } from "@/features/landing/components/themeToggle"
+import { Button } from "@/shared/components/ui/button"
 
 const Header = () => (
   <header className="flex items-center justify-between pb-6 transition-colors duration-300"

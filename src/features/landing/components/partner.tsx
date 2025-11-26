@@ -1,5 +1,4 @@
 import { useTheme } from "@/contexts/ThemeContext"
-import { useInView } from "@/hooks/useInView"
 
 // Light theme icons
 import partnerOneLight from "@/assets/icon1-light.svg"
@@ -12,6 +11,7 @@ import partnerOneDark from "@/assets/icon1-dark.svg"
 import partnerTwoDark from "@/assets/icon2-dark.svg"
 import partnerThreeDark from "@/assets/icon3-dark.svg"
 import partnerFourDark from "@/assets/icon4-dark.svg"
+import { useInView } from "@/shared/hooks/useInView"
 
 const Partners = () => {
   const { theme } = useTheme()

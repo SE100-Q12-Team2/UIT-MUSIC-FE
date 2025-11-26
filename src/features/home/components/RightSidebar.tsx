@@ -1,7 +1,7 @@
 import React from 'react';
 import { Heart, LayoutGrid, Music, User } from 'lucide-react';
-import { cn } from '../../lib/utils';
 import { QUEUE_LIST } from '@/data/home.data';
+import { cn } from '@/lib/utils';
 
 const RightSidebar: React.FC = () => {
   return (
