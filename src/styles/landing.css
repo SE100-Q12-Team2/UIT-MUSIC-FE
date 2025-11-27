@@ -1,0 +1,210 @@
+:root {
+  /* Light theme */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f5f5f5;
+  --color-bg-card: #ffffff;
+  --color-text-primary: #050505;
+  --color-text-secondary: #666666;
+  --color-text-muted: #888888;
+  --color-accent: #F0D800;
+  --color-accent-light: #FFFBD4;
+  --color-border: #e5e5e5;
+  /* Card component colors */
+  --color-card-bg: #F0D800;
+  --color-card-text: #050505;
+  --color-card-text-muted: #666666;
+  /* Button colors */
+  --color-btn-signup-bg: #F0D800;
+  --color-btn-signup-border: #F0D800;
+  --color-btn-signup-text: #050505;
+  --color-btn-signin-text: #050505;
+  --color-btn-arrow: #050505;
+  /* Ticker */
+  --ticker-shadow: none;
+}
+
+/* Theme Variables - Dark */
+.dark {
+  --color-bg-primary: #050505;
+  --color-bg-secondary: #111111;
+  --color-bg-card: #1a1a1a;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #cccccc;
+  --color-text-muted: #888888;
+  --color-accent: #F0D800;
+  --color-accent-light: #F0D800;
+  --color-border: #333333;
+  /* Card component colors */
+  --color-card-bg: #ffffff;
+  --color-card-text: #050505;
+  --color-card-text-muted: #666666;
+  /* Button colors */
+  --color-btn-signup-bg: transparent;
+  --color-btn-signup-border: #ffffff;
+  --color-btn-signup-text: #ffffff;
+  --color-btn-signin-text: #F0D800;
+  --color-btn-arrow: #F0D800;
+  /* Ticker */
+  --ticker-shadow: drop-shadow(0 0 6px rgba(0,0,0,0.45));
+}
+
+/* ========================================
+   Partner Ticker / Marquee
+   ======================================== */
+.marquee-track {
+  gap: 2rem;
+  display: flex;
+  width: max-content;
+  animation: marquee 15s linear infinite;
+}
+
+.ticker-row {
+  display: flex;
+  align-items: center;
+  gap: 2rem; 
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%); 
+  }
+}
+
+/* ========================================
+   Genre Ticker
+   ======================================== */
+.genre-marquee-track {
+  gap: 3rem;
+  display: flex;
+  width: max-content;
+  animation: genre-marquee 20s linear infinite;
+}
+
+.genre-ticker-row {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+@keyframes genre-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ========================================
+   Artist List Infinite Scroll
+   ======================================== */
+.artist-row-left {
+  animation: scroll-left 20s linear infinite;
+}
+
+.artist-row-right {
+  animation: scroll-right 20s linear infinite;
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-50% - 0.625rem));
+  }
+}
+
+@keyframes scroll-right {
+  0% {
+    transform: translateX(calc(-50% - 0.625rem));
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* ========================================
+   Text Effects
+   ======================================== */
+.text-stroke-gold {
+  color: black;
+  -webkit-text-stroke: 0.5px #F0D800;
+}
+
+/* ========================================
+   Fade In Animations
+   ======================================== */
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-in-left {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.fade-in-right {
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in-right.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.fade-in-scale {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in-scale.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger delay utilities */
+.delay-100 { transition-delay: 0.1s; }
+.delay-200 { transition-delay: 0.2s; }
+.delay-300 { transition-delay: 0.3s; }
+.delay-400 { transition-delay: 0.4s; }
+
+/* ========================================
+   Accessibility - Reduced Motion
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .genre-marquee-track,
+  .artist-row-left,
+  .artist-row-right {
+    animation: none;
+  }
+  
+  .fade-in-up,
+  .fade-in-left,
+  .fade-in-right,
+  .fade-in-scale {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
