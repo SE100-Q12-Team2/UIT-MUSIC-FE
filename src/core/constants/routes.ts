@@ -13,6 +13,7 @@ export const ROUTES = {
     ARTIST_DETAIL: (id: string) => `/artist/${id}`,
     FAVORITES: "/favorites",
     SETTINGS: "/settings",
+    SUBSCRIPTION: "/subscription",
     NOT_FOUND: "/404",
 };
 
@@ -27,4 +28,5 @@ export const ROUTE_NAMES: Record<string, string> = {
     [ROUTES.PLAYLIST]: "Playlist",
     [ROUTES.FAVORITES]: "Yêu thích",
     [ROUTES.SETTINGS]: "Cài đặt",
+    [ROUTES.SUBSCRIPTION]: "Subscription",
 };
