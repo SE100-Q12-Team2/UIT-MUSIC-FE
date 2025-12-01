@@ -14,87 +14,96 @@ import MaxWidth from "@/shared/layouts/MaxWidth"
 import PageContainer from "@/shared/layouts/PageContainer"
 import "@/styles/landing.css"
 
+interface SectionProps {
+  children: React.ReactNode
+  fullWidth?: boolean
+  className?: string
+}
+
+const Section = ({ children, fullWidth = false, className = "" }: SectionProps) => (
+  <section className="w-full">
+    <PageContainer>
+      {fullWidth ? (
+        <div className={className}>{children}</div>
+      ) : (
+        <MaxWidth>
+          <div className={className}>{children}</div>
+        </MaxWidth>
+      )}
+    </PageContainer>
+  </section>
+)
+
 const LandingPage = () => {
   return (
-    <div className="min-h-screen transition-colors duration-300" style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-primary)' }}>
-
-      {/* HEADER */}
-      <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md transition-colors duration-300" style={{ backgroundColor: 'rgba(var(--color-bg-primary), 0.9)' }}>
-        <PageContainer>
+    <div 
+      className="min-h-screen w-full overflow-x-hidden transition-colors duration-300" 
+      style={{ 
+        backgroundColor: 'var(--color-bg-primary)', 
+        color: 'var(--color-text-primary)' 
+      }}
+    >
+      <header 
+        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md transition-colors duration-300" 
+        style={{ backgroundColor: 'rgba(var(--color-bg-primary), 0.9)' }}
+      >
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <MaxWidth>
             <Header />
           </MaxWidth>
-        </PageContainer>
-      </div>
+        </div>
+      </header>
 
-      {/* Spacer for fixed header */}
-      <div className="h-24" />
+      {/* Responsive spacer for fixed header */}
+      <div className="h-16 sm:h-20 md:h-24" aria-hidden="true" />
 
-        {/* HERO */}
-      <PageContainer>
-        <MaxWidth>
+      <main>
+        <Section>
           <Hero />
-        </MaxWidth>
-      </PageContainer>
+        </Section>
 
-        {/* HERO IMAGE */}
-      <PageContainer>
-        <MaxWidth>
+        <Section>
           <HeroImage />
-        </MaxWidth>
-      </PageContainer>
+        </Section>
 
-      {/* PARTNERS */}
-      <PageContainer>
-        <MaxWidth>
+        <Section>
           <Partners />
-        </MaxWidth>
-      </PageContainer>
+        </Section>
 
-      {/* TICKER */}
-      <PageContainer>
-        <Ticker />
-      </PageContainer>
+        <Section fullWidth>
+          <Ticker />
+        </Section>
 
-      {/* FAMOUS ARTISTS */}
-      <PageContainer>
-        <MaxWidth>
+        <Section>
           <FamousArtists />
-        </MaxWidth>
-      </PageContainer>
+        </Section>
 
-        <PageContainer>
-            <ArtistsList/>
-        </PageContainer>
-      {/* CALL TO ACTION */}
-      <PageContainer>
-        <MaxWidth>
+        <Section fullWidth>
+          <ArtistsList />
+        </Section>
+
+        <Section>
           <CallToAction />
-        </MaxWidth>
-      </PageContainer>
+        </Section>
 
-    <PageContainer>
-        <GenreTicker/>
-    </PageContainer>
+        <Section fullWidth>
+          <GenreTicker />
+        </Section>
 
-      {/* TESTIMONIAL */}
-      <PageContainer>
+        <Section fullWidth>
           <Testimonial />
-      </PageContainer>
+        </Section>
 
-      {/* DOWNLOAD APP */}
-      <PageContainer>
-        <MaxWidth>
+        <Section>
           <DownloadApp />
-        </MaxWidth>
-      </PageContainer>
+        </Section>
+      </main>
 
-      {/* FOOTER */}
-      <PageContainer>
-        <MaxWidth>
+      <footer>
+        <Section>
           <Footer />
-        </MaxWidth>
-      </PageContainer>
+        </Section>
+      </footer>
     </div>
   )
 }
