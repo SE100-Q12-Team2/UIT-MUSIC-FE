@@ -1,4 +1,8 @@
 import App from "@/app/App";
+import LoginPage from "@/features/auth/pages/LoginPage";
+import SignInPage from "@/features/auth/pages/SignInPage";
+import FAQPage from "@/features/settings/pages/faq";
+import PremiumSubscriptionsPage from "@/features/subscription/pages/PremiumSubscriptionsPage";
 import LazyLoad from "@/shared/components/common/LazyLoad";
 import { lazy } from "react";
 import { createBrowserRouter } from "react-router";
@@ -17,6 +21,14 @@ export const router = createBrowserRouter([
             index: true,
             element: <LazyLoad><LandingPage /></LazyLoad>
           },
+          {
+            path: "subscriptions",
+            element: <LazyLoad><PremiumSubscriptionsPage /></LazyLoad>
+          },
+          {
+            path: "faq",
+            element: <LazyLoad><FAQPage/></LazyLoad>
+          }
           // {
           //   path: 'music',
           //   element: <MusicPage />
@@ -59,10 +71,14 @@ export const router = createBrowserRouter([
           // }
         ]
       },
-      // {
-      //   path: 'login',
-      //   element: <LoginPage />
-      // },
+      {
+        path: 'login',
+        element: <LazyLoad><LoginPage /></LazyLoad>
+      },
+      {
+        path: 'signup',
+        element: <LazyLoad><SignInPage /></LazyLoad>
+      }
       // {
       //   path: '404',
       //   element: <NotFoundPage />

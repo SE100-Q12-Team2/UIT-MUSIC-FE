@@ -1,7 +1,7 @@
 import React from "react";
-import "../styles/auth.css";
-import facebookLogo from "../assets/facebook.png";
-import googleLogo from "../assets/google.png";
+import "../../../styles/auth.css";
+import facebookLogo from "../../../assets/facebook.png";
+import googleLogo from "../../../assets/google.png";
 
 const SignInPage: React.FC = () => {
   return (
