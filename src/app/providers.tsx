@@ -1,5 +1,9 @@
 import { ReactNode, useEffect, useState } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthContext, AuthUser } from '@/contexts/AuthContext';
+import { queryClient } from '@/config/query.config';
+import { ENV } from '@/config/env.config';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -8,12 +12,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Kiểm tra token trong localStorage
         const token = localStorage.getItem('auth_token');
         const savedUser = localStorage.getItem('user');
         
         if (token && savedUser) {
-          // Trong thực tế, bạn nên verify token với API
           setUser(JSON.parse(savedUser));
         }
       } catch (error) {
@@ -32,15 +34,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setIsLoading(true);
       
-      // TODO: Thay bằng API call thực tế
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password })
-      // });
-      // const data = await response.json();
-      
-      // Mock login - chỉ để demo
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const mockUser: AuthUser = {
@@ -68,14 +61,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setIsLoading(true);
       
-      // TODO: Thay bằng API call thực tế
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ name, email, password })
-      // });
-      
-      // Mock register
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const mockUser: AuthUser = {
@@ -131,8 +116,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const AppProviders = ({ children }: { children: ReactNode }) => {
   return (
-    <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
         {children}
-    </AuthProvider>
+      </AuthProvider>
+      {ENV.IS_DEVELOPMENT && <ReactQueryDevtools initialIsOpen={false} />}
+    </QueryClientProvider>
   );
 };

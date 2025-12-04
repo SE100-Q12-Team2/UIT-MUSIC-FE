@@ -1,4 +1,3 @@
-import React from 'react';
 import { Play, Heart } from 'lucide-react';
 import { ARTIST_UPDATES, ARTISTS_FOLLOW, DAILY_PICK_SONGS, GENRES, PERSONAL_SPACE, RECENTLY_PLAYED_BANNERS, TAILORED_PLAYLISTS } from '@/data/home.data';
 import { Button } from '@/shared/components/ui/button';
@@ -7,7 +6,7 @@ import SongRow from '@/features/home/components/SongRow';
 import { Input } from '@/shared/components/ui/input';
 import { SectionProps } from '@/features/home/types/home.types';
 
-const Section: React.FC<SectionProps> = ({ title, actionText = "See All", children }) => (
+const Section = ({ title, actionText = "See All", children }: SectionProps) => (
     <div className="px-8 py-6">
         <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">{title}</h2>
@@ -19,11 +18,10 @@ const Section: React.FC<SectionProps> = ({ title, actionText = "See All", childr
     </div>
 );
 
-const Home: React.FC = () => {
+const Home = () => {
   return (
     <div className="min-w-screen flex flex-col flex-1 overflow-y-auto pb-32 bg-linear-to-b from-vio-900 via-[#0a0a16] to-[#05050a]">
         
-        {/* Banner Section */}
         <section className="px-8 pt-6 pb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
             {RECENTLY_PLAYED_BANNERS.map((banner) => (
                 <div key={banner.id} className="relative h-40 rounded-xl overflow-hidden group cursor-pointer">
@@ -37,21 +35,18 @@ const Home: React.FC = () => {
             ))}
         </section>
 
-        {/* Playlists Tailored For You */}
         <Section title="Playlists Tailored For You">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {TAILORED_PLAYLISTS.map((item) => <Card key={item.id} data={item} />)}
             </div>
         </Section>
 
-        {/* Your Personal Music Space */}
         <Section title="Your Personal Music Space">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {PERSONAL_SPACE.map((item) => <Card key={item.id} data={item} />)}
             </div>
         </Section>
 
-        {/* Updates From Followed Artists */}
         <Section title="Updates From Followed Artists">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  {ARTIST_UPDATES.map((item) => (
@@ -67,7 +62,6 @@ const Home: React.FC = () => {
             </div>
         </Section>
 
-        {/* Daily Pick */}
         <Section title="Daily Pick">
             <div className="bg-[#13132b]/30 rounded-xl border border-white/5 overflow-hidden">
                 {DAILY_PICK_SONGS.map((song, idx) => (
@@ -78,7 +72,6 @@ const Home: React.FC = () => {
             </div>
         </Section>
 
-        {/* Artists You Follow */}
         <Section title="Artists You Follow">
             <div className="flex gap-8 overflow-x-auto pb-4 scrollbar-hide">
                 {ARTISTS_FOLLOW.map((artist) => (
@@ -95,10 +88,9 @@ const Home: React.FC = () => {
             </div>
         </Section>
 
-        {/* Discover Magic Banner */}
         <div className="px-8 py-8">
             <div className="relative rounded-2xl overflow-hidden h-80 flex items-center justify-center text-center bg-gray-900 border border-white/10">
-                <div className="absolute inset-0 bg-linear-to-b from-indigo-900/50 via-purple-900/50 to-indigo-900/50 z-0"></div>
+                <div className="absolute inset-0 bg-linear-to-b from-indigo-900/50 via-purple-900/50 to-indigo-900/50 z-0" />
                 <div className="relative z-10 p-8 flex flex-col items-center">
                     <h2 className="text-3xl font-bold text-white mb-6">Discover The Magic Of Series Musics With Viotune</h2>
                     <Button size="lg" className="rounded-full bg-white text-black hover:bg-gray-200 hover:scale-105 transition-transform font-semibold">
@@ -106,27 +98,18 @@ const Home: React.FC = () => {
                     </Button>
                     
                     <div className="mt-12 flex gap-4 opacity-50 blur-[1px]">
-                         {/* Decorative blurred cards at bottom of banner */}
                          {[1,2,3,4,5].map(i => (
-                             <div key={i} className="w-32 h-40 bg-gray-800 rounded-lg transform translate-y-8"></div>
+                             <div key={i} className="w-32 h-40 bg-gray-800 rounded-lg transform translate-y-8" />
                          ))}
                     </div>
                 </div>
             </div>
         </div>
 
-        {/* Genres */}
         <Section title="Genres You Interested In">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {GENRES.map(genre => (
                     <div key={genre.id} className="relative h-28 rounded-lg overflow-hidden cursor-pointer group">
-                        <img src={genre.coverUrl} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={genre.title} />
-                        <div className="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-colors" />
-                        <span className="absolute bottom-3 left-4 text-xl font-bold text-white">{genre.title}</span>
-                    </div>
-                ))}
-                 {GENRES.map(genre => (
-                    <div key={`${genre.id}-duplicate`} className="relative h-28 rounded-lg overflow-hidden cursor-pointer group md:hidden lg:block">
                         <img src={genre.coverUrl} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={genre.title} />
                         <div className="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-colors" />
                         <span className="absolute bottom-3 left-4 text-xl font-bold text-white">{genre.title}</span>

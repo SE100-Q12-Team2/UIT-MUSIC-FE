@@ -1,10 +1,9 @@
-import React from 'react';
 import { FAQSection, ContactSection } from '../components';
 import '@/styles/faq.css';
 import Footer from '@/shared/components/ui/footer';
 import backgroundSubscription from '@/assets/background-subscription.jpg';
 
-const FAQPage: React.FC = () => {
+const FAQPage = () => {
   return (
     <div 
       className="faq-page"
@@ -12,7 +11,7 @@ const FAQPage: React.FC = () => {
     >
       <FAQSection />
       <ContactSection />
-      <Footer/>
+      <Footer />
     </div>
   );
 };
