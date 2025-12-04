@@ -3,9 +3,10 @@ import LoginPage from "@/features/auth/pages/LoginPage";
 import SignInPage from "@/features/auth/pages/SignInPage";
 import FAQPage from "@/features/settings/pages/faq";
 import PremiumSubscriptionsPage from "@/features/subscription/pages/PremiumSubscriptionsPage";
+import NotFoundPage from "@/features/error/pages/NotFoundPage";
 import LazyLoad from "@/shared/components/common/LazyLoad";
 import { lazy } from "react";
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 
 const LandingPage = lazy(() => import('@/features/landing/pages/LandingPage'));
 
@@ -78,15 +79,15 @@ export const router = createBrowserRouter([
       {
         path: 'signup',
         element: <LazyLoad><SignInPage /></LazyLoad>
+      },
+      {
+        path: '404',
+        element: <NotFoundPage />
+      },
+      {
+        path: '*',
+        element: <Navigate to="/404" replace />
       }
-      // {
-      //   path: '404',
-      //   element: <NotFoundPage />
-      // },
-      // {
-      //   path: '*',
-      //   element: <Navigate to="/404" replace />
-      // }
     ]
   }
 ]);
