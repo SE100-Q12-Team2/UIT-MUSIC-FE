@@ -21,10 +21,6 @@ export const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
           {
-            index: true,
-            element: <LazyLoad><LandingPage /></LazyLoad>
-          },
-          {
             path: "home",
             element: <LazyLoad><Home /></LazyLoad>
           },
@@ -77,6 +73,10 @@ export const router = createBrowserRouter([
           //   element: <SettingsPage />
           // }
         ]
+      },
+      {
+          index: true,
+          element: <LazyLoad><LandingPage /></LazyLoad>
       },
       {
         path: 'login',

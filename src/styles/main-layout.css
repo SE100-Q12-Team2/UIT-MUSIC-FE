@@ -3,4 +3,25 @@
   min-height: 100vh;
   background: linear-gradient(180deg, #0a1628 0%, #0d1f3c 50%, #0a1628 100%);
   background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Body - contains sidebar and content */
+.main-layout__body {
+  display: flex;
+  flex: 1;
+  position: relative;
+}
+
+/* Content area */
+.main-layout__content {
+  flex: 1;
+  margin-left: 120px; /* 72px sidebar + 24px left margin + 24px gap */
+  transition: margin-left 0.3s ease;
+  min-width: 0;
+}
+
+.main-layout__content--sidebar-expanded {
+  margin-left: 264px; /* 216px expanded sidebar + 24px left margin + 24px gap */
 }

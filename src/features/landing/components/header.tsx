@@ -5,7 +5,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Link } from "react-router-dom"
 
 const Header = () => (
-  <header className="flex items-center justify-between pb-6 transition-colors duration-300"
+  <header className="flex items-center justify-between pb-6 pt-[20px] transition-colors duration-300"
     style={{ borderBottom: '1px solid var(--color-border)' }}>
     <div className="flex items-center gap-3">
       <img
