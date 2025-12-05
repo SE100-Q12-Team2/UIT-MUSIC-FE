@@ -1,36 +1,42 @@
 import { useState } from "react"
+import { useNavigate, useLocation } from "react-router"
 import { Button } from "@/components/ui/button"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import bgImage from "@/assets/forgot-password-bg.jpg"
 import { toast } from "sonner"
-import axios from "axios"
+import { authService } from "@/core/services/auth.service"
 
-interface EnterCodeProps {
-  email?: string;
-  onBack?: () => void;
-  onSuccess?: (code: string) => void;
-}
+export default function EnterCode() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const email = location.state?.email || ""
 
-export default function EnterCode({ email, onBack, onSuccess }: EnterCodeProps) {
+  // Redirect nếu không có email
+  if (!email) {
+    navigate("/forgot-password", { replace: true })
+    return null
+  }
   const [otp, setOtp] = useState("")
   const [error, setError] = useState("")
   const [isResending, setIsResending] = useState(false)
 
-  const RESEND_API_URL = "https://uit-music-production.up.railway.app/auth/otp"
-
   const handleSubmit = () => {
     setError("")
-    if (otp.length < 6) return setError("Please enter full 6-digit code")
-    if (onSuccess) onSuccess(otp)
+    if (otp.length < 6) {
+      return setError("Please enter full 6-digit code")
+    }
+    // OTP sẽ được verify khi reset password, không cần verify riêng
+    navigate("/forgot-password/reset", { state: { email, code: otp } })
   }
 
   const handleResendCode = async () => {
     setIsResending(true)
     try {
-      await axios.post(RESEND_API_URL, { email: email, type: "FORGOT_PASSWORD" })
+      await authService.resendOtp(email, "FORGOT_PASSWORD")
       toast.success("OTP Resent", { description: "Please check your email again." })
     } catch (err: any) {
-      toast.error("Failed", { description: "Could not resend OTP." })
+      const serverMsg = err?.message || err?.response?.data?.message || err?.response?.data?.description || "Could not resend OTP."
+      toast.error("Failed", { description: serverMsg })
     } finally {
       setIsResending(false)
     }
@@ -41,7 +47,7 @@ export default function EnterCode({ email, onBack, onSuccess }: EnterCodeProps) 
       {/* SỬA LỖI: Thêm aria-label */}
       <button 
         className="absolute top-6 left-6 p-2 rounded-full hover:bg-white/10 transition-all text-[#D8DFF5] bg-transparent" 
-        onClick={onBack}
+        onClick={() => navigate("/forgot-password")}
         aria-label="Back to Forgot Password Screen"
         title="Back"
       >

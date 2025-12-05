@@ -4,11 +4,15 @@ import SignInPage from "@/features/auth/pages/SignInPage";
 import NotFoundPage from "@/features/error/pages/NotFoundPage";
 import LazyLoad from "@/shared/components/common/LazyLoad";
 import MainLayout from "@/shared/layouts/MainLayout";
+import AppLayout from "@/shared/layouts/AppLayout";
 import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
 import { PremiumSubscriptionsPage } from "@/features/subscription/pages/PremiumSubscriptionsPage";
 import Home from "@/features/home/pages/HomePage";
 import SettingsPage from "@/features/settings/pages/SettingsPage";
+import ForgotPassword from "@/features/auth/pages/ForgotPassword";
+import EnterCode from "@/features/auth/pages/EnterCode";
+import ResetPassword from "@/features/auth/pages/ResetPassword";
 
 const LandingPage = lazy(() => import('@/features/landing/pages/LandingPage'));
 
@@ -24,6 +28,11 @@ export const router = createBrowserRouter([
             index: true,
             element: <LazyLoad><LandingPage /></LazyLoad>
           },
+        ]
+      },
+      {
+        element: <AppLayout />,
+        children: [
           {
             path: "home",
             element: <LazyLoad><Home /></LazyLoad>
@@ -85,6 +94,18 @@ export const router = createBrowserRouter([
       {
         path: 'signup',
         element: <LazyLoad><SignInPage /></LazyLoad>
+      },
+      {
+        path: 'forgot-password',
+        element: <LazyLoad><ForgotPassword /></LazyLoad>
+      },
+      {
+        path: 'forgot-password/enter-code',
+        element: <LazyLoad><EnterCode /></LazyLoad>
+      },
+      {
+        path: 'forgot-password/reset',
+        element: <LazyLoad><ResetPassword /></LazyLoad>
       },
       {
         path: '404',

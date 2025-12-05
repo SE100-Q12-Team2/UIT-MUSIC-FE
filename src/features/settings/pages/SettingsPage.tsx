@@ -7,6 +7,7 @@ import FAQContent from '../components/FAQContent';
 import { usePageBackground } from '@/shared/hooks/usePageBackground';
 import backgroundSettings from '@/assets/background-settings.png';
 import '@/styles/settings.css';
+import '@/styles/profile.css';
 import '@/styles/contact.css';
 import '@/styles/faq.css';
 

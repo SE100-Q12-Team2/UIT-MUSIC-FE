@@ -43,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.error('Auth check failed:', error);
         localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
       } finally {
         setIsLoading(false);
@@ -61,10 +62,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       persistSession({ accessToken: response.accessToken, refreshToken: response.refreshToken }, sessionUser);
       setUser(sessionUser);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
-      const message =
-        (error as { message?: string })?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+      
+      // Trích xuất thông báo lỗi từ API response
+      let message = 'Đăng nhập thất bại. Vui lòng thử lại.';
+      
+      if (error?.message) {
+        message = error.message;
+      } else if (error?.response?.data?.message) {
+        message = error.response.data.message;
+      } else if (error?.response?.data?.description) {
+        message = error.response.data.description;
+      } else if (typeof error === 'string') {
+        message = error;
+      }
+      
       throw new Error(message);
     } finally {
       setIsLoading(false);
@@ -74,24 +87,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (name: string, email: string, password: string) => {
     try {
       setIsLoading(true);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockUser: AuthUser = {
-        id: Date.now().toString(),
-        name: name,
-        email: email,
-        avatar: 'https://via.placeholder.com/150'
+
+      const response = await authService.register({ name, email, password });
+      const sessionUser: AuthUser = {
+        id: response.user.id,
+        name: response.user.name,
+        email: response.user.email,
+        avatar: response.user.avatar,
+        isAdmin: response.user.isAdmin,
       };
-      
-      const mockToken = 'mock-jwt-token-' + Date.now();
-      
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
-    } catch (error) {
+
+      persistSession(
+        { accessToken: response.token, refreshToken: response.refreshToken || '' },
+        sessionUser
+      );
+      setUser(sessionUser);
+    } catch (error: any) {
       console.error('Register failed:', error);
-      throw new Error('Đăng ký thất bại. Vui lòng thử lại.');
+      
+      // Trích xuất thông báo lỗi từ API response
+      let message = 'Đăng ký thất bại. Vui lòng thử lại.';
+      
+      if (error?.message) {
+        message = error.message;
+      } else if (error?.response?.data?.message) {
+        message = error.response.data.message;
+      } else if (error?.response?.data?.description) {
+        message = error.response.data.description;
+      } else if (typeof error === 'string') {
+        message = error;
+      }
+      
+      throw new Error(message);
     } finally {
       setIsLoading(false);
     }

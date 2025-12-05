@@ -1,21 +1,17 @@
 import { useState } from "react"
+import { useNavigate } from "react-router"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import bgImage from "@/assets/forgot-password-bg.jpg"
 import { toast } from "sonner" 
-import axios from "axios"
+import { authService } from "@/core/services/auth.service"
 
-interface ForgotPasswordProps {
-  onSuccess?: (email: string) => void;
-}
-
-export default function ForgotPassword({ onSuccess }: ForgotPasswordProps) {
+export default function ForgotPassword() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-
-  const API_URL = "https://uit-music-production.up.railway.app/auth/forgot-password"
 
   const handleSubmit = async () => {
     setError("")
@@ -26,12 +22,15 @@ export default function ForgotPassword({ onSuccess }: ForgotPasswordProps) {
     setIsLoading(true)
 
     try {
-      await axios.post(API_URL, { email })
+      await authService.forgotPassword(email)
       toast.success("Success", { description: "OTP sent to email.", duration: 3000 })
-      if (onSuccess) setTimeout(() => onSuccess(email), 1000)
+      setTimeout(() => {
+        navigate("/forgot-password/enter-code", { state: { email } })
+      }, 1000)
     } catch (err: any) {
       console.error("API Error:", err)
-      const serverMsg = err.response?.data?.description || "Email not found."
+      // Xử lý các loại lỗi từ API
+      const serverMsg = err?.message || err?.response?.data?.message || err?.response?.data?.description || "Email không tồn tại trong hệ thống."
       setError(serverMsg)
       toast.error("Failed", { description: serverMsg })
     } finally {
@@ -44,7 +43,7 @@ export default function ForgotPassword({ onSuccess }: ForgotPasswordProps) {
       {/* SỬA LỖI: Thêm aria-label cho người khiếm thị + title cho người dùng thường */}
       <button 
         className="absolute top-6 left-6 p-2 rounded-full hover:bg-white/10 transition-all text-[#D8DFF5] bg-transparent"
-        onClick={() => alert("Back to Login")}
+        onClick={() => navigate("/login")}
         disabled={isLoading}
         aria-label="Back to Login Screen" 
         title="Back to Login"

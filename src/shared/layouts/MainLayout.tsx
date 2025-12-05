@@ -1,6 +1,5 @@
 import React from 'react';
 import { Outlet } from 'react-router';
-import Footer from '@/shared/components/ui/footer';
 import { useBackground } from '@/contexts/BackgroundContext';
 import '@/styles/main-layout.css';
 
@@ -19,7 +18,6 @@ const MainLayout: React.FC = () => {
       } : undefined}
     >
       <Outlet />
-      <Footer />
     </div>
   );
 };

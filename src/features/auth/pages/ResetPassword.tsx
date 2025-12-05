@@ -1,55 +1,79 @@
 import { useState } from "react"
+import { useNavigate, useLocation } from "react-router"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import bgImage from "@/assets/forgot-password-bg.jpg"
 import { toast } from "sonner"
-import axios from "axios"
+import { authService } from "@/core/services/auth.service"
 
-interface ResetPasswordProps {
-  email?: string;
-  code?: string;
-  onBack?: () => void;
-  onSuccess?: () => void;
-}
+export default function ResetPassword() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { email, code } = location.state || {}
 
-export default function ResetPassword({ code, onBack, onSuccess }: ResetPasswordProps) {
+  // Redirect nếu không có email hoặc code
+  if (!email || !code) {
+    navigate("/forgot-password/enter-code", { replace: true, state: { email } })
+    return null
+  }
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const API_URL = "https://uit-music-production.up.railway.app/auth/reset-password"
+  const validatePassword = (password: string): string | null => {
+    if (password.length < 6) {
+      return "Mật khẩu phải có ít nhất 6 ký tự"
+    }
+    if (password.length > 50) {
+      return "Mật khẩu không được vượt quá 50 ký tự"
+    }
+    // Có thể thêm các validation khác như yêu cầu chữ hoa, số, ký tự đặc biệt
+    return null
+  }
 
   const handleSubmit = async () => {
     setError("")
-    if (!newPassword || !confirmPassword) return setError("Please fill all fields")
-    if (newPassword.length < 6) return setError("Password too short (min 6 chars)")
+    
+    // Validation cơ bản
+    if (!newPassword || !confirmPassword) {
+      return setError("Vui lòng điền đầy đủ các trường")
+    }
+    
+    const passwordError = validatePassword(newPassword)
+    if (passwordError) {
+      return setError(passwordError)
+    }
     
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match")
-      return
+      return setError("Mật khẩu xác nhận không khớp")
     }
 
     setIsLoading(true)
 
     try {
-      await axios.post(API_URL, {
-        resetToken: code,
-        newPassword: newPassword,
-        confirmNewPassword: confirmPassword
-      })
-
-      toast.success("Success", { description: "Password reset successful", duration: 3000 })
-      if (onSuccess) setTimeout(() => onSuccess(), 1500)
+      await authService.resetPassword(code, newPassword, confirmPassword)
+      toast.success("Success", { description: "Đặt lại mật khẩu thành công", duration: 3000 })
+      setTimeout(() => {
+        navigate("/login")
+      }, 1500)
 
     } catch (err: any) {
-      console.error("Error:", err)
-      const serverMsg = err.response?.data?.description || "Invalid OTP or request failed."
+      console.error("Reset Password Error:", err)
+      const serverMsg = err?.message || err?.response?.data?.message || err?.response?.data?.description || "Đặt lại mật khẩu thất bại."
       
-      if (serverMsg.toLowerCase().includes("otp")) {
-        setError("Invalid OTP Code. Please go back and try again.")
-        toast.error("Failed", { description: "Incorrect verification code." })
+      // Xử lý các loại lỗi cụ thể
+      const errorMsg = serverMsg.toLowerCase()
+      if (errorMsg.includes("otp") || errorMsg.includes("code") || errorMsg.includes("token")) {
+        setError("Mã xác nhận không hợp lệ. Vui lòng quay lại và thử lại.")
+        toast.error("Failed", { description: "Mã xác nhận không hợp lệ." })
+      } else if (errorMsg.includes("same") || errorMsg.includes("giống") || errorMsg.includes("cũ")) {
+        setError("Mật khẩu mới phải khác mật khẩu cũ")
+        toast.error("Failed", { description: "Mật khẩu mới phải khác mật khẩu cũ" })
+      } else if (errorMsg.includes("invalid") || errorMsg.includes("không hợp lệ")) {
+        setError("Mật khẩu không hợp lệ. Vui lòng kiểm tra lại.")
+        toast.error("Failed", { description: serverMsg })
       } else {
         setError(serverMsg)
         toast.error("Failed", { description: serverMsg })
@@ -64,7 +88,7 @@ export default function ResetPassword({ code, onBack, onSuccess }: ResetPassword
       {/* SỬA LỖI: Thêm aria-label */}
       <button 
         className="absolute top-6 left-6 p-2 rounded-full hover:bg-white/10 transition-all text-[#D8DFF5] bg-transparent" 
-        onClick={onBack} 
+        onClick={() => navigate("/forgot-password/enter-code", { state: { email } })} 
         disabled={isLoading}
         aria-label="Back to Enter Code Screen"
         title="Back"

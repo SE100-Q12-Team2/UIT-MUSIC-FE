@@ -35,12 +35,13 @@ export interface AuthResponse {
 
 export interface UserProfile {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
-  avatar?: string;
-  bio?: string;
-  favoriteGenres?: string[];
+  profileImage?: string;
+  dateOfBirth?: string;
+  gender?: 'Male' | 'Female' | 'Other';
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export const authService = {
@@ -59,31 +60,35 @@ export const authService = {
   },
 
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
-    return api.post<AuthResponse>('/api/auth/register', data);
+    return api.post<AuthResponse>('/auth/register', data);
   },
 
-  logout: async (): Promise<void> => {
-    return api.post<void>('/api/auth/logout');
+  logout: async (refreshToken: string): Promise<void> => {
+    return api.post<void>('/auth/logout', { refreshToken });
   },
 
   getProfile: async (): Promise<UserProfile> => {
-    return api.get<UserProfile>('/api/auth/profile');
+    return api.get<UserProfile>('/profile');
   },
 
   updateProfile: async (data: Partial<UserProfile>): Promise<UserProfile> => {
-    return api.put<UserProfile>('/api/auth/profile', data);
+    return api.patch<UserProfile>('/profile', data);
   },
 
-  changePassword: async (oldPassword: string, newPassword: string): Promise<void> => {
-    return api.post<void>('/api/auth/change-password', { oldPassword, newPassword });
+  changePassword: async (password: string, newPassword: string, confirmPassword: string): Promise<void> => {
+    return api.patch<void>('/profile/change-password', { password, newPassword, confirmPassword });
   },
 
   forgotPassword: async (email: string): Promise<void> => {
-    return api.post<void>('/api/auth/forgot-password', { email });
+    return api.post<void>('/auth/forgot-password', { email });
   },
 
-  resetPassword: async (token: string, newPassword: string): Promise<void> => {
-    return api.post<void>('/api/auth/reset-password', { token, newPassword });
+  resendOtp: async (email: string, type: string = 'FORGOT_PASSWORD'): Promise<void> => {
+    return api.post<void>('/auth/otp', { email, type });
+  },
+
+  resetPassword: async (resetToken: string, newPassword: string, confirmNewPassword: string): Promise<void> => {
+    return api.post<void>('/auth/reset-password', { resetToken, newPassword, confirmNewPassword });
   },
 };
 
@@ -117,7 +122,13 @@ export const useRegister = () => {
 
 export const useLogout = () => {
   return useMutation({
-    mutationFn: () => authService.logout(),
+    mutationFn: () => {
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        throw new Error('No refresh token found');
+      }
+      return authService.logout(refreshToken);
+    },
     onSuccess: () => {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('refresh_token');
@@ -143,8 +154,8 @@ export const useUpdateProfile = () => {
 
 export const useChangePassword = () => {
   return useMutation({
-    mutationFn: ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }) =>
-      authService.changePassword(oldPassword, newPassword),
+    mutationFn: ({ password, newPassword, confirmPassword }: { password: string; newPassword: string; confirmPassword: string }) =>
+      authService.changePassword(password, newPassword, confirmPassword),
   });
 };
 

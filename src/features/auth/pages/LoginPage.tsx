@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import "../../../styles/auth.css";
 import facebookLogo from "../../../assets/facebook.png";
 import googleLogo from "../../../assets/google.png";
@@ -7,6 +7,7 @@ import { Input } from "@/shared/components/ui/input";
 import { useLoginForm } from "../hooks/useLoginForm";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const {
     email,
     password,
@@ -61,9 +62,9 @@ const LoginPage = () => {
               Remember Me
             </label>
 
-            <button type="button" className="link-button">
+            <Link to="/forgot-password" className="link-button">
               Forget Password ?
-            </button>
+            </Link>
           </div>
 
           <Button

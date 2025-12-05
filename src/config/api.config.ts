@@ -100,9 +100,18 @@ const createApiClient = (): AxiosInstance => {
       const status = error.response?.status;
 
       if (status === 401 && originalRequest) {
-        const isAuthEndpoint = (originalRequest.url || '').includes('/auth/');
+        const requestUrl = originalRequest.url || '';
+        const isLoginEndpoint = requestUrl.includes('/auth/login');
+        const isRegisterEndpoint = requestUrl.includes('/auth/register') || requestUrl.includes('/auth/signup');
+        const isAuthEndpoint = requestUrl.includes('/auth/');
         const refreshToken = localStorage.getItem('refresh_token');
 
+        // Không redirect nếu đang login/register - để lỗi được hiển thị cho user
+        if (isLoginEndpoint || isRegisterEndpoint) {
+          return Promise.reject(error);
+        }
+
+        // Nếu là endpoint auth khác hoặc không có refresh token, redirect
         if (isAuthEndpoint || !refreshToken) {
           redirectToLogin();
           return Promise.reject(error);
@@ -196,10 +205,11 @@ export const apiRequest = async <T = unknown>(
     return (response.data.data || response.data) as T;
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      const responseData = error.response?.data;
       const apiError: ApiError = {
-        message: error.response?.data?.message || error.message,
+        message: responseData?.message || responseData?.description || responseData?.error || error.message,
         status: error.response?.status,
-        errors: error.response?.data?.errors,
+        errors: responseData?.errors,
       };
       throw apiError;
     }

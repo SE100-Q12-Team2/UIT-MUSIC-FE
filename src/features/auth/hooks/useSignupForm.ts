@@ -1,4 +1,6 @@
 import { useState, FormEvent } from "react";
+import { useNavigate } from "react-router";
+import { useAuth } from "@/shared/hooks/useAuth";
 
 interface SignupFormData {
   username: string;
@@ -14,6 +16,8 @@ export const useSignupForm = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { register } = useAuth();
 
   const handleFieldChange = (field: keyof SignupFormData) => (value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -26,8 +30,8 @@ export const useSignupForm = () => {
     setError(null);
     
     try {
-      console.log("Sign up:", formData);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await register(formData.username, formData.email, formData.password);
+      navigate('/home', { replace: true });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Sign up failed";
       setError(errorMessage);
