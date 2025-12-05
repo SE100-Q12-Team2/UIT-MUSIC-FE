@@ -4,6 +4,28 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthContext, AuthUser } from '@/contexts/AuthContext';
 import { queryClient } from '@/config/query.config';
 import { ENV } from '@/config/env.config';
+import { authService } from '@/core/services/auth.service';
+
+const buildFallbackUser = (email: string): AuthUser => {
+  const generatedId =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : Date.now().toString();
+
+  const guessedName = email?.split('@')?.[0] || 'User';
+
+  return {
+    id: generatedId,
+    name: guessedName,
+    email,
+  };
+};
+
+const persistSession = (tokens: { accessToken: string; refreshToken: string }, user: AuthUser) => {
+  localStorage.setItem('auth_token', tokens.accessToken);
+  localStorage.setItem('refresh_token', tokens.refreshToken);
+  localStorage.setItem('user', JSON.stringify(user));
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -33,25 +55,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockUser: AuthUser = {
-        id: '1',
-        name: 'Người dùng',
-        email: email,
-        avatar: 'https://via.placeholder.com/150',
-        isAdmin: false
-      };
-      
-      const mockToken = 'mock-jwt-token-' + Date.now();
-      
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
+
+      const response = await authService.login({ email, password });
+      const sessionUser = response.user ?? buildFallbackUser(email);
+
+      persistSession({ accessToken: response.accessToken, refreshToken: response.refreshToken }, sessionUser);
+      setUser(sessionUser);
     } catch (error) {
       console.error('Login failed:', error);
-      throw new Error('Đăng nhập thất bại. Vui lòng thử lại.');
+      const message =
+        (error as { message?: string })?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+      throw new Error(message);
     } finally {
       setIsLoading(false);
     }
@@ -85,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
     setUser(null);
   };
