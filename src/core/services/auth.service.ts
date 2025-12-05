@@ -1,10 +1,17 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query.config';
 import api from '@/config/api.config';
+import { AuthUser } from '@/contexts/AuthContext';
 
 export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  user?: AuthUser;
 }
 
 export interface RegisterRequest {
@@ -37,8 +44,18 @@ export interface UserProfile {
 }
 
 export const authService = {
-  login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-    return api.post<AuthResponse>('/api/auth/login', credentials);
+  login: async (credentials: LoginRequest): Promise<LoginResponse> => {
+    const response = await api.post<LoginResponse>('/auth/login', credentials);
+
+    if (!response.accessToken || !response.refreshToken) {
+      throw new Error('Máy chủ không trả về thông tin xác thực hợp lệ.');
+    }
+
+    return response;
+  },
+
+  refresh: async (refreshToken: string): Promise<LoginResponse> => {
+    return api.post<LoginResponse>('/auth/refresh', { refreshToken });
   },
 
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
@@ -74,8 +91,10 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (credentials: LoginRequest) => authService.login(credentials),
     onSuccess: (data) => {
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('auth_token', data.accessToken);
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
       if (data.refreshToken) {
         localStorage.setItem('refresh_token', data.refreshToken);
       }

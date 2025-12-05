@@ -14,6 +14,33 @@ export interface ApiError {
   errors?: Record<string, string[]>;
 }
 
+type FailedRequest = {
+  resolve: (token: string | null) => void;
+  reject: (error: unknown) => void;
+};
+
+let isRefreshing = false;
+let failedQueue: FailedRequest[] = [];
+
+const processQueue = (error: unknown | null, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
+
+const redirectToLogin = () => {
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user');
+  window.location.href = '/login';
+};
+
 const createApiClient = (): AxiosInstance => {
   const instance = axios.create({
     baseURL: ENV.API_BASE_URL,
@@ -69,13 +96,82 @@ const createApiClient = (): AxiosInstance => {
         });
       }
 
-      if (error.response?.status === 401) {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+      const originalRequest = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
+      const status = error.response?.status;
+
+      if (status === 401 && originalRequest) {
+        const isAuthEndpoint = (originalRequest.url || '').includes('/auth/');
+        const refreshToken = localStorage.getItem('refresh_token');
+
+        if (isAuthEndpoint || !refreshToken) {
+          redirectToLogin();
+          return Promise.reject(error);
+        }
+
+        if (originalRequest._retry) {
+          redirectToLogin();
+          return Promise.reject(error);
+        }
+
+        if (isRefreshing) {
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          })
+            .then((token) => {
+              if (!originalRequest.headers) {
+                originalRequest.headers = {};
+              }
+              originalRequest.headers.Authorization = token ? `Bearer ${token}` : '';
+              return instance(originalRequest);
+            })
+            .catch(err => Promise.reject(err));
+        }
+
+        originalRequest._retry = true;
+        isRefreshing = true;
+
+        return new Promise(async (resolve, reject) => {
+          try {
+            const refreshResponse = await axios.post(
+              `${ENV.API_BASE_URL.replace(/\/$/, '')}/auth/refresh`,
+              { refreshToken },
+              { headers: { 'Content-Type': 'application/json' } }
+            );
+
+            const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data as {
+              accessToken: string;
+              refreshToken?: string;
+            };
+
+            if (!accessToken) {
+              throw new Error('Invalid refresh response');
+            }
+
+            localStorage.setItem('auth_token', accessToken);
+            if (newRefreshToken) {
+              localStorage.setItem('refresh_token', newRefreshToken);
+            }
+
+            instance.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+            processQueue(null, accessToken);
+
+            if (!originalRequest.headers) {
+              originalRequest.headers = {};
+            }
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
+            resolve(instance(originalRequest));
+          } catch (refreshError) {
+            processQueue(refreshError, null);
+            redirectToLogin();
+            reject(refreshError);
+          } finally {
+            isRefreshing = false;
+          }
+        });
       }
 
-      if (error.response?.status === 403) {
+      if (status === 403) {
         console.error('Access forbidden');
       }
 
