@@ -1,4 +1,6 @@
 import { useState, FormEvent } from "react";
+import { useNavigate } from "react-router";
+import { useAuth } from "@/shared/hooks/useAuth";
 
 interface LoginFormData {
   email: string;
@@ -14,6 +16,8 @@ export const useLoginForm = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleEmailChange = (email: string) => {
     setFormData(prev => ({ ...prev, email }));
@@ -35,12 +39,11 @@ export const useLoginForm = () => {
     setError(null);
     
     try {
-      console.log("Login:", formData);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await login(formData.email, formData.password);
+      navigate('/home', { replace: true });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Login failed";
       setError(errorMessage);
-      console.error("Login failed:", err);
     } finally {
       setIsLoading(false);
     }

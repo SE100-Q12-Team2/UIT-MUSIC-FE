@@ -73,6 +73,12 @@ const LoginPage = () => {
           >
             {isLoading ? "LOGGING IN..." : "LOGIN"}
           </Button>
+
+          {error && (
+            <p className="auth-error" role="alert">
+              {error}
+            </p>
+          )}
         </form>
 
         <div className="auth-social-wrapper">
