@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { SubscriptionPlan } from "@/types/subscription.types";
-import { fetchSubscriptionPlans } from "../../features/subscription/services/subscription.service";
+import { fetchSubscriptionPlans } from "../../core/services/subscription.service";
 
 interface UseSubscriptionPlansResult {
   plans: SubscriptionPlan[];
