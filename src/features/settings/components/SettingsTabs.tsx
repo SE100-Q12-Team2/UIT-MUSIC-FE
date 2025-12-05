@@ -9,7 +9,7 @@ interface SettingsTabsProps {
 
 const tabs: { id: SettingsTab; label: string }[] = [
   { id: 'profile', label: 'Profile' },
-  { id: 'details', label: 'Detailes' },
+  { id: 'details', label: 'Details' },
   { id: 'contact', label: 'Contact Us' },
   { id: 'faq', label: 'FAQ' },
 ];
