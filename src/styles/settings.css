@@ -1,0 +1,84 @@
+/* Settings Page Styles */
+.settings-page {
+  min-height: 100vh;
+  padding: 40px 20px;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Settings Tabs */
+.settings-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 60px;
+  margin-bottom: 40px;
+}
+
+.settings-tabs__item {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  text-transform: capitalize;
+  color: var(--color-primary-20);
+  background: transparent;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-tabs__item:hover {
+  color: var(--color-white-10);
+  background: rgba(114, 138, 171, 0.4);
+}
+
+.settings-tabs__item--active {
+  color: var(--color-white-10);
+  background: rgba(114, 138, 171, 0.64); /* #728AABA3 */
+}
+
+/* Settings Content */
+.settings-page__content {
+  width: 100%;
+}
+
+.settings-content {
+  width: 100%;
+}
+
+/* Placeholder for empty screens */
+.settings-content__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.settings-content__placeholder h2 {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--color-white-10);
+  margin: 0 0 16px;
+}
+
+.settings-content__placeholder p {
+  font-size: 16px;
+  color: var(--color-white-60);
+  margin: 0;
+}
+
+/* Override contact and faq page styles when used as content */
+.contact-content .contact-form-section,
+.faq-content .faq-section {
+  margin-top: 0;
+}
+
+.contact-content,
+.faq-content {
+  padding: 0 40px;
+}

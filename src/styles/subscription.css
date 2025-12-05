@@ -1,9 +1,5 @@
 .subscription-page {
   min-height: 100vh;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
   padding: 4rem 1rem 0;
   display: flex;
   flex-direction: column;
