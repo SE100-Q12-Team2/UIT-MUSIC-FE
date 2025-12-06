@@ -1,7 +1,7 @@
 /* Settings Page Styles */
 .settings-page {
   min-height: 100vh;
-  padding: 40px 20px;
+  padding: 10px 10px;
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 

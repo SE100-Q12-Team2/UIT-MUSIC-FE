@@ -5,9 +5,9 @@
   top: 50%;
   transform: translateY(-50%);
   width: 72px;
-  height: calc(100vh - 180px); /* Increased height */
+  height: calc(100vh - 250px); 
   min-height: 600px;
-  max-height: 888px;
+  max-height: none; 
   border-radius: 8px;
   background: rgba(78, 108, 150, 0.4); /* #4E6C9666 */
   box-shadow: inset 4px 4px 4px 0px rgba(255, 255, 255, 0.11); /* #FFFFFF1C */
@@ -113,12 +113,4 @@
 
 .sidebar__item--active .sidebar__label {
   color: var(--color-primary-100);
-}
-
-/* Responsive adjustments */
-@media (max-height: 900px) {
-  .sidebar {
-    height: auto;
-    max-height: calc(100vh - 48px);
-  }
 }

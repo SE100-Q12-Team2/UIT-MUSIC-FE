@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router';
 import homeIcon from '@/assets/home-icon.svg';
 import homeClickIcon from '@/assets/home-click-icon.svg';
@@ -40,7 +40,43 @@ const bottomNavItems: NavItem[] = [
 
 const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [bottomOffset, setBottomOffset] = useState<number | null>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
   const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const footer = document.querySelector('footer');
+      const sidebar = sidebarRef.current;
+      
+      if (!footer || !sidebar) return;
+      
+      const footerRect = footer.getBoundingClientRect();
+      const sidebarHeight = sidebar.offsetHeight;
+      const viewportHeight = window.innerHeight;
+      
+      // Calculate sidebar bottom position (when centered at 50%)
+      const sidebarBottom = (viewportHeight / 2) + (sidebarHeight / 2);
+      
+      // Check if sidebar bottom would go past footer top
+      if (footerRect.top < sidebarBottom) {
+        // Calculate how much to move sidebar up
+        const newBottom = viewportHeight - footerRect.top + 20; // 20px gap
+        setBottomOffset(newBottom);
+      } else {
+        setBottomOffset(null);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleScroll);
+    handleScroll(); // Check initial state
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
 
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
@@ -56,9 +92,17 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
     onExpandChange?.(false);
   };
 
+  const sidebarStyle: React.CSSProperties | undefined = bottomOffset !== null ? {
+    top: 'auto',
+    bottom: `${bottomOffset}px`,
+    transform: 'none'
+  } : undefined;
+
   return (
     <aside 
+      ref={sidebarRef}
       className={`sidebar ${isExpanded ? 'sidebar--expanded' : ''}`}
+      style={sidebarStyle}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
