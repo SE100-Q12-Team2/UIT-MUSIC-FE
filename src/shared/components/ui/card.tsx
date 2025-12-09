@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
-import { Playlist } from "@/types";
+import { Playlist } from "@/types/playlist.types";
 
 interface CardProps extends React.ComponentProps<"div"> {
   data?: Playlist; // Replace with your actual Playlist type
