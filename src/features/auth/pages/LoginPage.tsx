@@ -4,7 +4,6 @@ import facebookLogo from "../../../assets/facebook.png";
 import googleLogo from "../../../assets/google.png";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -64,25 +63,9 @@ const LoginPage = () => {
             />
 
             <div className="auth-extra-row">
-              <FormField
-                control={form.control}
-                name="rememberMe"
-                render={({ field }) => (
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel className="cursor-pointer">Remember Me</FormLabel>
-                  </FormItem>
-                )}
-              />
-
-              <button type="button" className="link-button">
+              <Button type="button" className="link-button">
                 Forget Password ?
-              </button>
+              </Button>
             </div>
 
             <Button

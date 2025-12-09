@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setIsLoading(true);
       
-      const response = await authService.register({ 
+      await authService.register({ 
         fullName, 
         email, 
         password, 
@@ -123,7 +123,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       cookieStorage.setItem('registered_email', email, { days: 1, secure: ENV.IS_PRODUCTION });
       
-      console.log('Registration successful:', response);
     } catch (error) {
       console.error('Register failed:', error);
       const message =
