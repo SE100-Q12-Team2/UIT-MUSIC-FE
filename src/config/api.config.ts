@@ -24,7 +24,7 @@ const processQueue = (error: unknown | null, token: string | null = null) => {
 };
 
 const redirectToLogin = () => {
-  cookieStorage.removeItem('auth_token');
+  cookieStorage.removeItem('access_token');
   cookieStorage.removeItem('refresh_token');
   cookieStorage.removeItem('user');
   window.location.href = '/login';
@@ -42,7 +42,7 @@ const createApiClient = (): AxiosInstance => {
 
   instance.interceptors.request.use(
     (config) => {
-      const token = cookieStorage.getItem('auth_token');
+      const token = cookieStorage.getItem('access_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -137,7 +137,7 @@ const createApiClient = (): AxiosInstance => {
                 throw new Error('Invalid refresh response');
               }
 
-              cookieStorage.setItem('auth_token', accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
+              cookieStorage.setItem('access_token', accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
               if (newRefreshToken) {
                 cookieStorage.setItem('refresh_token', newRefreshToken, { days: 30, secure: ENV.IS_PRODUCTION });
               }

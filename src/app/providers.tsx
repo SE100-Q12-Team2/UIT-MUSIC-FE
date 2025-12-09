@@ -8,7 +8,7 @@ import { authService } from '@/core/services/auth.service';
 import { cookieStorage } from '@/shared/utils/cookies';
 
 const persistSession = (tokens: { accessToken: string; refreshToken: string }) => {
-  cookieStorage.setItem('auth_token', tokens.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
+  cookieStorage.setItem('access_token', tokens.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
   cookieStorage.setItem('refresh_token', tokens.refreshToken, { days: 30, secure: ENV.IS_PRODUCTION });
 };
 
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = cookieStorage.getItem('auth_token');
+        const token = cookieStorage.getItem('access_token');
         const savedUser = cookieStorage.getItem('user');
         
         if (token && savedUser) {
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         console.error('Auth check failed:', error);
-        cookieStorage.removeItem('auth_token');
+        cookieStorage.removeItem('access_token');
         cookieStorage.removeItem('refresh_token');
         cookieStorage.removeItem('user');
       } finally {
@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    cookieStorage.removeItem('auth_token');
+    cookieStorage.removeItem('access_token');
     cookieStorage.removeItem('refresh_token');
     cookieStorage.removeItem('user');
     setUser(null);
