@@ -5,26 +5,15 @@ import { AuthContext, AuthUser } from '@/contexts/AuthContext';
 import { queryClient } from '@/config/query.config';
 import { ENV } from '@/config/env.config';
 import { authService } from '@/core/services/auth.service';
+import { cookieStorage } from '@/shared/utils/cookies';
 
-const buildFallbackUser = (email: string): AuthUser => {
-  const generatedId =
-    typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID()
-      : Date.now().toString();
-
-  const guessedName = email?.split('@')?.[0] || 'User';
-
-  return {
-    id: generatedId,
-    name: guessedName,
-    email,
-  };
+const persistSession = (tokens: { accessToken: string; refreshToken: string }) => {
+  cookieStorage.setItem('auth_token', tokens.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
+  cookieStorage.setItem('refresh_token', tokens.refreshToken, { days: 30, secure: ENV.IS_PRODUCTION });
 };
 
-const persistSession = (tokens: { accessToken: string; refreshToken: string }, user: AuthUser) => {
-  localStorage.setItem('auth_token', tokens.accessToken);
-  localStorage.setItem('refresh_token', tokens.refreshToken);
-  localStorage.setItem('user', JSON.stringify(user));
+const persistUser = (user: AuthUser) => {
+  cookieStorage.setItem('user', JSON.stringify(user), { days: 30, secure: ENV.IS_PRODUCTION });
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -34,16 +23,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('auth_token');
-        const savedUser = localStorage.getItem('user');
+        const token = cookieStorage.getItem('auth_token');
+        const savedUser = cookieStorage.getItem('user');
         
         if (token && savedUser) {
-          setUser(JSON.parse(savedUser));
+          const parsedUser = JSON.parse(savedUser) as AuthUser;
+          setUser(parsedUser);
+          
+          try {
+            const profile = await authService.getProfile();
+            const freshUser: AuthUser = {
+              id: profile.id,
+              email: profile.email,
+              fullName: profile.fullName,
+              profileImage: profile.profileImage,
+              accountStatus: profile.accountStatus,
+              roleId: profile.roleId,
+              role: profile.role,
+            };
+            setUser(freshUser);
+            persistUser(freshUser);
+          } catch (error) {
+            console.error('Failed to fetch fresh profile:', error);
+          }
         }
       } catch (error) {
         console.error('Auth check failed:', error);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
+        cookieStorage.removeItem('auth_token');
+        cookieStorage.removeItem('refresh_token');
+        cookieStorage.removeItem('user');
       } finally {
         setIsLoading(false);
       }
@@ -52,14 +60,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuth();
   }, []);
 
+  const sendOTP = async (email: string, type: 'REGISTER' | 'FORGOT_PASSWORD') => {
+    try {
+      setIsLoading(true);
+      await authService.sendOTP({ email, type });
+    } catch (error) {
+      console.error('Send OTP failed:', error);
+      const message = (error as { message?: string })?.message || 'Gửi OTP thất bại. Vui lòng thử lại.';
+      throw new Error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
 
       const response = await authService.login({ email, password });
-      const sessionUser = response.user ?? buildFallbackUser(email);
-
-      persistSession({ accessToken: response.accessToken, refreshToken: response.refreshToken }, sessionUser);
+      persistSession({ accessToken: response.accessToken, refreshToken: response.refreshToken });
+      
+      const profile = await authService.getProfile();
+      const sessionUser: AuthUser = {
+        id: profile.id,
+        email: profile.email,
+        fullName: profile.fullName,
+        profileImage: profile.profileImage,
+        accountStatus: profile.accountStatus,
+        roleId: profile.roleId,
+        role: profile.role,
+      };
+      
+      persistUser(sessionUser);
       setUser(sessionUser);
     } catch (error) {
       console.error('Login failed:', error);
@@ -71,36 +103,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (
+    fullName: string, 
+    email: string, 
+    password: string, 
+    confirmPassword: string, 
+    code: string
+  ) => {
     try {
       setIsLoading(true);
       
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await authService.register({ 
+        fullName, 
+        email, 
+        password, 
+        confirmPassword,
+        code 
+      });
       
-      const mockUser: AuthUser = {
-        id: Date.now().toString(),
-        name: name,
-        email: email,
-        avatar: 'https://via.placeholder.com/150'
-      };
+      cookieStorage.setItem('registered_email', email, { days: 1, secure: ENV.IS_PRODUCTION });
       
-      const mockToken = 'mock-jwt-token-' + Date.now();
-      
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
+      console.log('Registration successful:', response);
     } catch (error) {
       console.error('Register failed:', error);
-      throw new Error('Đăng ký thất bại. Vui lòng thử lại.');
+      const message =
+        (error as { message?: string })?.message || 'Đăng ký thất bại. Vui lòng thử lại.';
+      throw new Error(message);
     } finally {
       setIsLoading(false);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+    cookieStorage.removeItem('auth_token');
+    cookieStorage.removeItem('refresh_token');
+    cookieStorage.removeItem('user');
     setUser(null);
   };
 
@@ -108,7 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (user) {
       const newUser = { ...user, ...updatedData };
       setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      cookieStorage.setItem('user', JSON.stringify(newUser), { days: 30, secure: ENV.IS_PRODUCTION });
     }
   };
 
@@ -120,6 +157,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isLoading,
         login,
         register,
+        sendOTP,
         logout,
         updateUser
       }}
