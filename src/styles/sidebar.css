@@ -17,6 +17,7 @@
   z-index: 200;
   transition: width 0.3s ease, background 0.3s ease, border 0.3s ease;
   overflow: hidden;
+  border: 1px solid #F9F9F9;
 }
 
 .sidebar--expanded {
