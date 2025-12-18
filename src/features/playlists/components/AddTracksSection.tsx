@@ -1,6 +1,48 @@
 import React from 'react';
-import { useSongs } from '@/core/services/song.service';
 import AddTrackItem, { AddTrack } from './AddTrackItem';
+
+// Import sample music icon
+import sampleMusicIcon from '@/assets/sample-music-icon.png';
+
+// Mock data for recommended tracks
+const mockTracks: AddTrack[] = [
+  {
+    id: 1,
+    title: 'Chihiro',
+    artist: 'Billie Eilish',
+    album: 'Hit Me Hard and soft',
+    duration: 303,
+    coverImage: sampleMusicIcon,
+    isFavorite: false,
+  },
+  {
+    id: 2,
+    title: 'Low',
+    artist: 'SZA',
+    album: 'SOS',
+    duration: 181,
+    coverImage: sampleMusicIcon,
+    isFavorite: false,
+  },
+  {
+    id: 3,
+    title: 'Empty Note',
+    artist: 'Ghostly Kisses',
+    album: 'What You See',
+    duration: 228,
+    coverImage: sampleMusicIcon,
+    isFavorite: false,
+  },
+  {
+    id: 4,
+    title: 'Unstopble',
+    artist: 'sia',
+    album: 'This Is Acting',
+    duration: 229,
+    coverImage: sampleMusicIcon,
+    isFavorite: false,
+  },
+];
 
 interface AddTracksSectionProps {
   onSeeAll?: () => void;
@@ -15,31 +57,6 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
   onFavoriteToggle,
   onMoreClick,
 }) => {
-  // Fetch songs to add - you can customize this to fetch recommended songs
-  const { data: songsResponse, isLoading } = useSongs({ limit: 4 });
-
-  // Convert songs to AddTrack format
-  const tracks: AddTrack[] = (songsResponse?.songs || []).map((song) => ({
-    id: song.id,
-    title: song.title,
-    artist: song.artist?.artistName || 'Unknown Artist',
-    album: 'Album', // TODO: Get from song.album when available
-    duration: song.duration,
-    coverImage: song.thumbnailPath || '/default-track.jpg',
-    isFavorite: false,
-  }));
-
-  if (isLoading) {
-    return (
-      <div className="add-tracks-section">
-        <div className="add-tracks-section__header">
-          <h3 className="add-tracks-section__title">Add Tracks To Your Playlists</h3>
-        </div>
-        <div className="add-tracks-section__loading">Loading tracks...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="add-tracks-section">
       <div className="add-tracks-section__header">
@@ -49,7 +66,7 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
         </button>
       </div>
       <div className="add-tracks-section__list">
-        {tracks.map((track) => (
+        {mockTracks.map((track) => (
           <AddTrackItem
             key={track.id}
             track={track}
