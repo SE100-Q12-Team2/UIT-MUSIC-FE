@@ -10,6 +10,7 @@ import { PremiumSubscriptionsPage } from "@/features/subscription/pages/PremiumS
 import Home from "@/features/home/pages/HomePage";
 import SettingsPage from "@/features/settings/pages/SettingsPage";
 import SignUpPage from "@/features/auth/pages/SignUpPage";
+import { PlaylistsPage } from "@/features/playlists/pages";
 
 const LandingPage = lazy(() => import('@/features/landing/pages/LandingPage'));
 
@@ -45,6 +46,12 @@ export const router = createBrowserRouter([
               </ProtectedRoute>
             )
           },
+          {
+            path: "playlists",
+            element: (
+              <LazyLoad><PlaylistsPage /></LazyLoad>
+            )
+          }
           // {
           //   path: 'music',
           //   element: <MusicPage />

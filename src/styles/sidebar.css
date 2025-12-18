@@ -6,7 +6,7 @@
   transform: translateY(-50%);
   width: 72px;
   height: calc(100vh - 250px); 
-  min-height: 600px;
+  min-height: 500px;
   max-height: none; 
   border-radius: 8px;
   background: rgba(78, 108, 150, 0.4); /* #4E6C9666 */
@@ -32,7 +32,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 50px 12px 16px 12px; /* Added top padding */
+  padding: 30px 12px 16px 12px; /* Added top padding */
   box-sizing: border-box;
 }
 
