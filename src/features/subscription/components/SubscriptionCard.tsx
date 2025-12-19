@@ -68,7 +68,7 @@ const SubscriptionCard = ({
 
       {/* Features */}
       <ul className="plan-features">
-        {plan.features.feature.map((feature, index) => (
+        {plan.features.feature?.map((feature, index) => (
           <li key={index} className="plan-feature">
             {getFeatureIcon(feature)}
             <span className="plan-feature__text">

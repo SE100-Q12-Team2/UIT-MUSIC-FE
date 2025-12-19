@@ -2,16 +2,32 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query.config';
 import api from '@/config/api.config';
 
+// Artist info embedded in song
+export interface SongArtist {
+  id: number;
+  artistName: string;
+  profileImage: string | null;
+}
+
+// Song detail from API GET /songs/{id}
 export interface Song {
-  id: string;
+  id: number;
   title: string;
-  artist: string;
-  album?: string;
+  artistId: number;
+  genreId: number;
+  albumId: number | null;
   duration: number;
-  coverUrl?: string;
-  audioUrl?: string;
-  genre?: string;
-  releaseDate?: string;
+  releaseDate: string;
+  filePath: string;
+  thumbnailPath: string;
+  lyricsFilePath: string | null;
+  playCount: number;
+  likeCount: number;
+  createdById: number;
+  updatedById: number | null;
+  createdAt: string;
+  updatedAt: string;
+  artist: SongArtist;
 }
 
 export interface SongFilters {
@@ -31,27 +47,27 @@ export interface SongsResponse {
 
 export const songService = {
   getSongs: async (filters?: SongFilters): Promise<SongsResponse> => {
-    return api.get<SongsResponse>('/api/songs', { params: filters });
+    return api.get<SongsResponse>('/songs', { params: filters });
   },
 
-  getSongById: async (id: string): Promise<Song> => {
-    return api.get<Song>(`/api/songs/${id}`);
+  getSongById: async (id: number): Promise<Song> => {
+    return api.get<Song>(`/songs/${id}`);
   },
 
   searchSongs: async (query: string): Promise<Song[]> => {
-    return api.get<Song[]>('/api/songs/search', { params: { q: query } });
+    return api.get<Song[]>('/songs/search', { params: { q: query } });
   },
 
   createSong: async (data: Partial<Song>): Promise<Song> => {
-    return api.post<Song>('/api/songs', data);
+    return api.post<Song>('/songs', data);
   },
 
-  updateSong: async (id: string, data: Partial<Song>): Promise<Song> => {
-    return api.put<Song>(`/api/songs/${id}`, data);
+  updateSong: async (id: number, data: Partial<Song>): Promise<Song> => {
+    return api.put<Song>(`/songs/${id}`, data);
   },
 
-  deleteSong: async (id: string): Promise<void> => {
-    return api.delete<void>(`/api/songs/${id}`);
+  deleteSong: async (id: number): Promise<void> => {
+    return api.delete<void>(`/songs/${id}`);
   },
 };
 
@@ -63,11 +79,25 @@ export const useSongs = (filters?: SongFilters) => {
   });
 };
 
-export const useSong = (id: string) => {
+export const useSong = (id: number) => {
   return useQuery({
     queryKey: QUERY_KEYS.songs.detail(id),
     queryFn: () => songService.getSongById(id),
-    enabled: !!id,
+    enabled: !!id && id > 0,
+  });
+};
+
+// Hook to fetch multiple songs by IDs
+export const useSongsByIds = (songIds: number[]) => {
+  return useQuery({
+    queryKey: ['songs', 'byIds', songIds],
+    queryFn: async () => {
+      const songs = await Promise.all(
+        songIds.map((id) => songService.getSongById(id))
+      );
+      return songs;
+    },
+    enabled: songIds.length > 0,
   });
 };
 
@@ -94,7 +124,7 @@ export const useUpdateSong = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Song> }) =>
+    mutationFn: ({ id, data }: { id: number; data: Partial<Song> }) =>
       songService.updateSong(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.songs.detail(variables.id) });
@@ -107,7 +137,7 @@ export const useDeleteSong = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => songService.deleteSong(id),
+    mutationFn: (id: number) => songService.deleteSong(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.songs.all });
     },
