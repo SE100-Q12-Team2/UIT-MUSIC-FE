@@ -3,7 +3,7 @@ export interface SubscriptionPlan {
   planName: string;
   durationMonths: number;
   price: number;
-  features: {
+  features?: {
     feature?: string[];
   };
   isActive: boolean;
