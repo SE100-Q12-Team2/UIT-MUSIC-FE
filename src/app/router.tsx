@@ -3,7 +3,9 @@ import LoginPage from "@/features/auth/pages/LoginPage";
 import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
 import LazyLoad from "@/shared/components/common/LazyLoad";
 import MainLayout from "@/shared/layouts/MainLayout";
+import LabelLayout from "@/shared/layouts/LabelLayout";
 import ProtectedRoute from "@/shared/components/ProtectedRoutes";
+import RoleBasedRedirect from "@/shared/components/RoleBasedRedirect";
 import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
 import { PremiumSubscriptionsPage } from "@/features/user/subscription/pages/PremiumSubscriptionsPage";
@@ -12,6 +14,7 @@ import SettingsPage from "@/features/user/settings/pages/SettingsPage";
 import SignUpPage from "@/features/auth/pages/SignUpPage";
 import { PlaylistsPage } from "@/features/user/playlists/pages";
 import { BrowserPage } from "@/features/user/browser/pages";
+import LabelHomePage from "@/features/label/home/pages/LabelHomePage";
 
 const LandingPage = lazy(() => import('@/features/user/landing/pages/LandingPage'));
 
@@ -27,6 +30,7 @@ export const router = createBrowserRouter([
             path: "home",
             element: (
               <ProtectedRoute>
+                <RoleBasedRedirect />
                 <LazyLoad><Home /></LazyLoad>
               </ProtectedRoute>
             )
@@ -59,46 +63,32 @@ export const router = createBrowserRouter([
               <LazyLoad><BrowserPage /></LazyLoad>
             )
           }
-          // {
-          //   path: 'music',
-          //   element: <MusicPage />
-          // },
-          // {
-          //   path: 'playlist',
-          //   element: <PlaylistPage />
-          // },
-          // {
-          //   path: 'playlist/:id',
-          //   element: <PlaylistPage />
-          // },
-          // {
-          //   path: 'artist',
-          //   element: <ArtistPage />
-          // },
-          // {
-          //   path: 'artist/:id',
-          //   element: <ArtistPage />
-          // },
-          // {
-          //   path: 'album',
-          //   element: <AlbumPage />
-          // },
-          // {
-          //   path: 'album/:id',
-          //   element: <AlbumPage />
-          // },
-          // {
-          //   path: 'search',
-          //   element: <SearchPage />
-          // },
-          // {
-          //   path: 'profile',
-          //   element: <ProfilePage />
-          // },
-          // {
-          //   path: 'settings',
-          //   element: <SettingsPage />
-          // }
+        ]
+      },
+      {
+        path: "label",
+        element: (
+          <ProtectedRoute>
+            <LabelLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            path: "home",
+            element: <LazyLoad><LabelHomePage /></LazyLoad>
+          },
+          {
+            path: "songs",
+            element: <div>Label Songs Page (Coming Soon)</div>
+          },
+          {
+            path: "albums",
+            element: <div>Label Albums Page (Coming Soon)</div>
+          },
+          {
+            path: "report",
+            element: <div>Label Report Page (Coming Soon)</div>
+          }
         ]
       },
       {

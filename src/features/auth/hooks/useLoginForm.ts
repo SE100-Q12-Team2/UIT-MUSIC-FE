@@ -24,7 +24,15 @@ export const useLoginForm = () => {
     
     try {
       await login(data.email, data.password);
-      navigate('/home', { replace: true });
+      
+      // Get the updated user from auth context to check role
+      // The login function already fetches and sets the profile
+      // We'll use a small delay to ensure the context is updated
+      setTimeout(() => {
+        // Redirect based on role will be handled by a separate route guard
+        // For now, redirect to a common page that will redirect based on role
+        navigate('/home', { replace: true });
+      }, 100);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Login failed";
       form.setError("root", {
