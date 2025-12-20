@@ -19,8 +19,8 @@ interface SongItem {
   index: number;
   title: string;
   artist: string;
-  plays: string;
-  duration: string;
+  album: string; // "Hit Me Hard and soft"
+  duration: string; // "3:48"
   thumbnail: string;
 }
 
@@ -36,7 +36,7 @@ const leftSongs: SongItem[] = [
     index: 1,
     title: "Chihiro",
     artist: "Billie Eilish",
-    plays: "121",
+    album: "Hit Me Hard and soft",
     duration: "3:48",
     thumbnail: detailsSinger1,
   },
@@ -45,7 +45,7 @@ const leftSongs: SongItem[] = [
     index: 2,
     title: "Chihiro",
     artist: "Billie Eilish",
-    plays: "121",
+    album: "Hit Me Hard and soft",
     duration: "3:48",
     thumbnail: detailsSinger2,
   },
@@ -54,7 +54,7 @@ const leftSongs: SongItem[] = [
     index: 3,
     title: "Chihiro",
     artist: "Billie Eilish",
-    plays: "119",
+    album: "Hit Me Hard and soft",
     duration: "3:48",
     thumbnail: detailsSinger3,
   },
@@ -66,7 +66,7 @@ const rightSongs: SongItem[] = [
     index: 4,
     title: "Chihiro",
     artist: "Billie Eilish",
-    plays: "102",
+    album: "Hit Me Hard and soft",
     duration: "3:48",
     thumbnail: detailsSinger4,
   },
@@ -75,7 +75,7 @@ const rightSongs: SongItem[] = [
     index: 5,
     title: "Chihiro",
     artist: "Billie Eilish",
-    plays: "102",
+    album: "Hit Me Hard and soft",
     duration: "3:48",
     thumbnail: detailsSinger5,
   },
@@ -84,7 +84,7 @@ const rightSongs: SongItem[] = [
     index: 6,
     title: "Chihiro",
     artist: "Billie Eilish",
-    plays: "102",
+    album: "Hit Me Hard and soft",
     duration: "3:48",
     thumbnail: detailsProfileAvatar,
   },
@@ -101,6 +101,7 @@ const singers: SingerItem[] = [
 const DetailSection: React.FC = () => {
   return (
     <section className="details-page">
+      {/* HERO: banner + avatar + tên */}
       <header className="details-hero">
         <div className="details-hero__banner-wrapper">
           <img
@@ -108,6 +109,8 @@ const DetailSection: React.FC = () => {
             alt="Profile banner"
             className="details-hero__banner"
           />
+
+          {/* Avatar: chỉ giữ hình tròn, bỏ khung trắng bên ngoài */}
           <div className="details-hero__avatar-wrapper">
             <img
               src={detailsProfileAvatar}
@@ -123,6 +126,7 @@ const DetailSection: React.FC = () => {
         </div>
       </header>
 
+      {/* Your Activity */}
       <section className="details-section details-section--activity">
         <h2 className="details-section__title">Your Activity</h2>
         <p className="details-section__subtitle">
@@ -130,12 +134,14 @@ const DetailSection: React.FC = () => {
         </p>
       </section>
 
+      {/* Songs */}
       <section className="details-section details-section--songs">
         <h2 className="details-section__title">
           Songs You&apos;ve Listened To A Lot This Month
         </h2>
 
         <div className="details-song-grid">
+          {/* Cột trái */}
           <div className="details-song-column">
             {leftSongs.map((song) => (
               <article key={song.id} className="details-song-card">
@@ -154,10 +160,12 @@ const DetailSection: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Center: tên album "Hit Me Hard and soft" */}
                 <div className="details-song-card__center">
-                  <span className="details-song-card__plays">{song.plays}</span>
+                  <span className="details-song-card__album">{song.album}</span>
                 </div>
 
+                {/* Right: duration + menu icon */}
                 <div className="details-song-card__right">
                   <span className="details-song-card__duration">
                     {song.duration}
@@ -174,6 +182,7 @@ const DetailSection: React.FC = () => {
             ))}
           </div>
 
+          {/* Cột phải */}
           <div className="details-song-column">
             {rightSongs.map((song) => (
               <article key={song.id} className="details-song-card">
@@ -193,7 +202,7 @@ const DetailSection: React.FC = () => {
                 </div>
 
                 <div className="details-song-card__center">
-                  <span className="details-song-card__plays">{song.plays}</span>
+                  <span className="details-song-card__album">{song.album}</span>
                 </div>
 
                 <div className="details-song-card__right">
@@ -214,6 +223,7 @@ const DetailSection: React.FC = () => {
         </div>
       </section>
 
+      {/* Singers */}
       <section className="details-section details-section--singers">
         <h2 className="details-section__title">
           Singers Who Were Very Popular With You
@@ -231,6 +241,7 @@ const DetailSection: React.FC = () => {
         </div>
       </section>
 
+      {/* Stats */}
       <section className="details-section details-section--stats">
         <div className="details-stats">
           <div className="details-stats__usage">
