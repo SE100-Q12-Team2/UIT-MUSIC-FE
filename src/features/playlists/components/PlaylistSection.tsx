@@ -4,7 +4,7 @@ import PlaylistCard from './PlaylistCard';
 
 interface PlaylistSectionProps {
   title: string;
-  playlists: Playlist[];
+  playlists: (Playlist & { trackCount?: number })[];
   onSeeAll?: () => void;
   onPlaylistClick?: (playlist: Playlist) => void;
   onFavoriteToggle?: (playlistId: number) => void;
@@ -31,6 +31,7 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
         {playlists.map((playlist) => (
           <PlaylistCard
             key={playlist.id}
+            trackCount={playlist.trackCount}
             playlist={playlist}
             onClick={onPlaylistClick}
             onFavoriteToggle={onFavoriteToggle}

@@ -1,48 +1,7 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { useSongs } from '@/core/services/song.service';
+import { useAllPlaylistSongIds } from '@/core/services/playlist.service';
 import AddTrackItem, { AddTrack } from './AddTrackItem';
-
-// Import sample music icon
-import sampleMusicIcon from '@/assets/sample-music-icon.png';
-
-// Mock data for recommended tracks
-const mockTracks: AddTrack[] = [
-  {
-    id: 1,
-    title: 'Chihiro',
-    artist: 'Billie Eilish',
-    album: 'Hit Me Hard and soft',
-    duration: 303,
-    coverImage: sampleMusicIcon,
-    isFavorite: false,
-  },
-  {
-    id: 2,
-    title: 'Low',
-    artist: 'SZA',
-    album: 'SOS',
-    duration: 181,
-    coverImage: sampleMusicIcon,
-    isFavorite: false,
-  },
-  {
-    id: 3,
-    title: 'Empty Note',
-    artist: 'Ghostly Kisses',
-    album: 'What You See',
-    duration: 228,
-    coverImage: sampleMusicIcon,
-    isFavorite: false,
-  },
-  {
-    id: 4,
-    title: 'Unstopble',
-    artist: 'sia',
-    album: 'This Is Acting',
-    duration: 229,
-    coverImage: sampleMusicIcon,
-    isFavorite: false,
-  },
-];
 
 interface AddTracksSectionProps {
   onSeeAll?: () => void;
@@ -57,16 +16,76 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
   onFavoriteToggle,
   onMoreClick,
 }) => {
+  const [showAll, setShowAll] = useState(false);
+  
+  // Fetch latest songs from API
+  const { data: songsResponse, isLoading: isLoadingSongs } = useSongs({ 
+    page: 1, 
+    limit: 50, 
+    order: 'latest' 
+  });
+  
+  // Fetch all song IDs that are already in playlists
+  const { data: songsInPlaylists = new Set<number>(), isLoading: isLoadingPlaylistSongs } = useAllPlaylistSongIds();
+  
+  // Convert API songs to AddTrack format and filter out songs in playlists
+  const allTracks = useMemo(() => {
+    if (!songsResponse?.items) return [];
+    
+    return songsResponse.items
+      .filter(song => !songsInPlaylists.has(song.id))
+      .map((song): AddTrack => {
+        const artistNames = song.songArtists
+          .map(sa => sa.artist.artistName)
+          .join(', ');
+        
+        return {
+          id: song.id,
+          title: song.title,
+          artist: artistNames || 'Unknown Artist',
+          album: song.album.albumTitle,
+          duration: song.duration,
+          coverImage: song.album.coverImage,
+          isFavorite: song.isFavorite,
+        };
+      });
+  }, [songsResponse, songsInPlaylists]);
+  
+  // Show first 4 tracks or all tracks based on state
+  const displayedTracks = showAll ? allTracks : allTracks.slice(0, 4);
+  
+  const handleSeeAll = () => {
+    setShowAll(true);
+    if (onSeeAll) {
+      onSeeAll();
+    }
+  };
+  
+  const isLoading = isLoadingSongs || isLoadingPlaylistSongs;
+  
+  if (isLoading) {
+    return (
+      <div className="add-tracks-section">
+        <div className="add-tracks-section__header">
+          <h3 className="add-tracks-section__title">Add Tracks To Your Playlists</h3>
+        </div>
+        <div className="add-tracks-section__loading">Loading tracks...</div>
+      </div>
+    );
+  }
+  
   return (
     <div className="add-tracks-section">
       <div className="add-tracks-section__header">
         <h3 className="add-tracks-section__title">Add Tracks To Your Playlists</h3>
-        <button className="add-tracks-section__see-all" onClick={onSeeAll}>
-          See All
-        </button>
+        {!showAll && allTracks.length > 4 && (
+          <button className="add-tracks-section__see-all" onClick={handleSeeAll}>
+            See All
+          </button>
+        )}
       </div>
       <div className="add-tracks-section__list">
-        {mockTracks.map((track) => (
+        {displayedTracks.map((track) => (
           <AddTrackItem
             key={track.id}
             track={track}

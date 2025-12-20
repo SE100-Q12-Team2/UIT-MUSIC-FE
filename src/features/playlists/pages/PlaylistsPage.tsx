@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { usePlaylists, usePlaylistTracks } from '@/core/services/playlist.service';
+import { usePlaylistsWithTrackCounts, usePlaylistTracks } from '@/core/services/playlist.service';
 import { Playlist, PlaylistTrack as PlaylistTrackType } from '@/types/playlist.types';
 import {
   CategoryTabs,
@@ -55,15 +55,15 @@ const formatTotalDuration = (tracks: PlaylistTrackType[]): string => {
 const PlaylistsPage: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('recent');
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
+  const [showAllPlaylists, setShowAllPlaylists] = useState<boolean>(false);
   
-  // Fetch playlists from API
-  const { data: playlists = [], isLoading, error } = usePlaylists();
+  // Fetch playlists with track counts from API
+  const { data: playlists = [], isLoading, error } = usePlaylistsWithTrackCounts();
   
   // Fetch playlist tracks when a playlist is selected
   const { data: playlistTracks = [], isLoading: isLoadingTracks } = usePlaylistTracks(
     selectedPlaylist?.id ?? 0
   );
-  
   // Convert playlist tracks to Track format for UI (use playlist cover image for all tracks)
   const tracks: Track[] = useMemo(() => 
     playlistTracks.map((pt) => playlistTrackToTrack(pt, selectedPlaylist?.coverImageUrl || '')),
@@ -75,9 +75,9 @@ const PlaylistsPage: React.FC = () => {
     formatTotalDuration(playlistTracks),
     [playlistTracks]
   );
-
-  // All playlists (no limit)
-  const yourPlaylists = playlists;
+  
+  // Show only first 6 playlists initially
+  const displayedPlaylists = showAllPlaylists ? playlists : playlists.slice(0, 6);
 
   // Close detail panel handler
   const handleCloseDetail = () => {
@@ -96,6 +96,10 @@ const PlaylistsPage: React.FC = () => {
   const handleTrackFavoriteToggle = (trackId: number) => {
     console.log('Toggle favorite for track:', trackId);
     // TODO: Implement track favorite toggle
+  };
+  
+  const handleSeeAllPlaylists = () => {
+    setShowAllPlaylists(true);
   };
 
   if (isLoading) {
@@ -128,8 +132,8 @@ const PlaylistsPage: React.FC = () => {
         {/* Your Playlists Section */}
         <PlaylistSection
           title="Your Playlists"
-          playlists={yourPlaylists}
-          onSeeAll={() => console.log('See all your playlists')}
+          playlists={displayedPlaylists}
+          onSeeAll={!showAllPlaylists && playlists.length > 6 ? handleSeeAllPlaylists : undefined}
           onPlaylistClick={handlePlaylistClick}
           onFavoriteToggle={handleFavoriteToggle}
         />
