@@ -1,6 +1,6 @@
 
 import brandLogo from "@/assets/LOGO.svg"
-import { ThemeToggle } from "@/features/landing/components/themeToggle"
+import { ThemeToggle } from "@/features/user/landing/components/themeToggle"
 import { Button } from "@/shared/components/ui/button"
 import { Link } from "react-router-dom"
 

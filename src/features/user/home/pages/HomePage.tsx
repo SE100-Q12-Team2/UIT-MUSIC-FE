@@ -2,9 +2,9 @@ import { Play, Heart } from 'lucide-react';
 import { ARTIST_UPDATES, ARTISTS_FOLLOW, DAILY_PICK_SONGS, GENRES, PERSONAL_SPACE, RECENTLY_PLAYED_BANNERS, TAILORED_PLAYLISTS } from '@/data/home.data';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import SongRow from '@/features/home/components/SongRow';
+import SongRow from '@/features/user/home/components/SongRow';
 import { Input } from '@/shared/components/ui/input';
-import { SectionProps } from '@/features/home/types/home.types';
+import { SectionProps } from '@/features/user/home/types/home.types';
 
 const Section = ({ title, actionText = "See All", children }: SectionProps) => (
     <div className="px-8 py-6">
