@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
 import { useRecordLabels, useLabelAlbums, useLabelSongs } from '@/core/services/label.service';
-import { Music, Disc, TrendingUp } from 'lucide-react';
+import { Music, Disc, TrendingUp, Edit } from 'lucide-react';
 import labelAvatar from '@/assets/label-avatar.jpg';
+import { EditProfileDialog } from '../components/EditProfileDialog';
 import '@/styles/label-home.css';
 
 type TabType = 'albums' | 'songs';
@@ -10,6 +11,7 @@ type TabType = 'albums' | 'songs';
 const LabelHomePage: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('albums');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   // Fetch record label info
   const { data: labels = [], isLoading: isLoadingLabels } = useRecordLabels(user?.id);
@@ -89,7 +91,14 @@ const LabelHomePage: React.FC = () => {
             </span>
           </div>
         </div>
-        <button className="label-home__edit-btn">Edit Profile</button>
+        <button 
+          className="label-home__edit-btn"
+          onClick={() => setIsEditDialogOpen(true)}
+          aria-label="Edit profile"
+        >
+          <Edit size={20} />
+          Edit Profile
+        </button>
       </div>
       
       {/* Statistics Section */}
@@ -195,6 +204,12 @@ const LabelHomePage: React.FC = () => {
           </div>
         )}
       </div>
+
+      <EditProfileDialog 
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        label={label}
+      />
     </div>
   );
 };

@@ -1,10 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/config/api.config';
 import {
   RecordLabel,
   RecordLabelsResponse,
   LabelAlbumsResponse,
   LabelSongsResponse,
+  UpdateLabelRequest,
 } from '@/types/label.types';
 
 export const labelService = {
@@ -28,6 +29,12 @@ export const labelService = {
     return api.get<LabelSongsResponse>('/songs', {
       params: { labelId, page, limit },
     });
+  },
+
+  // Update label profile
+  updateLabel: async (labelId: number, data: UpdateLabelRequest): Promise<RecordLabel> => {
+    const response = await api.put<RecordLabel>(`/record-labels/${labelId}`, data);
+    return response;
   },
 };
 
@@ -65,5 +72,19 @@ export const useLabelSongs = (labelId: number | undefined, page = 1, limit = 10)
     },
     enabled: !!labelId,
     retry: false, // Don't retry on error
+  });
+};
+
+// React Query hook for updating label
+export const useUpdateLabel = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation<RecordLabel, Error, { labelId: number; data: UpdateLabelRequest }>({
+    mutationFn: ({ labelId, data }) => labelService.updateLabel(labelId, data),
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch label data
+      queryClient.invalidateQueries({ queryKey: ['record-labels'] });
+      queryClient.setQueryData(['record-labels', variables.labelId], data);
+    },
   });
 };

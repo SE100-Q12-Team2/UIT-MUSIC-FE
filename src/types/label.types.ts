@@ -19,6 +19,14 @@ export interface RecordLabel {
   };
 }
 
+export interface UpdateLabelRequest {
+  labelName: string;
+  description: string;
+  website: string;
+  contactEmail: string;
+  hasPublicProfile: boolean;
+}
+
 export interface RecordLabelsResponse {
   items: RecordLabel[];
   total: number;
