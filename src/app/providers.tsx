@@ -6,6 +6,7 @@ import { queryClient } from '@/config/query.config';
 import { ENV } from '@/config/env.config';
 import { authService } from '@/core/services/auth.service';
 import { cookieStorage } from '@/shared/utils/cookies';
+import { useProfileStore } from '@/store/profileStore';
 
 const persistSession = (tokens: { accessToken: string; refreshToken: string }) => {
   cookieStorage.setItem('access_token', tokens.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
@@ -19,6 +20,8 @@ const persistUser = (user: AuthUser) => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const setProfile = useProfileStore((state) => state.setProfile);
+  const clearProfile = useProfileStore((state) => state.clearProfile);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -43,6 +46,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             };
             setUser(freshUser);
             persistUser(freshUser);
+            // Sync to profileStore
+            setProfile(profile);
           } catch (error) {
             console.error('Failed to fetch fresh profile:', error);
           }
@@ -52,13 +57,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         cookieStorage.removeItem('access_token');
         cookieStorage.removeItem('refresh_token');
         cookieStorage.removeItem('user');
+        clearProfile();
       } finally {
         setIsLoading(false);
       }
     };
 
     checkAuth();
-  }, []);
+  }, [setProfile, clearProfile]);
 
   const sendOTP = async (email: string, type: 'REGISTER' | 'FORGOT_PASSWORD') => {
     try {
@@ -93,6 +99,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       persistUser(sessionUser);
       setUser(sessionUser);
+      // Sync to profileStore for other services
+      setProfile(profile);
     } catch (error) {
       console.error('Login failed:', error);
       const message =
@@ -138,6 +146,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     cookieStorage.removeItem('refresh_token');
     cookieStorage.removeItem('user');
     setUser(null);
+    clearProfile();
   };
 
   const updateUser = (updatedData: Partial<AuthUser>) => {

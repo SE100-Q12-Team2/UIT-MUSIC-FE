@@ -26,27 +26,27 @@ export const QUERY_KEYS = {
   songs: {
     all: ['songs'] as const,
     list: (filters?: unknown) => ['songs', 'list', filters] as const,
-    detail: (id: string) => ['songs', 'detail', id] as const,
+    detail: (id: string | number) => ['songs', 'detail', id] as const,
     search: (query: string) => ['songs', 'search', query] as const,
   },
   
   albums: {
     all: ['albums'] as const,
     list: (filters?: unknown) => ['albums', 'list', filters] as const,
-    detail: (id: string) => ['albums', 'detail', id] as const,
+    detail: (id: string | number) => ['albums', 'detail', id] as const,
   },
   
   artists: {
     all: ['artists'] as const,
     list: (filters?: unknown) => ['artists', 'list', filters] as const,
-    detail: (id: string) => ['artists', 'detail', id] as const,
+    detail: (id: string | number) => ['artists', 'detail', id] as const,
   },
   
   playlists: {
     all: ['playlists'] as const,
     list: (filters?: unknown) => ['playlists', 'list', filters] as const,
-    detail: (id: string) => ['playlists', 'detail', id] as const,
-    user: (userId: string) => ['playlists', 'user', userId] as const,
+    detail: (id: string | number) => ['playlists', 'detail', id] as const,
+    user: (userId: string | number) => ['playlists', 'user', userId] as const,
   },
   
   user: {
