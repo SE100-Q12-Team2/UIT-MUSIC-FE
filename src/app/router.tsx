@@ -1,5 +1,6 @@
 import App from "@/app/App";
 import LoginPage from "@/features/auth/pages/LoginPage";
+import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
 import GuestRoute from "@/shared/components/GuestRoute";
 import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
 import LazyLoad from "@/shared/components/common/LazyLoad";
@@ -101,6 +102,14 @@ export const router = createBrowserRouter([
         element: (
           <GuestRoute>
             <LazyLoad><LoginPage /></LazyLoad>
+          </GuestRoute>
+        )
+      },
+      {
+        path: 'forgot-password',
+        element: (
+          <GuestRoute>
+            <LazyLoad><ForgotPasswordPage /></LazyLoad>
           </GuestRoute>
         )
       },
