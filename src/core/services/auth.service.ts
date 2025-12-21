@@ -66,7 +66,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (credentials: LoginRequest) => authService.login(credentials),
     onSuccess: (data) => {
-      cookieStorage.setItem('auth_token', data.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
+      cookieStorage.setItem('access_token', data.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
       cookieStorage.setItem('refresh_token', data.refreshToken, { days: 30, secure: ENV.IS_PRODUCTION });
     },
   });
@@ -91,7 +91,7 @@ export const useLogout = () => {
       return authService.logout(refreshToken);
     },
     onSuccess: () => {
-      cookieStorage.removeItem('auth_token');
+      cookieStorage.removeItem('access_token');
       cookieStorage.removeItem('refresh_token');
       cookieStorage.removeItem('user');
       window.location.href = '/login';
@@ -103,7 +103,7 @@ export const useProfile = () => {
   return useQuery({
     queryKey: QUERY_KEYS.auth.profile,
     queryFn: () => authService.getProfile(),
-    enabled: !!cookieStorage.getItem('auth_token'),
+    enabled: !!cookieStorage.getItem('access_token'),
   });
 };
 

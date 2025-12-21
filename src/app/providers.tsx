@@ -9,7 +9,7 @@ import { cookieStorage } from '@/shared/utils/cookies';
 import { useProfileStore } from '@/store/profileStore';
 
 const persistSession = (tokens: { accessToken: string; refreshToken: string }) => {
-  cookieStorage.setItem('auth_token', tokens.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
+  cookieStorage.setItem('access_token', tokens.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
   cookieStorage.setItem('refresh_token', tokens.refreshToken, { days: 30, secure: ENV.IS_PRODUCTION });
 };
 
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = cookieStorage.getItem('auth_token');
+        const token = cookieStorage.getItem('access_token');
         const savedUser = cookieStorage.getItem('user');
         
         if (token && savedUser) {
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         console.error('Auth check failed:', error);
-        cookieStorage.removeItem('auth_token');
+        cookieStorage.removeItem('access_token');
         cookieStorage.removeItem('refresh_token');
         cookieStorage.removeItem('user');
         clearProfile();
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setIsLoading(true);
       
-      const response = await authService.register({ 
+      await authService.register({ 
         fullName, 
         email, 
         password, 
@@ -131,7 +131,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       cookieStorage.setItem('registered_email', email, { days: 1, secure: ENV.IS_PRODUCTION });
       
-      console.log('Registration successful:', response);
     } catch (error) {
       console.error('Register failed:', error);
       const message =
@@ -143,7 +142,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    cookieStorage.removeItem('auth_token');
+    cookieStorage.removeItem('access_token');
     cookieStorage.removeItem('refresh_token');
     cookieStorage.removeItem('user');
     setUser(null);
