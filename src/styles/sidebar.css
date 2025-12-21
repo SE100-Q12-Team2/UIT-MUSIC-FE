@@ -1,7 +1,7 @@
 /* Sidebar Styles */
 .sidebar {
   position: fixed;
-  left: 55px;
+  left: 45px;
   top: 50%;
   transform: translateY(-50%);
   width: 72px;
