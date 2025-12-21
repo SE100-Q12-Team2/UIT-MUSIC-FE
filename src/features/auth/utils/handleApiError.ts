@@ -61,8 +61,6 @@ export function handleApiValidationError<T extends FieldValues>(
     let hasError = false;
     apiError.response.data.message.forEach((validationError: ValidationError) => {
       const fieldName = validationError.path as Path<T>;
-      // Thêm log để kiểm tra
-      console.log('[handleApiValidationError] fieldName:', fieldName, '| formData:', formData, '| showToast:', showToast);
       if (fieldName && fieldName in formData) {
         const translatedMessage = getTranslatedMessage(validationError.message);
         setError(fieldName, {

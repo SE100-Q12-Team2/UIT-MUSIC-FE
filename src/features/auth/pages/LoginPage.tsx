@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from "@/shared/components/ui/form";
 import { useLoginForm } from "../hooks/useLoginForm";
+import { ROUTES } from "@/core/constants/routes";
 
 const LoginPage = () => {
   const { form, isLoading, onSubmit } = useLoginForm();
@@ -63,9 +64,11 @@ const LoginPage = () => {
             />
 
             <div className="auth-extra-row">
-              <Button type="button" className="link-button">
-                Forget Password ?
-              </Button>
+              <Link to={ROUTES.FORGOT_PASSWORD}>
+                <Button type="button" className="link-button">
+                  Forget Password ?
+                </Button>
+              </Link>
             </div>
 
             <Button
