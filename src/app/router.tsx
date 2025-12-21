@@ -10,13 +10,14 @@ import ProtectedRoute from "@/shared/components/ProtectedRoutes";
 import RoleBasedRedirect from "@/shared/components/RoleBasedRedirect";
 import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
-import { PremiumSubscriptionsPage } from "@/features/user/subscription/pages/PremiumSubscriptionsPage";
 import Home from "@/features/user/home/pages/HomePage";
 import SettingsPage from "@/features/user/settings/pages/SettingsPage";
 import SignUpPage from "@/features/auth/pages/SignUpPage";
-import { PlaylistsPage } from "@/features/user/playlists/pages";
-import { BrowserPage } from "@/features/user/browser/pages";
 import LabelHomePage from "@/features/label/home/pages/LabelHomePage";
+import PremiumSubscriptionsPage from "@/features/user/subscription/pages/PremiumSubscriptionsPage";
+import PlaylistsPage from "@/features/user/playlists/pages/PlaylistsPage";
+import BrowserPage from "@/features/user/browser/pages/BrowserPage";
+import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 
 const LandingPage = lazy(() => import('@/features/user/landing/pages/LandingPage'));
 
@@ -119,6 +120,14 @@ export const router = createBrowserRouter([
           <GuestRoute>
             <LazyLoad><SignUpPage /></LazyLoad>
           </GuestRoute>
+        )
+      },
+      {
+        path: 'signup',
+        element: (
+          <ProtectedRoute>
+            <LazyLoad><ResetPasswordPage /></LazyLoad>
+          </ProtectedRoute>
         )
       },
       {

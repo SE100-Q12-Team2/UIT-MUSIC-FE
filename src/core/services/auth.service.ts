@@ -4,6 +4,7 @@ import { AuthResponse, LoginRequest, MessageResponse, RegisterRequest, RegisterR
 import { authApi } from '@/core/api/auth.api';
 import { cookieStorage } from '@/shared/utils/cookies';
 import { ENV } from '@/config/env.config';
+import { TypeOfVerificationCode } from '@/core/constants/auth.constant';
 
 
 export const authService = {
@@ -39,7 +40,7 @@ export const authService = {
   },
 
   forgotPassword: async (email: string): Promise<MessageResponse> => {
-    return authApi.forgotPassword({ email });
+    return authApi.forgotPassword({ email, type: TypeOfVerificationCode.FORGOT_PASSWORD });
   },
 
   resetPassword: async (resetToken: string, newPassword: string, confirmNewPassword: string): Promise<MessageResponse> => {

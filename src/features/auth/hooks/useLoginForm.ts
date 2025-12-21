@@ -6,6 +6,7 @@ import { loginFormSchema, type LoginFormValues } from "../schemas/auth.schema";
 import { useAuth } from "@/shared/hooks/auth/useAuth";
 import { toast } from "sonner";
 import { handleApiValidationError } from "../utils/handleApiError";
+import { ROUTES } from "@/core/constants/routes";
 
 export const useLoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,15 +22,14 @@ export const useLoginForm = () => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    setIsLoading(true);
-    
+    setIsLoading(true);    
     try {
       await login(data.email, data.password);
       toast.success("Login successful");
-      navigate('/home', { replace: true });
+      navigate(ROUTES.HOME, { replace: true });
     } catch (err) {
       handleApiValidationError(err, data, form.setError, {
-        showToast: true,
+        showToast: false,
         fallbackMessage: "Login failed"
       });
     } finally {

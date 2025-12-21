@@ -1,16 +1,15 @@
-import { TypeOfVerificationCode } from "@/core/constants/auth.constant";
-import { useSendOTP } from "@/core/services/auth.service";
 import { forgotPasswordSchema, ForgotPasswordValues } from "@/features/auth/schemas/auth.schema"
 import { handleApiErrorWithSpecificField } from "@/features/auth/utils/handleApiError";
 import { useState } from "react";
 import { useForm } from "react-hook-form"
 import { toast } from "sonner";
+import { useForgotPassword as useForgotPasswordMutation } from '@/core/services/auth.service'
 
 export const useForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
-  const sendOTPMutation = useSendOTP();
+  const forgotPasswordMutation = useForgotPasswordMutation()
 
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -33,7 +32,7 @@ export const useForgotPassword = () => {
         setIsLoading(false);
         return;
       }
-      await sendOTPMutation.mutateAsync({ email: data.email, type: TypeOfVerificationCode.FORGOT_PASSWORD });
+      await forgotPasswordMutation.mutateAsync(data.email);
       setCodeSent(true);
       setSubmitted(true);
       toast.success("Đã gửi email xác nhận thành công!");

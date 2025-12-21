@@ -16,7 +16,7 @@ const ErrorState = ({ error }: { error: string }) => (
   </div>
 );
 
-export const PremiumSubscriptionsPage = () => {
+export default function PremiumSubscriptionsPage() {
   const { plans, loading, error } = useSubscriptionPlans();
   usePageBackground(backgroundImg);
 

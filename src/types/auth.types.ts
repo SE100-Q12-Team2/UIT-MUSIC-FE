@@ -18,6 +18,7 @@ export interface SendOTPRequest {
 
 export interface ForgotPasswordRequest {
   email: string;
+  type: 'FORGOT_PASSWORD';
 }
 
 export interface ResetPasswordRequest {

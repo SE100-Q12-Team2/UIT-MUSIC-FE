@@ -1,5 +1,4 @@
 import "../../../styles/auth.css";
-import React from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import {
@@ -11,32 +10,49 @@ import {
   FormMessage,
 } from "@/shared/components/ui/form";
 import { Link } from "react-router";
-import { useForgotPassword } from "../hooks/useForgotPassword";
+import { useResetPasswordForm } from "../hooks/useResetPasswordForm";
 
-const ForgotPasswordPage: React.FC = () => {
-  const { form, onSubmit, submitted, error, isLoading } = useForgotPassword();
+export default function ResetPasswordPage() {
+  const { form, onSubmit, error, success, isLoading } = useResetPasswordForm();
 
   return (
     <div className="auth-page">
       <div className="auth-container">
-        <h1 className="auth-title">Quên mật khẩu</h1>
-        {submitted ? (
+        <h1 className="auth-title">Đặt lại mật khẩu</h1>
+        {success ? (
           <div className="text-green-600 text-center mb-4">
-            Link đặt lại mật khẩu đã được gửi đến email của bạn nếu nó tồn tại trong hệ thống. Vui lòng kiểm tra hộp thư đến của bạn.
+            Đặt lại mật khẩu thành công! Đang chuyển về trang đăng nhập...
           </div>
         ) : (
           <Form {...form}>
             <form className="auth-form" onSubmit={form.handleSubmit(onSubmit)}>
               <FormField
                 control={form.control}
-                name="email"
+                name="newPassword"
                 render={({ field }) => (
                   <FormItem className="auth-field">
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Mật khẩu mới</FormLabel>
                     <FormControl>
                       <Input
-                        type="email"
-                        placeholder="Nhập email của bạn"
+                        type="password"
+                        placeholder="Nhập mật khẩu mới"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="confirmNewPassword"
+                render={({ field }) => (
+                  <FormItem className="auth-field">
+                    <FormLabel>Nhập lại mật khẩu mới</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Nhập lại mật khẩu mới"
                         {...field}
                       />
                     </FormControl>
@@ -46,7 +62,7 @@ const ForgotPasswordPage: React.FC = () => {
               />
               {error && <div className="text-red-500 text-sm text-center">{error}</div>}
               <Button type="submit" className="auth-submit" disabled={isLoading || form.formState.isSubmitting}>
-                {(isLoading || form.formState.isSubmitting) ? "Đang gửi..." : "Gửi email xác nhận"}
+                {(isLoading || form.formState.isSubmitting) ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
               </Button>
             </form>
           </Form>
@@ -57,6 +73,4 @@ const ForgotPasswordPage: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default ForgotPasswordPage;
+}
