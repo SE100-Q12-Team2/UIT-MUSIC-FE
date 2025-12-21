@@ -1,4 +1,5 @@
-import { listeningHistoryApi, TrackSongRequest, ListeningHistoryQuery, ListeningHistoryStatsQuery } from '@/core/api/listening-history.api';
+import { listeningHistoryApi } from '@/core/api/listening-history.api';
+import { ListeningHistoryQuery, ListeningHistoryStatsQuery, TrackSongRequest } from '@/types/listening-history.api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Track a song play
