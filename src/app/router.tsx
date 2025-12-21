@@ -1,5 +1,6 @@
 import App from "@/app/App";
 import LoginPage from "@/features/auth/pages/LoginPage";
+import GuestRoute from "@/shared/components/GuestRoute";
 import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
 import LazyLoad from "@/shared/components/common/LazyLoad";
 import MainLayout from "@/shared/layouts/MainLayout";
@@ -97,11 +98,19 @@ export const router = createBrowserRouter([
       },
       {
         path: 'login',
-        element: <LazyLoad><LoginPage /></LazyLoad>
+        element: (
+          <GuestRoute>
+            <LazyLoad><LoginPage /></LazyLoad>
+          </GuestRoute>
+        )
       },
       {
         path: 'signup',
-        element: <LazyLoad><SignUpPage /></LazyLoad>
+        element: (
+          <GuestRoute>
+            <LazyLoad><SignUpPage /></LazyLoad>
+          </GuestRoute>
+        )
       },
       {
         path: '404',

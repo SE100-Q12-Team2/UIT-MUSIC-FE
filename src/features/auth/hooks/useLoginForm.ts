@@ -29,7 +29,7 @@ export const useLoginForm = () => {
       navigate('/home', { replace: true });
     } catch (err) {
       handleApiValidationError(err, data, form.setError, {
-        showToast: false,
+        showToast: true,
         fallbackMessage: "Login failed"
       });
     } finally {
