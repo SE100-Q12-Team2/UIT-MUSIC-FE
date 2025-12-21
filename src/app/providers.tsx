@@ -82,10 +82,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-
       const response = await authService.login({ email, password });
       persistSession({ accessToken: response.accessToken, refreshToken: response.refreshToken });
-      
       const profile = await authService.getProfile();
       const sessionUser: AuthUser = {
         id: profile.id,
@@ -96,16 +94,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         roleId: profile.roleId,
         role: profile.role,
       };
-      
       persistUser(sessionUser);
       setUser(sessionUser);
-      // Sync to profileStore for other services
       setProfile(profile);
     } catch (error) {
       console.error('Login failed:', error);
-      const message =
-        (error as { message?: string })?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
-      throw new Error(message);
+      throw error; // Giữ nguyên object lỗi gốc
     } finally {
       setIsLoading(false);
     }

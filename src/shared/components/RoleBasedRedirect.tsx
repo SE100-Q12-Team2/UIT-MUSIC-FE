@@ -41,7 +41,7 @@ const RoleBasedRedirect: React.FC = () => {
       // Default to user home for unknown roles
       navigate('/home', { replace: true });
     }
-  }, [user, isLoading, navigate, location]);
+  }, [user, isLoading, navigate, location.pathname]);
 
   return null;
 };

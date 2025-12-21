@@ -40,7 +40,6 @@ export function handleApiValidationError<T extends FieldValues>(
 
   if (apiError?.message && Array.isArray(apiError.message)) {
     let hasError = false;
-    
     apiError.message.forEach((validationError: ValidationError) => {
       const fieldName = validationError.path as Path<T>;
       if (fieldName && fieldName in formData) {
@@ -49,36 +48,33 @@ export function handleApiValidationError<T extends FieldValues>(
           type: "manual",
           message: translatedMessage,
         });
-        
         if (showToast && !hasError) {
           toast.error(translatedMessage);
           hasError = true;
         }
       }
     });
-    
     return true;
   }
   
   if (apiError?.response?.data?.message && Array.isArray(apiError.response.data.message)) {
     let hasError = false;
-    
     apiError.response.data.message.forEach((validationError: ValidationError) => {
       const fieldName = validationError.path as Path<T>;
+      // Thêm log để kiểm tra
+      console.log('[handleApiValidationError] fieldName:', fieldName, '| formData:', formData, '| showToast:', showToast);
       if (fieldName && fieldName in formData) {
         const translatedMessage = getTranslatedMessage(validationError.message);
         setError(fieldName, {
           type: "manual",
           message: translatedMessage,
         });
-        
         if (showToast && !hasError) {
           toast.error(translatedMessage);
           hasError = true;
         }
       }
     });
-    
     return true;
   }
 
