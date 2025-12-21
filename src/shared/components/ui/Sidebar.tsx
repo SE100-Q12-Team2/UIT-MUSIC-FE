@@ -69,6 +69,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
               <Link
                 to={item.path}
                 className={`sidebar__item ${isActive(item.path) ? 'sidebar__item--active' : ''}`}
+                onClick={e => {
+                  if (item.id === 'home' && location.pathname === '/home') {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
               >
                 <div className="sidebar__icon-wrapper">
                   <img 
