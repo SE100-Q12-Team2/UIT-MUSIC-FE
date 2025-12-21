@@ -20,7 +20,7 @@ const Section = ({ title, actionText = "See All", children }: SectionProps) => (
 
 const Home = () => {
   return (
-    <div className="min-w-screen flex flex-col flex-1 overflow-y-auto pb-32 bg-linear-to-b from-vio-900 via-[#0a0a16] to-[#05050a]">
+    <div className="w-full min-h-screen flex flex-col flex-1 pb-32 bg-linear-to-b from-vio-900 via-[#0a0a16] to-[#05050a] overflow-x-hidden overflow-y-visible">
         
         <section className="px-8 pt-6 pb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
             {RECENTLY_PLAYED_BANNERS.map((banner) => (
