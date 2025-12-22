@@ -4,8 +4,6 @@ import { useDiscover, useTrending, useNewReleases, useTopArtists, useGenres } fr
 import { useMusicPlayer } from '@/contexts/MusicPlayerContext';
 import { Button } from '@/shared/components/ui/button';
 import { Song } from '@/core/services/song.service';
-import { MOCK_SONGS, MOCK_ALBUMS, MOCK_ARTISTS, MOCK_GENRES } from '@/data/mock.data';
-import { ENV } from '@/config/env.config';
 
 const DiscoverPage: React.FC = () => {
   const { data: discoverData, isLoading: discoverLoading } = useDiscover();
@@ -15,8 +13,7 @@ const DiscoverPage: React.FC = () => {
   const { data: genresData, isLoading: genresLoading } = useGenres();
   const { play } = useMusicPlayer();
 
-  const useMockData = ENV.IS_DEVELOPMENT;
-  const isLoading = useMockData ? false : (discoverLoading || trendingLoading || newReleasesLoading || topArtistsLoading || genresLoading);
+  const isLoading = discoverLoading || trendingLoading || newReleasesLoading || topArtistsLoading || genresLoading;
 
   const handlePlay = (song: Song, allSongs?: Song[]) => {
     play(song, allSongs || [song]);
@@ -30,18 +27,11 @@ const DiscoverPage: React.FC = () => {
     );
   }
 
-  const featuredSongs = useMockData 
-    ? MOCK_SONGS.slice(0, 10)
-    : (discoverData?.featuredSongs || trendingData || []);
-  const newReleases = useMockData
-    ? MOCK_ALBUMS
-    : (discoverData?.newReleases || newReleasesData || []);
-  const topArtists = useMockData
-    ? MOCK_ARTISTS
-    : (discoverData?.topArtists || topArtistsData || []);
-  const genres = useMockData
-    ? MOCK_GENRES
-    : (discoverData?.genres || genresData || []);
+  // Use API data only
+  const featuredSongs = discoverData?.featuredSongs || trendingData || [];
+  const newReleases = discoverData?.newReleases || newReleasesData || [];
+  const topArtists = discoverData?.topArtists || topArtistsData || [];
+  const genres = discoverData?.genres || genresData || [];
 
   return (
     <div className="min-h-screen pb-32 bg-gradient-to-b from-vio-900 via-[#0a0a16] to-[#05050a]">

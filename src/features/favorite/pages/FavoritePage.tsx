@@ -5,17 +5,13 @@ import { useMusicPlayer } from '@/contexts/MusicPlayerContext';
 import { Button } from '@/shared/components/ui/button';
 import { formatTime } from '@/shared/utils/formatTime';
 import { Song } from '@/core/services/song.service';
-import { MOCK_SONGS } from '@/data/mock.data';
-import { ENV } from '@/config/env.config';
 
 const FavoritePage: React.FC = () => {
   const { data, isLoading } = useFavorites();
   const { play } = useMusicPlayer();
 
-  const useMockData = ENV.IS_DEVELOPMENT;
-  const songs = useMockData && (!data?.songs || data.songs.length === 0)
-    ? MOCK_SONGS.slice(0, 8)
-    : (data?.songs || []);
+  // Use API data only
+  const songs = data?.songs || [];
 
   const handlePlay = (song: Song, allSongs: Song[]) => {
     play(song, allSongs);

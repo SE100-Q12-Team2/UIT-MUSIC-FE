@@ -1,52 +1,28 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query.config';
-import api from '@/config/api.config';
-import { AuthUser } from '@/contexts/AuthContext';
+import {
+  AuthResponse,
+  LoginRequest,
+  MessageResponse,
+  RegisterRequest,
+  RegisterResponse,
+  SendOTPRequest,
+  UserProfile,
+  UpdateProfileRequest,
+} from '@/types/auth.types';
+import { authApi } from '@/core/api/auth.api';
+import { cookieStorage } from '@/shared/utils/cookies';
+import { ENV } from '@/config/env.config';
+import { TypeOfVerificationCode } from '@/core/constants/auth.constant';
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user?: AuthUser;
-}
-
-export interface RegisterRequest {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword?: string;
-}
-
-export interface AuthResponse {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    avatar?: string;
-    isAdmin?: boolean;
-  };
-  token: string;
-  refreshToken?: string;
-}
-
-export interface UserProfile {
-  id: string;
-  fullName: string;
-  email: string;
-  profileImage?: string;
-  dateOfBirth?: string;
-  gender?: 'Male' | 'Female' | 'Other';
-  createdAt?: string;
-  updatedAt?: string;
-}
 
 export const authService = {
-  login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    const response = await api.post<LoginResponse>('/auth/login', credentials);
+  sendOTP: async (data: SendOTPRequest): Promise<MessageResponse> => {
+    return authApi.sendOTP(data);
+  },
+
+  login: async (credentials: LoginRequest): Promise<AuthResponse> => {
+    const response = await authApi.login(credentials);
 
     if (!response.accessToken || !response.refreshToken) {
       throw new Error('Máy chủ không trả về thông tin xác thực hợp lệ.');
@@ -55,54 +31,61 @@ export const authService = {
     return response;
   },
 
-  refresh: async (refreshToken: string): Promise<LoginResponse> => {
-    return api.post<LoginResponse>('/auth/refresh', { refreshToken });
+  register: async (data: RegisterRequest): Promise<RegisterResponse> => {
+    return authApi.register(data);
   },
 
-  register: async (data: RegisterRequest): Promise<AuthResponse> => {
-    return api.post<AuthResponse>('/auth/register', data);
+  refresh: async (refreshToken: string): Promise<AuthResponse> => {
+    const response = await authApi.refreshToken({ refreshToken });
+    return response;
   },
 
-  logout: async (refreshToken: string): Promise<void> => {
-    return api.post<void>('/auth/logout', { refreshToken });
+  logout: async (refreshToken: string): Promise<MessageResponse> => {
+    return authApi.logout({ refreshToken });
   },
 
   getProfile: async (): Promise<UserProfile> => {
-    return api.get<UserProfile>('/profile');
+    return authApi.getProfile();
   },
 
-  updateProfile: async (data: Partial<UserProfile>): Promise<UserProfile> => {
-    return api.patch<UserProfile>('/profile', data);
+  updateProfile: async (data: UpdateProfileRequest): Promise<UserProfile> => {
+    return authApi.updateProfile(data);
   },
 
-  changePassword: async (password: string, newPassword: string, confirmPassword: string): Promise<void> => {
-    return api.patch<void>('/profile/change-password', { password, newPassword, confirmPassword });
+  forgotPassword: async (email: string): Promise<MessageResponse> => {
+    return authApi.forgotPassword({ email, type: TypeOfVerificationCode.FORGOT_PASSWORD });
   },
 
-  forgotPassword: async (email: string): Promise<void> => {
-    return api.post<void>('/auth/forgot-password', { email });
+  resendOtp: async (email: string, type: string = 'FORGOT_PASSWORD'): Promise<MessageResponse> => {
+    return authApi.sendOTP({ email, type: type as 'REGISTER' | 'FORGOT_PASSWORD' });
   },
 
-  resendOtp: async (email: string, type: string = 'FORGOT_PASSWORD'): Promise<void> => {
-    return api.post<void>('/auth/otp', { email, type });
+  resetPassword: async (resetToken: string, newPassword: string, confirmNewPassword: string): Promise<MessageResponse> => {
+    return authApi.resetPassword({ resetToken, newPassword, confirmNewPassword });
   },
 
-  resetPassword: async (resetToken: string, newPassword: string, confirmNewPassword: string): Promise<void> => {
-    return api.post<void>('/auth/reset-password', { resetToken, newPassword, confirmNewPassword });
+  getGoogleLink: async () => {
+    return authApi.getGoogleLink();
   },
+
+  getFacebookLink: async () => {
+    return authApi.getFacebookLink();
+  },
+};
+
+
+export const useSendOTP = () => {
+  return useMutation({
+    mutationFn: (data: SendOTPRequest) => authService.sendOTP(data),
+  });
 };
 
 export const useLogin = () => {
   return useMutation({
     mutationFn: (credentials: LoginRequest) => authService.login(credentials),
     onSuccess: (data) => {
-      localStorage.setItem('auth_token', data.accessToken);
-      if (data.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-      }
-      if (data.refreshToken) {
-        localStorage.setItem('refresh_token', data.refreshToken);
-      }
+      cookieStorage.setItem('access_token', data.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
+      cookieStorage.setItem('refresh_token', data.refreshToken, { days: 30, secure: ENV.IS_PRODUCTION });
     },
   });
 };
@@ -111,11 +94,7 @@ export const useRegister = () => {
   return useMutation({
     mutationFn: (data: RegisterRequest) => authService.register(data),
     onSuccess: (data) => {
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      if (data.refreshToken) {
-        localStorage.setItem('refresh_token', data.refreshToken);
-      }
+      cookieStorage.setItem('registered_user', JSON.stringify(data), { days: 1, secure: ENV.IS_PRODUCTION });
     },
   });
 };
@@ -123,16 +102,16 @@ export const useRegister = () => {
 export const useLogout = () => {
   return useMutation({
     mutationFn: () => {
-      const refreshToken = localStorage.getItem('refresh_token');
+      const refreshToken = cookieStorage.getItem('refresh_token');
       if (!refreshToken) {
         throw new Error('No refresh token found');
       }
       return authService.logout(refreshToken);
     },
     onSuccess: () => {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
+      cookieStorage.removeItem('access_token');
+      cookieStorage.removeItem('refresh_token');
+      cookieStorage.removeItem('user');
       window.location.href = '/login';
     },
   });
@@ -142,20 +121,13 @@ export const useProfile = () => {
   return useQuery({
     queryKey: QUERY_KEYS.auth.profile,
     queryFn: () => authService.getProfile(),
-    enabled: !!localStorage.getItem('auth_token'),
+    enabled: !!cookieStorage.getItem('access_token'),
   });
 };
 
 export const useUpdateProfile = () => {
   return useMutation({
-    mutationFn: (data: Partial<UserProfile>) => authService.updateProfile(data),
-  });
-};
-
-export const useChangePassword = () => {
-  return useMutation({
-    mutationFn: ({ password, newPassword, confirmPassword }: { password: string; newPassword: string; confirmPassword: string }) =>
-      authService.changePassword(password, newPassword, confirmPassword),
+    mutationFn: (data: UpdateProfileRequest) => authService.updateProfile(data),
   });
 };
 
@@ -167,7 +139,26 @@ export const useForgotPassword = () => {
 
 export const useResetPassword = () => {
   return useMutation({
-    mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) =>
-      authService.resetPassword(token, newPassword),
+    mutationFn: ({ resetToken, newPassword, confirmNewPassword }: { 
+      resetToken: string; 
+      newPassword: string;
+      confirmNewPassword: string;
+    }) => authService.resetPassword(resetToken, newPassword, confirmNewPassword),
+  });
+};
+
+export const useGoogleLink = () => {
+  return useQuery({
+    queryKey: ['google-link'],
+    queryFn: () => authService.getGoogleLink(),
+    enabled: false, 
+  });
+};
+
+export const useFacebookLink = () => {
+  return useQuery({
+    queryKey: ['facebook-link'],
+    queryFn: () => authService.getFacebookLink(),
+    enabled: false,
   });
 };

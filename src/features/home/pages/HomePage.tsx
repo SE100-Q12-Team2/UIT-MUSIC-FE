@@ -7,8 +7,9 @@ import { usePlaylists } from '@/core/services/playlist.service';
 import { useSongs } from '@/core/services/song.service';
 import { useRecentlyPlayed } from '@/core/services/discover.service';
 import { SectionProps } from '@/features/home/types/home.types';
-import { MOCK_ARTIST_UPDATES, MOCK_ARTISTS_FOLLOW, MOCK_GENRES, MOCK_SONGS, MOCK_PLAYLISTS } from '@/data/mock.data';
-import { ENV } from '@/config/env.config';
+// Note: MOCK_ARTIST_UPDATES, MOCK_ARTISTS_FOLLOW, MOCK_GENRES are static content for UI
+// These should be replaced with API data when available
+import { MOCK_ARTIST_UPDATES, MOCK_ARTISTS_FOLLOW, MOCK_GENRES } from '@/data/mock.data';
 
 const Section = ({ title, actionText = "See All", children }: SectionProps) => (
     <div className="px-8 py-6">
@@ -27,14 +28,9 @@ const Home = () => {
   const { data: songsData, isLoading: songsLoading } = useSongs({ limit: 20 });
   const { data: recentlyPlayedData, isLoading: recentlyLoading } = useRecentlyPlayed();
 
-  // Sử dụng mock data trong development mode nếu API chưa có data
-  const useMockData = ENV.IS_DEVELOPMENT;
-  const playlists = useMockData && (!playlistsData?.playlists || playlistsData.playlists.length === 0) 
-    ? MOCK_PLAYLISTS 
-    : (playlistsData?.playlists || []);
-  const songs = useMockData && (!songsData?.songs || songsData.songs.length === 0)
-    ? MOCK_SONGS
-    : (songsData?.songs || []);
+  // Use API data only
+  const playlists = playlistsData?.playlists || [];
+  const songs = songsData?.items || [];
   const recentlyPlayed = recentlyPlayedData || [];
 
   return (

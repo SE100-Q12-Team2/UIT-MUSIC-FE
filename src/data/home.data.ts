@@ -1,4 +1,4 @@
-import { Artist, Playlist, Song } from "@/features/home/types/home.types";
+import { Artist, Playlist, Song } from "@/features/user/home/types/home.types";
 
 // Helper to get consistent images
 const getImg = (id: number, w = 300, h = 300) => `https://picsum.photos/id/${id}/${w}/${h}`;

@@ -1,18 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ENV } from './env.config';
-
-export interface ApiResponse<T = unknown> {
-  data: T;
-  message?: string;
-  success?: boolean;
-  status?: number;
-}
-
-export interface ApiError {
-  message: string;
-  status?: number;
-  errors?: Record<string, string[]>;
-}
+import { cookieStorage } from '@/shared/utils/cookies';
+import { ApiResponse, ErrorResponse } from '@/core/types';
 
 type FailedRequest = {
   resolve: (token: string | null) => void;
@@ -35,9 +24,9 @@ const processQueue = (error: unknown | null, token: string | null = null) => {
 };
 
 const redirectToLogin = () => {
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('user');
+  cookieStorage.removeItem('access_token');
+  cookieStorage.removeItem('refresh_token');
+  cookieStorage.removeItem('user');
   window.location.href = '/login';
 };
 
@@ -53,7 +42,7 @@ const createApiClient = (): AxiosInstance => {
 
   instance.interceptors.request.use(
     (config) => {
-      const token = localStorage.getItem('auth_token');
+      const token = cookieStorage.getItem('access_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -87,7 +76,7 @@ const createApiClient = (): AxiosInstance => {
 
       return response;
     },
-    (error: AxiosError<ApiError>) => {
+    (error: AxiosError<ErrorResponse>) => {
       if (ENV.IS_DEVELOPMENT) {
         console.error('❌ API Error:', {
           url: error.config?.url,
@@ -104,7 +93,7 @@ const createApiClient = (): AxiosInstance => {
         const isLoginEndpoint = requestUrl.includes('/auth/login');
         const isRegisterEndpoint = requestUrl.includes('/auth/register') || requestUrl.includes('/auth/signup');
         const isAuthEndpoint = requestUrl.includes('/auth/');
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = cookieStorage.getItem('refresh_token');
 
         // Không redirect nếu đang login/register - để lỗi được hiển thị cho user
         if (isLoginEndpoint || isRegisterEndpoint) {
@@ -112,15 +101,8 @@ const createApiClient = (): AxiosInstance => {
         }
 
         // Nếu là endpoint auth khác hoặc không có refresh token, redirect
-        // Trừ khi đang trong development mode với mock token
-        const isMockToken = refreshToken === 'dev-mock-refresh-token';
-        if ((isAuthEndpoint || !refreshToken) && !isMockToken) {
+        if (isAuthEndpoint || !refreshToken) {
           redirectToLogin();
-          return Promise.reject(error);
-        }
-        
-        // Nếu là mock token, chỉ reject error mà không redirect
-        if (isMockToken) {
           return Promise.reject(error);
         }
 
@@ -146,44 +128,46 @@ const createApiClient = (): AxiosInstance => {
         originalRequest._retry = true;
         isRefreshing = true;
 
-        return new Promise(async (resolve, reject) => {
-          try {
-            const refreshResponse = await axios.post(
-              `${ENV.API_BASE_URL.replace(/\/$/, '')}/auth/refresh`,
-              { refreshToken },
-              { headers: { 'Content-Type': 'application/json' } }
-            );
+        return new Promise((resolve, reject) => {
+          (async () => {
+            try {
+              const refreshResponse = await axios.post(
+                `${ENV.API_BASE_URL.replace(/\/$/, '')}/auth/refresh`,
+                { refreshToken },
+                { headers: { 'Content-Type': 'application/json' } }
+              );
 
-            const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data as {
-              accessToken: string;
-              refreshToken?: string;
-            };
+              const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data as {
+                accessToken: string;
+                refreshToken?: string;
+              };
 
-            if (!accessToken) {
-              throw new Error('Invalid refresh response');
+              if (!accessToken) {
+                throw new Error('Invalid refresh response');
+              }
+
+              cookieStorage.setItem('access_token', accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
+              if (newRefreshToken) {
+                cookieStorage.setItem('refresh_token', newRefreshToken, { days: 30, secure: ENV.IS_PRODUCTION });
+              }
+
+              instance.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+              processQueue(null, accessToken);
+
+              if (!originalRequest.headers) {
+                originalRequest.headers = {};
+              }
+              originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
+              resolve(instance(originalRequest));
+            } catch (refreshError) {
+              processQueue(refreshError, null);
+              redirectToLogin();
+              reject(refreshError);
+            } finally {
+              isRefreshing = false;
             }
-
-            localStorage.setItem('auth_token', accessToken);
-            if (newRefreshToken) {
-              localStorage.setItem('refresh_token', newRefreshToken);
-            }
-
-            instance.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-            processQueue(null, accessToken);
-
-            if (!originalRequest.headers) {
-              originalRequest.headers = {};
-            }
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
-            resolve(instance(originalRequest));
-          } catch (refreshError) {
-            processQueue(refreshError, null);
-            redirectToLogin();
-            reject(refreshError);
-          } finally {
-            isRefreshing = false;
-          }
+          })();
         });
       }
 
@@ -211,7 +195,7 @@ export const apiRequest = async <T = unknown>(
     const response = await apiClient.request<ApiResponse<T>>(config);
     return (response.data.data || response.data) as T;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
+      if (axios.isAxiosError(error)) {
       const responseData = error.response?.data;
       const apiError: ApiError = {
         message: responseData?.message || responseData?.description || responseData?.error || error.message,

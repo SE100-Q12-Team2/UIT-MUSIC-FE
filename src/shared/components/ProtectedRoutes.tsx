@@ -1,5 +1,5 @@
 import LoadingSpinner from "@/shared/components/common/LoadingSpinner";
-import { useAuth } from "@/shared/hooks/useAuth";
+import { useAuth } from "@/shared/hooks/auth/useAuth";
 import { Navigate, useLocation } from "react-router";
 
 interface ProtectedRouteProps {
@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireAdmin && !user?.isAdmin) {
+  if (requireAdmin && user?.role?.name === 'ADMIN') {
     return <Navigate to="/" replace />;
   }
 

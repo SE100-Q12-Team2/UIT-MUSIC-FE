@@ -1,63 +1,45 @@
-import { useState, FormEvent } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useAuth } from "@/shared/hooks/useAuth";
-
-interface LoginFormData {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-}
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginFormSchema, type LoginFormValues } from "../schemas/auth.schema";
+import { useAuth } from "@/shared/hooks/auth/useAuth";
+import { toast } from "sonner";
+import { handleApiValidationError } from "../utils/handleApiError";
+import { ROUTES } from "@/core/constants/routes";
 
 export const useLoginForm = () => {
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: "",
-    password: "",
-    rememberMe: false,
-  });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleEmailChange = (email: string) => {
-    setFormData(prev => ({ ...prev, email }));
-    setError(null);
-  };
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  const handlePasswordChange = (password: string) => {
-    setFormData(prev => ({ ...prev, password }));
-    setError(null);
-  };
-
-  const handleRememberMeChange = (rememberMe: boolean) => {
-    setFormData(prev => ({ ...prev, rememberMe }));
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    
+  const onSubmit = async (data: LoginFormValues) => {
+    setIsLoading(true);    
     try {
-      await login(formData.email, formData.password);
-      navigate('/home', { replace: true });
+      await login(data.email, data.password);
+      toast.success("Login successful");
+      navigate(ROUTES.HOME, { replace: true });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Login failed";
-      setError(errorMessage);
+      handleApiValidationError(err, data, form.setError, {
+        showToast: false,
+        fallbackMessage: "Login failed"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return {
-    email: formData.email,
-    password: formData.password,
-    rememberMe: formData.rememberMe,
+    form,
     isLoading,
-    error,
-    handleEmailChange,
-    handlePasswordChange,
-    handleRememberMeChange,
-    handleSubmit,
+    onSubmit,
   };
 };

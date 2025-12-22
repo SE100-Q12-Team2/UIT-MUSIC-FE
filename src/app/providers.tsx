@@ -6,132 +6,130 @@ import { MusicPlayerProvider } from '@/contexts/MusicPlayerContext';
 import { queryClient } from '@/config/query.config';
 import { ENV } from '@/config/env.config';
 import { authService } from '@/core/services/auth.service';
+import { cookieStorage } from '@/shared/utils/cookies';
+import { useProfileStore } from '@/store/profileStore';
 
-const buildFallbackUser = (email: string): AuthUser => {
-  const generatedId =
-    typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID()
-      : Date.now().toString();
-
-  const guessedName = email?.split('@')?.[0] || 'User';
-
-  return {
-    id: generatedId,
-    name: guessedName,
-    email,
-  };
+const persistSession = (tokens: { accessToken: string; refreshToken: string }) => {
+  cookieStorage.setItem('access_token', tokens.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
+  cookieStorage.setItem('refresh_token', tokens.refreshToken, { days: 30, secure: ENV.IS_PRODUCTION });
 };
 
-const persistSession = (tokens: { accessToken: string; refreshToken: string }, user: AuthUser) => {
-  localStorage.setItem('auth_token', tokens.accessToken);
-  localStorage.setItem('refresh_token', tokens.refreshToken);
-  localStorage.setItem('user', JSON.stringify(user));
+const persistUser = (user: AuthUser) => {
+  cookieStorage.setItem('user', JSON.stringify(user), { days: 30, secure: ENV.IS_PRODUCTION });
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const setProfile = useProfileStore((state) => state.setProfile);
+  const clearProfile = useProfileStore((state) => state.clearProfile);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('auth_token');
-        const savedUser = localStorage.getItem('user');
+        const token = cookieStorage.getItem('access_token');
+        const savedUser = cookieStorage.getItem('user');
         
         if (token && savedUser) {
-          setUser(JSON.parse(savedUser));
-        } else if (ENV.IS_DEVELOPMENT) {
-          // Tạm thời bypass login trong development mode để xem giao diện
-          const mockUser: AuthUser = {
-            id: 'dev-user-123',
-            name: 'Dev User',
-            email: 'dev@uit-music.local',
-            avatar: 'https://ui-avatars.com/api/?name=Dev+User&background=728AAB&color=fff&size=200',
-          };
-          localStorage.setItem('auth_token', 'dev-mock-token');
-          localStorage.setItem('refresh_token', 'dev-mock-refresh-token');
-          localStorage.setItem('user', JSON.stringify(mockUser));
-          setUser(mockUser);
-          console.log('🔓 Development mode: Auto-logged in as mock user');
+          const parsedUser = JSON.parse(savedUser) as AuthUser;
+          setUser(parsedUser);
+          
+          try {
+            const profile = await authService.getProfile();
+            const freshUser: AuthUser = {
+              id: profile.id,
+              email: profile.email,
+              fullName: profile.fullName,
+              profileImage: profile.profileImage,
+              accountStatus: profile.accountStatus,
+              roleId: profile.roleId,
+              role: profile.role,
+            };
+            setUser(freshUser);
+            persistUser(freshUser);
+            // Sync to profileStore
+            setProfile(profile);
+          } catch (error) {
+            console.error('Failed to fetch fresh profile:', error);
+          }
         }
       } catch (error) {
         console.error('Auth check failed:', error);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
+        cookieStorage.removeItem('access_token');
+        cookieStorage.removeItem('refresh_token');
+        cookieStorage.removeItem('user');
+        clearProfile();
       } finally {
         setIsLoading(false);
       }
     };
 
     checkAuth();
-  }, []);
+  }, [setProfile, clearProfile]);
 
-  const login = async (email: string, password: string) => {
+  const sendOTP = async (email: string, type: 'REGISTER' | 'FORGOT_PASSWORD') => {
     try {
       setIsLoading(true);
-
-      const response = await authService.login({ email, password });
-      const sessionUser = response.user ?? buildFallbackUser(email);
-
-      persistSession({ accessToken: response.accessToken, refreshToken: response.refreshToken }, sessionUser);
-      setUser(sessionUser);
-    } catch (error: any) {
-      console.error('Login failed:', error);
-      
-      // Trích xuất thông báo lỗi từ API response
-      let message = 'Đăng nhập thất bại. Vui lòng thử lại.';
-      
-      if (error?.message) {
-        message = error.message;
-      } else if (error?.response?.data?.message) {
-        message = error.response.data.message;
-      } else if (error?.response?.data?.description) {
-        message = error.response.data.description;
-      } else if (typeof error === 'string') {
-        message = error;
-      }
-      
+      await authService.sendOTP({ email, type });
+    } catch (error) {
+      console.error('Send OTP failed:', error);
+      const message = (error as { message?: string })?.message || 'Gửi OTP thất bại. Vui lòng thử lại.';
       throw new Error(message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-
-      const response = await authService.register({ name, email, password });
+      const response = await authService.login({ email, password });
+      persistSession({ accessToken: response.accessToken, refreshToken: response.refreshToken });
+      const profile = await authService.getProfile();
       const sessionUser: AuthUser = {
-        id: response.user.id,
-        name: response.user.name,
-        email: response.user.email,
-        avatar: response.user.avatar,
-        isAdmin: response.user.isAdmin,
+        id: profile.id,
+        email: profile.email,
+        fullName: profile.fullName,
+        profileImage: profile.profileImage,
+        accountStatus: profile.accountStatus,
+        roleId: profile.roleId,
+        role: profile.role,
       };
-
-      persistSession(
-        { accessToken: response.token, refreshToken: response.refreshToken || '' },
-        sessionUser
-      );
+      persistUser(sessionUser);
       setUser(sessionUser);
-    } catch (error: any) {
+      setProfile(profile);
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error; // Giữ nguyên object lỗi gốc
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (
+    fullName: string, 
+    email: string, 
+    password: string, 
+    confirmPassword: string, 
+    code: string
+  ) => {
+    try {
+      setIsLoading(true);
+      
+      await authService.register({ 
+        fullName, 
+        email, 
+        password, 
+        confirmPassword,
+        code 
+      });
+      
+      cookieStorage.setItem('registered_email', email, { days: 1, secure: ENV.IS_PRODUCTION });
+      
+    } catch (error) {
       console.error('Register failed:', error);
-      
-      // Trích xuất thông báo lỗi từ API response
-      let message = 'Đăng ký thất bại. Vui lòng thử lại.';
-      
-      if (error?.message) {
-        message = error.message;
-      } else if (error?.response?.data?.message) {
-        message = error.response.data.message;
-      } else if (error?.response?.data?.description) {
-        message = error.response.data.description;
-      } else if (typeof error === 'string') {
-        message = error;
-      }
-      
+      const message =
+        (error as { message?: string })?.message || 'Đăng ký thất bại. Vui lòng thử lại.';
       throw new Error(message);
     } finally {
       setIsLoading(false);
@@ -139,17 +137,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+    cookieStorage.removeItem('access_token');
+    cookieStorage.removeItem('refresh_token');
+    cookieStorage.removeItem('user');
     setUser(null);
+    clearProfile();
   };
 
   const updateUser = (updatedData: Partial<AuthUser>) => {
     if (user) {
       const newUser = { ...user, ...updatedData };
       setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      cookieStorage.setItem('user', JSON.stringify(newUser), { days: 30, secure: ENV.IS_PRODUCTION });
     }
   };
 
@@ -161,6 +160,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isLoading,
         login,
         register,
+        sendOTP,
         logout,
         updateUser
       }}

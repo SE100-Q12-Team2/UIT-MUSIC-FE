@@ -1,150 +1,127 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { QUERY_KEYS } from '@/config/query.config';
+import { useQuery } from '@tanstack/react-query';
 import api from '@/config/api.config';
-
-export interface Playlist {
-  id: string;
-  name: string;
-  description?: string;
-  coverUrl?: string;
-  trackCount: number;
-  duration?: number;
-  createdAt?: string;
-  updatedAt?: string;
-  userId?: string;
-  isPublic?: boolean;
-}
-
-export interface PlaylistFilters {
-  userId?: string;
-  page?: number;
-  limit?: number;
-  search?: string;
-}
-
-export interface PlaylistsResponse {
-  playlists: Playlist[];
-  total: number;
-  page: number;
-  totalPages: number;
-}
-
-export interface PlaylistDetail extends Playlist {
-  songs: Array<{
-    id: string;
-    title: string;
-    artist: string;
-    album?: string;
-    duration: number;
-    coverUrl?: string;
-    audioUrl?: string;
-  }>;
-}
+import { Playlist, PlaylistTrack } from '@/types/playlist.types';
+import { useProfileStore } from '@/store/profileStore';
 
 export const playlistService = {
-  getPlaylists: async (filters?: PlaylistFilters): Promise<PlaylistsResponse> => {
-    return api.get<PlaylistsResponse>('/playlists', { params: filters });
+  // Get all playlists for a user
+  getPlaylists: async (ownerId: number): Promise<Playlist[]> => {
+    // api.get already unwraps response.data.data, so we get array directly
+    const playlists = await api.get<Playlist[]>('/playlists', {
+      params: { ownerId },
+    });
+    return playlists;
   },
 
-  getPlaylistById: async (id: string): Promise<PlaylistDetail> => {
-    return api.get<PlaylistDetail>(`/playlists/${id}`);
+  // Get tracks in a playlist
+  getPlaylistTracks: async (playlistId: number): Promise<PlaylistTrack[]> => {
+    // api.get already unwraps response.data.data, so we get array directly
+    const tracks = await api.get<PlaylistTrack[]>(`/playlists/${playlistId}/tracks`);
+    return tracks;
   },
 
-  createPlaylist: async (data: Partial<Playlist>): Promise<Playlist> => {
-    return api.post<Playlist>('/playlists', data);
+  // Get track count for multiple playlists
+  getPlaylistsWithTrackCounts: async (ownerId: number): Promise<(Playlist & { trackCount: number })[]> => {
+    const playlists = await api.get<Playlist[]>('/playlists', {
+      params: { ownerId },
+    });
+    
+    // Fetch track counts for all playlists
+    const playlistsWithCounts = await Promise.all(
+      playlists.map(async (playlist) => {
+        const tracks = await api.get<PlaylistTrack[]>(`/playlists/${playlist.id}/tracks`);
+        return {
+          ...playlist,
+          trackCount: tracks.length,
+        };
+      })
+    );
+    
+    return playlistsWithCounts;
   },
-
-  updatePlaylist: async (id: string, data: Partial<Playlist>): Promise<Playlist> => {
-    return api.patch<Playlist>(`/playlists/${id}`, data);
-  },
-
-  deletePlaylist: async (id: string): Promise<void> => {
-    return api.delete<void>(`/playlists/${id}`);
-  },
-
-  addSongToPlaylist: async (playlistId: string, songId: string): Promise<void> => {
-    return api.post<void>(`/playlists/${playlistId}/songs`, { songId });
-  },
-
-  removeSongFromPlaylist: async (playlistId: string, songId: string): Promise<void> => {
-    return api.delete<void>(`/playlists/${playlistId}/songs/${songId}`);
+  
+  // Get all song IDs from all user's playlists
+  getAllPlaylistSongIds: async (ownerId: number): Promise<Set<number>> => {
+    const playlists = await api.get<Playlist[]>('/playlists', {
+      params: { ownerId },
+    });
+    
+    const allSongIds = new Set<number>();
+    
+    // Fetch all tracks from all playlists
+    await Promise.all(
+      playlists.map(async (playlist) => {
+        const tracks = await api.get<PlaylistTrack[]>(`/playlists/${playlist.id}/tracks`);
+        tracks.forEach(track => allSongIds.add(track.songId));
+      })
+    );
+    
+    return allSongIds;
   },
 };
 
-export const usePlaylists = (filters?: PlaylistFilters) => {
-  return useQuery({
-    queryKey: QUERY_KEYS.playlists.list(filters),
-    queryFn: () => playlistService.getPlaylists(filters),
-    enabled: true,
-  });
-};
-
+// Legacy hook placeholder for detail playlist (used by PlaylistPage)
+// Hiện tại backend chưa có API detail playlist riêng, nên ta chỉ dùng mock ở dev.
+// Hook này chỉ để tránh lỗi import khi build.
 export const usePlaylist = (id: string) => {
+  return {
+    data: undefined,
+    isLoading: false,
+    error: null,
+  } as {
+    data: unknown;
+    isLoading: boolean;
+    error: unknown;
+  };
+};
+
+// React Query hook for user's playlists
+export const usePlaylists = () => {
+  const profileId = useProfileStore((state) => state.profile?.id);
+
   return useQuery({
-    queryKey: QUERY_KEYS.playlists.detail(id),
-    queryFn: () => playlistService.getPlaylistById(id),
-    enabled: !!id,
-  });
-};
-
-export const useCreatePlaylist = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: Partial<Playlist>) => playlistService.createPlaylist(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.playlists.all });
+    queryKey: ['playlists', profileId],
+    queryFn: () => {
+      if (!profileId) throw new Error('Profile ID not available');
+      return playlistService.getPlaylists(profileId);
     },
+    enabled: !!profileId, // Only fetch when profileId is available
   });
 };
 
-export const useUpdatePlaylist = () => {
-  const queryClient = useQueryClient();
+// React Query hook for user's playlists with track counts
+export const usePlaylistsWithTrackCounts = () => {
+  const profileId = useProfileStore((state) => state.profile?.id);
 
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Playlist> }) =>
-      playlistService.updatePlaylist(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.playlists.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.playlists.all });
+  return useQuery({
+    queryKey: ['playlists-with-counts', profileId],
+    queryFn: () => {
+      if (!profileId) throw new Error('Profile ID not available');
+      return playlistService.getPlaylistsWithTrackCounts(profileId);
     },
+    enabled: !!profileId,
   });
 };
 
-export const useDeletePlaylist = () => {
-  const queryClient = useQueryClient();
+// React Query hook for playlist tracks
+export const usePlaylistTracks = (playlistId: number) => {
+  return useQuery({
+    queryKey: ['playlist-tracks', playlistId],
+    queryFn: () => playlistService.getPlaylistTracks(playlistId),
+    enabled: !!playlistId,
+  });
+};
 
-  return useMutation({
-    mutationFn: (id: string) => playlistService.deletePlaylist(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.playlists.all });
+// React Query hook to get all song IDs in user's playlists
+export const useAllPlaylistSongIds = () => {
+  const profileId = useProfileStore((state) => state.profile?.id);
+
+  return useQuery({
+    queryKey: ['all-playlist-song-ids', profileId],
+    queryFn: () => {
+      if (!profileId) throw new Error('Profile ID not available');
+      return playlistService.getAllPlaylistSongIds(profileId);
     },
+    enabled: !!profileId,
   });
 };
-
-export const useAddSongToPlaylist = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ playlistId, songId }: { playlistId: string; songId: string }) =>
-      playlistService.addSongToPlaylist(playlistId, songId),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.playlists.detail(variables.playlistId) });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.playlists.all });
-    },
-  });
-};
-
-export const useRemoveSongFromPlaylist = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ playlistId, songId }: { playlistId: string; songId: string }) =>
-      playlistService.removeSongFromPlaylist(playlistId, songId),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.playlists.detail(variables.playlistId) });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.playlists.all });
-    },
-  });
-};
-

@@ -6,8 +6,6 @@ import { useMusicPlayer } from '@/contexts/MusicPlayerContext';
 import { Button } from '@/shared/components/ui/button';
 import { formatTime } from '@/shared/utils/formatTime';
 import { Song } from '@/core/services/song.service';
-import { MOCK_PLAYLISTS, MOCK_SONGS } from '@/data/mock.data';
-import { ENV } from '@/config/env.config';
 import { PlaylistDetail } from '@/core/services/playlist.service';
 
 const PlaylistPage: React.FC = () => {
@@ -18,32 +16,11 @@ const PlaylistPage: React.FC = () => {
   const { data: playlistsData, isLoading: playlistsLoading } = usePlaylists();
   const { data: playlistData, isLoading: playlistLoading } = usePlaylist(id || '');
 
-  const useMockData = ENV.IS_DEVELOPMENT;
-  const isLoading = id ? (useMockData ? false : playlistLoading) : (useMockData ? false : playlistsLoading);
+  const isLoading = id ? playlistLoading : playlistsLoading;
   
-  // Mock playlist detail nếu có id
-  let playlist: PlaylistDetail | null = id ? playlistData : null;
-  if (id && useMockData && !playlistData) {
-    const mockPlaylist = MOCK_PLAYLISTS.find(p => p.id === id);
-    if (mockPlaylist) {
-      playlist = {
-        ...mockPlaylist,
-        songs: MOCK_SONGS.slice(0, 10).map(song => ({
-          id: song.id,
-          title: song.title,
-          artist: song.artist,
-          album: song.album,
-          duration: song.duration,
-          coverUrl: song.coverUrl,
-          audioUrl: song.audioUrl,
-        })),
-      };
-    }
-  }
-  
-  const playlists = useMockData && (!playlistsData?.playlists || playlistsData.playlists.length === 0)
-    ? MOCK_PLAYLISTS
-    : (playlistsData?.playlists || []);
+  // Use API data only
+  const playlist: PlaylistDetail | null = id ? playlistData : null;
+  const playlists = playlistsData?.playlists || [];
 
   const handlePlay = (song: Song, allSongs: Song[]) => {
     play(song, allSongs);

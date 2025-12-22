@@ -1,24 +1,29 @@
 import App from "@/app/App";
 import LoginPage from "@/features/auth/pages/LoginPage";
-import SignInPage from "@/features/auth/pages/SignInPage";
-import NotFoundPage from "@/features/error/pages/NotFoundPage";
+import GuestRoute from "@/shared/components/GuestRoute";
+import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
 import LazyLoad from "@/shared/components/common/LazyLoad";
 import MainLayout from "@/shared/layouts/MainLayout";
-import AppLayout from "@/shared/layouts/AppLayout";
+import LabelLayout from "@/shared/layouts/LabelLayout";
+import ProtectedRoute from "@/shared/components/ProtectedRoutes";
+import RoleBasedRedirect from "@/shared/components/RoleBasedRedirect";
 import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
-import { PremiumSubscriptionsPage } from "@/features/subscription/pages/PremiumSubscriptionsPage";
-import Home from "@/features/home/pages/HomePage";
-import SettingsPage from "@/features/settings/pages/SettingsPage";
+import Home from "@/features/user/home/pages/HomePage";
+import SettingsPage from "@/features/user/settings/pages/SettingsPage";
+import SignUpPage from "@/features/auth/pages/SignUpPage";
+import LabelHomePage from "@/features/label/home/pages/LabelHomePage";
+import PremiumSubscriptionsPage from "@/features/user/subscription/pages/PremiumSubscriptionsPage";
+import PlaylistsPage from "@/features/user/playlists/pages/PlaylistsPage";
+import BrowserPage from "@/features/user/browser/pages/BrowserPage";
+import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
+import PlayerPage from "@/features/player/pages/PlayerPage";
 import ForgotPassword from "@/features/auth/pages/ForgotPassword";
 import EnterCode from "@/features/auth/pages/EnterCode";
 import ResetPassword from "@/features/auth/pages/ResetPassword";
-import PlaylistPage from "@/features/playlist/pages/PlaylistPage";
-import FavoritePage from "@/features/favorite/pages/FavoritePage";
-import DiscoverPage from "@/features/discover/pages/DiscoverPage";
-import PlayerPage from "@/features/player/pages/PlayerPage";
+import LabelSongManagementPage from "@/features/label/songs/pages/LabelSongManagementPage";
 
-const LandingPage = lazy(() => import('@/features/landing/pages/LandingPage'));
+const LandingPage = lazy(() => import('@/features/user/landing/pages/LandingPage'));
 
 export const router = createBrowserRouter([
   {
@@ -35,61 +40,133 @@ export const router = createBrowserRouter([
         ]
       },
       {
-        element: <AppLayout />,
+        element: <MainLayout />,
         children: [
           {
             path: "home",
-            element: <LazyLoad><Home /></LazyLoad>
+            element: (
+              <ProtectedRoute>
+                <RoleBasedRedirect />
+                <LazyLoad><Home /></LazyLoad>
+              </ProtectedRoute>
+            )
           },
           {
             path: "subscriptions",
-            element: <LazyLoad><PremiumSubscriptionsPage /></LazyLoad>
+            element: (
+              <ProtectedRoute>
+                <LazyLoad><PremiumSubscriptionsPage /></LazyLoad>
+              </ProtectedRoute>
+            )
           },
           {
             path: "settings",
-            element: <LazyLoad><SettingsPage /></LazyLoad>
-          },
-          {
-            path: "player",
-            element: <LazyLoad><PlayerPage /></LazyLoad>
+            element: (
+              <ProtectedRoute>
+                <LazyLoad><SettingsPage /></LazyLoad>
+              </ProtectedRoute>
+            )
           },
           {
             path: "playlists",
-            element: <LazyLoad><PlaylistPage /></LazyLoad>
+            element: (
+              <ProtectedRoute>
+                <LazyLoad><PlaylistsPage /></LazyLoad>
+              </ProtectedRoute>
+            )
           },
           {
-            path: "playlists/:id",
-            element: <LazyLoad><PlaylistPage /></LazyLoad>
+            path: "browser",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad><BrowserPage /></LazyLoad>
+              </ProtectedRoute>
+            )
           },
           {
-            path: "likes",
-            element: <LazyLoad><FavoritePage /></LazyLoad>
-          },
-          {
-            path: "discover",
-            element: <LazyLoad><DiscoverPage /></LazyLoad>
+            path: "player",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad><PlayerPage /></LazyLoad>
+              </ProtectedRoute>
+            )
           },
         ]
       },
       {
+        path: "label",
+        element: (
+          <ProtectedRoute>
+            <LabelLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            path: "home",
+            element: <LazyLoad><LabelHomePage /></LazyLoad>
+          },
+          {
+            path: "songs",
+            element: <LazyLoad><LabelSongManagementPage /></LazyLoad>
+          },
+          {
+            path: "albums",
+            element: <div>Label Albums Page (Coming Soon)</div>
+          },
+          {
+            path: "report",
+            element: <div>Label Report Page (Coming Soon)</div>
+          }
+        ]
+      },
+      {
         path: 'login',
-        element: <LazyLoad><LoginPage /></LazyLoad>
+        element: (
+          <GuestRoute>
+            <LazyLoad><LoginPage /></LazyLoad>
+          </GuestRoute>
+        )
       },
       {
         path: 'signup',
-        element: <LazyLoad><SignInPage /></LazyLoad>
+        element: (
+          <GuestRoute>
+            <LazyLoad><SignUpPage /></LazyLoad>
+          </GuestRoute>
+        )
       },
+      // Routes Forgot Password của bạn
       {
         path: 'forgot-password',
-        element: <LazyLoad><ForgotPassword /></LazyLoad>
+        element: (
+          <GuestRoute>
+            <LazyLoad><ForgotPassword /></LazyLoad>
+          </GuestRoute>
+        )
       },
       {
         path: 'forgot-password/enter-code',
-        element: <LazyLoad><EnterCode /></LazyLoad>
+        element: (
+          <GuestRoute>
+            <LazyLoad><EnterCode /></LazyLoad>
+          </GuestRoute>
+        )
       },
       {
         path: 'forgot-password/reset',
-        element: <LazyLoad><ResetPassword /></LazyLoad>
+        element: (
+          <GuestRoute>
+            <LazyLoad><ResetPassword /></LazyLoad>
+          </GuestRoute>
+        )
+      },
+      {
+        path: 'reset-password',
+        element: (
+          <ProtectedRoute>
+            <LazyLoad><ResetPasswordPage /></LazyLoad>
+          </ProtectedRoute>
+        )
       },
       {
         path: '404',

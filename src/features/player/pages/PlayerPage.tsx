@@ -1,138 +1,194 @@
-import React from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { useMusicPlayer } from '@/contexts/MusicPlayerContext';
 import { formatTime } from '@/shared/utils/formatTime';
-import { Play, Pause, SkipBack, SkipForward, Repeat, Shuffle, Heart, MoreHorizontal } from 'lucide-react';
-import { Button } from '@/shared/components/ui/button';
-import { Slider } from '@/shared/components/ui/slider';
+import { cn } from '@/lib/utils';
+import { Song } from '@/core/services/song.service';
+import { usePageBackground } from '@/shared/hooks/usePageBackground';
+import backgroundSettings from '@/assets/background-settings.png';
+import '@/styles/player-page.css';
+
 
 const PlayerPage: React.FC = () => {
   const {
     currentSong,
-    isPlaying,
     currentTime,
     duration,
-    volume,
-    isShuffled,
-    isRepeated,
-    togglePlayPause,
-    next,
-    previous,
-    setVolume,
-    setCurrentTime,
-    toggleShuffle,
-    toggleRepeat,
+    queue,
+    currentIndex,
+    play,
   } = useMusicPlayer();
 
-  if (!currentSong) {
+  // Use label background (same as settings)
+  usePageBackground(backgroundSettings);
+
+  const songListRef = useRef<HTMLDivElement>(null);
+  const activeSongRef = useRef<HTMLDivElement>(null);
+  const activeLyricRef = useRef<HTMLDivElement>(null);
+
+  // Note: In production, PlayerPage should only show when a song is playing
+  // Mock data is only for UI testing/development
+  // Remove auto-play mock in production
+
+  // Use current song from player context (from API)
+  const displaySong = currentSong;
+  const displayTime = currentTime;
+  const displayDuration = duration;
+  
+  // Show empty state if no song is playing
+  if (!displaySong) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-vio-900 via-[#0a0a16] to-[#05050a]">
-        <div className="text-center">
-          <p className="text-gray-400 text-lg mb-4">No song is currently playing</p>
-          <p className="text-gray-500 text-sm">Select a song to start playing</p>
+      <div className="player-page">
+        <div className="player-page__empty">
+          <p className="text-gray-400 text-lg">No song is currently playing</p>
+          <p className="text-gray-500 text-sm mt-2">Select a song to start playing</p>
         </div>
       </div>
     );
   }
 
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  // Parse lyrics into lines
+  const lyricsLines = useMemo(() => {
+    if (!displaySong || !(displaySong as any).lyrics) return [];
+    const lyrics = (displaySong as any).lyrics || '';
+    return lyrics.split('\n').filter((line: string) => line.trim());
+  }, [displaySong]);
+
+  // Calculate which line should be highlighted based on currentTime
+  const currentLineIndex = useMemo(() => {
+    if (lyricsLines.length === 0 || displayDuration === 0) return -1;
+    // Simple calculation: distribute lines evenly across duration
+    const timePerLine = displayDuration / lyricsLines.length;
+    return Math.floor(displayTime / timePerLine);
+  }, [lyricsLines, displayTime, displayDuration]);
+
+  // Scroll active song to center
+  useEffect(() => {
+    if (activeSongRef.current && songListRef.current) {
+      const container = songListRef.current;
+      const activeItem = activeSongRef.current;
+      const itemOffsetTop = activeItem.offsetTop;
+      const itemHeight = activeItem.offsetHeight;
+      const containerHeight = container.clientHeight;
+      const scrollTop = itemOffsetTop - (containerHeight / 2) + (itemHeight / 2);
+      container.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' });
+    }
+  }, [currentIndex, currentSong]);
+
+  // Scroll active lyric to center
+  useEffect(() => {
+    if (activeLyricRef.current && currentLineIndex >= 0) {
+      const container = activeLyricRef.current.parentElement;
+      if (container) {
+        const itemOffsetTop = activeLyricRef.current.offsetTop;
+        const itemHeight = activeLyricRef.current.offsetHeight;
+        const containerHeight = container.clientHeight;
+        const scrollTop = itemOffsetTop - (containerHeight / 2) + (itemHeight / 2);
+        container.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' });
+      }
+    }
+  }, [currentLineIndex]);
+
+  // Get album name from API
+  const albumName = displaySong.album?.albumTitle || '';
+
+  // Get cover image from API: album.coverImage
+  const coverImage = displaySong.album?.coverImage || '';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vio-900 via-[#0a0a16] to-[#05050a] flex items-center justify-center px-8 py-12">
-      <div className="max-w-4xl w-full flex flex-col items-center gap-8">
-        {/* Album Art */}
-        <div className="relative w-80 h-80 rounded-2xl overflow-hidden shadow-2xl">
-          <img
-            src={currentSong.coverUrl || 'https://via.placeholder.com/400'}
-            className="w-full h-full object-cover"
-            alt={currentSong.title}
-          />
-        </div>
+    <div className="player-page">
+      {/* Main Content - 3 columns: Song List | Vinyl | Lyrics */}
+      <div className="player-page__container">
+        {/* Left - Album/Track List */}
+        <div className="player-page__song-list" ref={songListRef}>
+          {queue.length > 0 ? queue.map((song, index) => {
+            // Get cover image from API: album.coverImage
+            const songCoverUrl = song.album?.coverImage || '';
+            const songTitle = song.title;
+            // Get artist from API: songArtists array
+            const songArtist = song.songArtists?.map((sa) => sa.artist?.artistName || sa.artistName).join(', ') || 'Unknown Artist';
+            const songDuration = formatTime(song.duration);
+            const isCurrent = index === currentIndex;
+            const albumTitle = song.album?.albumTitle || '';
 
-        {/* Song Info */}
-        <div className="text-center">
-          <h3 className="text-3xl font-bold text-white mb-2">{currentSong.title}</h3>
-          <p className="text-lg text-gray-400">{currentSong.artist}</p>
-          {currentSong.album && (
-            <p className="text-sm text-gray-500 mt-1">{currentSong.album}</p>
+            return (
+              <div
+                key={song.id}
+                ref={isCurrent ? activeSongRef : null}
+                className={cn(
+                  "player-page__song-item",
+                  isCurrent && "player-page__song-item--active"
+                )}
+                onClick={() => play(song, queue)}
+              >
+                <div className="player-page__song-cover">
+                  <img
+                    src={songCoverUrl || 'https://via.placeholder.com/120'}
+                    alt={songTitle}
+                    className="player-page__song-cover-img"
+                  />
+                </div>
+                {isCurrent ? (
+                  <div className="player-page__song-info">
+                    <div className="player-page__song-title">{songTitle}</div>
+                    <div className="player-page__song-artist">{songArtist}</div>
+                    <div className="player-page__song-duration">{songDuration}</div>
+                    <div className="player-page__song-heart">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="player-page__song-album-title">{albumTitle || songTitle}</div>
+                )}
+              </div>
+            );
+          }) : (
+            <div className="player-page__song-list-empty">
+              <p className="text-gray-400 text-sm">No songs in queue</p>
+            </div>
           )}
         </div>
 
-        {/* Progress Bar */}
-        <div className="w-full max-w-2xl">
-          <Slider
-            value={[progress]}
-            max={100}
-            className="w-full h-2 cursor-pointer mb-2"
-            onValueChange={(value) => {
-              const newTime = (value[0] / 100) * duration;
-              setCurrentTime(newTime);
-            }}
-          />
-          <div className="flex justify-between text-sm text-gray-400">
-            <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
+        {/* Center - Vinyl Record */}
+        <div className="player-page__vinyl-container">
+          <div className="player-page__vinyl">
+            <div className="player-page__vinyl-inner">
+              {/* Album cover image */}
+              <img
+                src={coverImage}
+                alt={displaySong.title}
+                className="player-page__vinyl-image"
+              />
+              <div className="player-page__vinyl-center">
+                <div className="player-page__vinyl-text-main">{albumName.split(' ')[0] || 'ARCANE'}</div>
+                <div className="player-page__vinyl-text-sub">{albumName.split(' ').slice(1).join(' ') || 'LEAGUE OF LEGENDS'}</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`h-12 w-12 ${isShuffled ? 'text-vio-accent' : 'text-gray-400 hover:text-white'}`}
-            onClick={toggleShuffle}
-          >
-            <Shuffle size={24} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:text-gray-300 h-12 w-12"
-            onClick={previous}
-          >
-            <SkipBack size={28} fill="currentColor" />
-          </Button>
-          <Button
-            variant="default"
-            size="icon"
-            className="rounded-full bg-white text-black hover:bg-gray-200 hover:scale-105 transition-transform h-16 w-16"
-            onClick={togglePlayPause}
-          >
-            {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" />}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:text-gray-300 h-12 w-12"
-            onClick={next}
-          >
-            <SkipForward size={28} fill="currentColor" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`h-12 w-12 ${isRepeated ? 'text-vio-accent' : 'text-gray-400 hover:text-white'}`}
-            onClick={toggleRepeat}
-          >
-            <Repeat size={24} />
-          </Button>
-        </div>
-
-        {/* Additional Actions */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-            <Heart size={20} />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-            <MoreHorizontal size={20} />
-          </Button>
-          <div className="flex items-center gap-2">
-            <Slider
-              value={[volume * 100]}
-              max={100}
-              className="w-32 cursor-pointer"
-              onValueChange={(value) => setVolume(value[0] / 100)}
-            />
+        {/* Right - Lyrics Section */}
+        <div className="player-page__lyrics-container">
+          <div className="player-page__lyrics">
+            {lyricsLines.length > 0 ? (
+              lyricsLines.map((line: string, index: number) => (
+                <div
+                  key={index}
+                  ref={index === currentLineIndex ? activeLyricRef : null}
+                  className={cn(
+                    "player-page__lyrics-line",
+                    index === currentLineIndex && "player-page__lyrics-line--active"
+                  )}
+                >
+                  {line}
+                </div>
+              ))
+            ) : (
+              <div className="player-page__lyrics-empty">
+                <p className="text-gray-500">No lyrics available</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -141,4 +197,3 @@ const PlayerPage: React.FC = () => {
 };
 
 export default PlayerPage;
-

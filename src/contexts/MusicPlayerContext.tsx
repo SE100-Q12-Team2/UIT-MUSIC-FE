@@ -69,9 +69,22 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
       const song = queue[nextIndex];
       if (audioRef.current) {
         setCurrentSong(song);
-        audioRef.current.src = song.audioUrl || '';
+        // Get audio URL from API: asset.keyMaster
+        const audioUrl = (song as any).audioUrl || (song.asset?.keyMaster 
+          ? `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`
+          : '');
+        
+        if (!audioUrl) {
+          console.warn('No audio URL found for song:', song.title);
+          return;
+        }
+        
+        audioRef.current.src = audioUrl;
         audioRef.current.volume = volume;
-        audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
+        audioRef.current.play().then(() => setIsPlaying(true)).catch((error) => {
+          console.error('Error playing next song:', error);
+          setIsPlaying(false);
+        });
       }
     }
   }, [queue, currentIndex, isRepeated, volume]);
@@ -106,16 +119,40 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
   }, [isRepeated, next, setCurrentTime, setDuration]);
 
   const play = (song: Song, newQueue?: Song[]) => {
+    // Ensure audioRef is initialized
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+    }
+    
+    if (newQueue) {
+      setQueue(newQueue);
+      const index = newQueue.findIndex(s => s.id === song.id);
+      setCurrentIndex(index >= 0 ? index : 0);
+    }
+    setCurrentSong(song);
+    
+    // Support both audioUrl (extended) and asset.keyMaster (from API)
+    const audioUrl = (song as any).audioUrl || (song.asset?.keyMaster 
+      ? `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`
+      : '');
+    
+    if (!audioUrl) {
+      console.warn('No audio URL found for song:', song.title);
+      return;
+    }
+    
     if (audioRef.current) {
-      if (newQueue) {
-        setQueue(newQueue);
-        const index = newQueue.findIndex(s => s.id === song.id);
-        setCurrentIndex(index >= 0 ? index : 0);
-      }
-      setCurrentSong(song);
-      audioRef.current.src = song.audioUrl || '';
+      audioRef.current.src = audioUrl;
       audioRef.current.volume = volume;
-      audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
+      audioRef.current.play()
+        .then(() => {
+          setIsPlaying(true);
+          console.log('Playing:', song.title, 'URL:', audioUrl);
+        })
+        .catch((error) => {
+          console.error('Error playing audio:', error);
+          console.error('Audio URL:', audioUrl);
+        });
     }
   };
 
@@ -154,9 +191,22 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
       const song = queue[prevIndex];
       if (audioRef.current) {
         setCurrentSong(song);
-        audioRef.current.src = song.audioUrl || '';
+        // Get audio URL from API: asset.keyMaster
+        const audioUrl = (song as any).audioUrl || (song.asset?.keyMaster 
+          ? `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`
+          : '');
+        
+        if (!audioUrl) {
+          console.warn('No audio URL found for song:', song.title);
+          return;
+        }
+        
+        audioRef.current.src = audioUrl;
         audioRef.current.volume = volume;
-        audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
+        audioRef.current.play().then(() => setIsPlaying(true)).catch((error) => {
+          console.error('Error playing previous song:', error);
+          setIsPlaying(false);
+        });
       }
     }
   }, [queue, currentIndex, isRepeated, volume]);

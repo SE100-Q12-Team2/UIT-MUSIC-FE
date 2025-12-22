@@ -39,44 +39,44 @@ const MusicPlayer: React.FC = () => {
       {/* Collapsed Player Bar */}
       <div
         className={cn(
-          "fixed bottom-0 left-0 right-0 bg-[#0E0E1F] border-t border-white/5 z-50 transition-all duration-300",
+          "fixed bottom-0 left-0 right-0 bg-vio-900/95 backdrop-blur-lg border-t border-white/10 shadow-2xl z-50 transition-all duration-300",
           isExpanded ? "h-0 overflow-hidden" : "h-[90px]"
         )}
       >
-        <div className="h-full px-6 flex items-center justify-between">
+        <div className="h-full px-6 flex items-center justify-between max-w-[1920px] mx-auto">
           {/* Left: Track Info */}
-          <div className="flex items-center gap-4 w-[25%] min-w-[200px]">
+          <div className="flex items-center gap-4 w-[25%] min-w-[250px]">
             <div 
-              className="w-14 h-14 rounded-lg overflow-hidden bg-secondary relative group cursor-pointer"
+              className="w-16 h-16 rounded-lg overflow-hidden bg-secondary relative group cursor-pointer flex-shrink-0"
               onClick={toggleExpanded}
             >
               <img 
-                src={currentSong.coverUrl || 'https://via.placeholder.com/100'} 
-                className="w-full h-full object-cover opacity-80" 
+                src={currentSong.album?.coverImage || 'https://via.placeholder.com/100'} 
+                className="w-full h-full object-cover" 
                 alt={currentSong.title}
               />
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/30 transition-opacity">
-                <Maximize2 size={16} className="text-white"/>
+                <Maximize2 size={18} className="text-white"/>
               </div>
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="text-sm font-semibold text-white hover:underline cursor-pointer truncate">
                 {currentSong.title}
               </h4>
-              <p className="text-xs text-muted-foreground hover:underline cursor-pointer truncate">
-                {currentSong.artist}
+              <p className="text-xs text-gray-400 hover:underline cursor-pointer truncate">
+                {currentSong.songArtists?.map((sa) => sa.artist?.artistName || sa.artistName).join(', ') || 'Unknown Artist'}
               </p>
             </div>
           </div>
 
           {/* Center: Controls & Progress */}
-          <div className="flex flex-col items-center gap-2 flex-1 max-w-[600px] px-4">
+          <div className="flex flex-col items-center gap-2 flex-1 max-w-[700px] px-6">
             {/* Buttons */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className={cn("h-8 w-8", isShuffled ? "text-vio-accent" : "text-muted-foreground hover:text-white")}
+                className={cn("h-9 w-9", isShuffled ? "text-vio-accent" : "text-gray-400 hover:text-white")}
                 onClick={toggleShuffle}
               >
                 <Shuffle size={18} />
@@ -84,7 +84,7 @@ const MusicPlayer: React.FC = () => {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="text-white hover:text-gray-300"
+                className="text-white hover:text-gray-300 h-9 w-9"
                 onClick={previous}
               >
                 <SkipBack size={22} fill="currentColor" />
@@ -92,15 +92,15 @@ const MusicPlayer: React.FC = () => {
               <Button 
                 variant="default" 
                 size="icon" 
-                className="rounded-full bg-white text-black hover:bg-gray-200 hover:scale-105 transition-transform h-10 w-10"
+                className="rounded-full bg-white text-black hover:bg-gray-200 hover:scale-105 transition-transform h-11 w-11"
                 onClick={togglePlayPause}
               >
-                {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
+                {isPlaying ? <Pause size={22} fill="currentColor" /> : <Play size={22} fill="currentColor" />}
               </Button>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="text-white hover:text-gray-300"
+                className="text-white hover:text-gray-300 h-9 w-9"
                 onClick={next}
               >
                 <SkipForward size={22} fill="currentColor" />
@@ -108,41 +108,38 @@ const MusicPlayer: React.FC = () => {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className={cn("h-8 w-8", isRepeated ? "text-vio-accent" : "text-muted-foreground hover:text-white")}
+                className={cn("h-9 w-9", isRepeated ? "text-vio-accent" : "text-gray-400 hover:text-white")}
                 onClick={toggleRepeat}
               >
                 <Repeat size={18} />
               </Button>
             </div>
             {/* Progress Bar */}
-            <div className="w-full flex items-center gap-3 text-xs text-muted-foreground font-medium">
-              <span>{formatTime(currentTime)}</span>
+            <div className="w-full flex items-center gap-3 text-xs text-gray-400 font-medium">
+              <span className="min-w-[40px] text-right">{formatTime(currentTime)}</span>
               <Slider 
                 value={[progress]} 
                 max={100} 
-                className="flex-1 h-1 cursor-pointer"
+                className="flex-1 h-1.5 cursor-pointer"
                 onValueChange={(value) => {
                   const newTime = (value[0] / 100) * duration;
                   setCurrentTime(newTime);
                 }}
               />
-              <span>{formatTime(duration)}</span>
+              <span className="min-w-[40px] text-left">{formatTime(duration)}</span>
             </div>
           </div>
 
           {/* Right: Extra Controls */}
-          <div className="flex items-center justify-end gap-2 w-[25%] text-muted-foreground">
-            <Button variant="ghost" size="icon" className="hover:text-white h-8 w-8">
-              <Mic2 size={18} />
-            </Button>
-            <Button variant="ghost" size="icon" className="hover:text-white h-8 w-8">
+          <div className="flex items-center justify-end gap-3 w-[25%] text-gray-400">
+            <Button variant="ghost" size="icon" className="hover:text-white h-9 w-9">
               <List size={18} />
             </Button>
-            <div className="flex items-center gap-2 group w-24">
+            <div className="flex items-center gap-2 group w-28">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 hover:text-white"
+                className="h-9 w-9 hover:text-white"
                 onClick={() => setVolume(volume > 0 ? 0 : 1)}
               >
                 {volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
@@ -150,7 +147,7 @@ const MusicPlayer: React.FC = () => {
               <Slider 
                 value={[volume * 100]} 
                 max={100} 
-                className="h-1 cursor-pointer"
+                className="h-1.5 cursor-pointer"
                 onValueChange={(value) => setVolume(value[0] / 100)}
               />
             </div>
@@ -180,7 +177,7 @@ const MusicPlayer: React.FC = () => {
               {/* Album Art */}
               <div className="relative w-80 h-80 rounded-2xl overflow-hidden shadow-2xl">
                 <img 
-                  src={currentSong.coverUrl || 'https://via.placeholder.com/400'} 
+                  src={currentSong.album?.coverImage || 'https://via.placeholder.com/400'} 
                   className="w-full h-full object-cover" 
                   alt={currentSong.title}
                 />
@@ -189,9 +186,11 @@ const MusicPlayer: React.FC = () => {
               {/* Song Info */}
               <div className="text-center">
                 <h3 className="text-3xl font-bold text-white mb-2">{currentSong.title}</h3>
-                <p className="text-lg text-gray-400">{currentSong.artist}</p>
+                <p className="text-lg text-gray-400">
+                  {currentSong.songArtists?.map((sa) => sa.artist?.artistName || sa.artistName).join(', ') || 'Unknown Artist'}
+                </p>
                 {currentSong.album && (
-                  <p className="text-sm text-gray-500 mt-1">{currentSong.album}</p>
+                  <p className="text-sm text-gray-500 mt-1">{currentSong.album.albumTitle}</p>
                 )}
               </div>
 
