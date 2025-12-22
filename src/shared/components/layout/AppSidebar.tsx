@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { Home, Heart, ListMusic, Search } from 'lucide-react';
+import { Home, Heart, ListMusic, Search, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
   { id: 'likes', icon: <Heart size={22} />, path: '/likes', label: 'Likes' },
   { id: 'playlists', icon: <ListMusic size={22} />, path: '/playlists', label: 'Playlists' },
   { id: 'discover', icon: <Search size={22} />, path: '/discover', label: 'Discover' },
+  { id: 'player', icon: <Music size={22} />, path: '/player', label: 'Player' },
 ];
 
 const AppSidebar: React.FC = () => {

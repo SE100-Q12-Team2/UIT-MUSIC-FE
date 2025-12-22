@@ -112,8 +112,15 @@ const createApiClient = (): AxiosInstance => {
         }
 
         // Nếu là endpoint auth khác hoặc không có refresh token, redirect
-        if (isAuthEndpoint || !refreshToken) {
+        // Trừ khi đang trong development mode với mock token
+        const isMockToken = refreshToken === 'dev-mock-refresh-token';
+        if ((isAuthEndpoint || !refreshToken) && !isMockToken) {
           redirectToLogin();
+          return Promise.reject(error);
+        }
+        
+        // Nếu là mock token, chỉ reject error mà không redirect
+        if (isMockToken) {
           return Promise.reject(error);
         }
 

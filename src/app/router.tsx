@@ -13,6 +13,10 @@ import SettingsPage from "@/features/settings/pages/SettingsPage";
 import ForgotPassword from "@/features/auth/pages/ForgotPassword";
 import EnterCode from "@/features/auth/pages/EnterCode";
 import ResetPassword from "@/features/auth/pages/ResetPassword";
+import PlaylistPage from "@/features/playlist/pages/PlaylistPage";
+import FavoritePage from "@/features/favorite/pages/FavoritePage";
+import DiscoverPage from "@/features/discover/pages/DiscoverPage";
+import PlayerPage from "@/features/player/pages/PlayerPage";
 
 const LandingPage = lazy(() => import('@/features/landing/pages/LandingPage'));
 
@@ -45,46 +49,26 @@ export const router = createBrowserRouter([
             path: "settings",
             element: <LazyLoad><SettingsPage /></LazyLoad>
           },
-          // {
-          //   path: 'music',
-          //   element: <MusicPage />
-          // },
-          // {
-          //   path: 'playlist',
-          //   element: <PlaylistPage />
-          // },
-          // {
-          //   path: 'playlist/:id',
-          //   element: <PlaylistPage />
-          // },
-          // {
-          //   path: 'artist',
-          //   element: <ArtistPage />
-          // },
-          // {
-          //   path: 'artist/:id',
-          //   element: <ArtistPage />
-          // },
-          // {
-          //   path: 'album',
-          //   element: <AlbumPage />
-          // },
-          // {
-          //   path: 'album/:id',
-          //   element: <AlbumPage />
-          // },
-          // {
-          //   path: 'search',
-          //   element: <SearchPage />
-          // },
-          // {
-          //   path: 'profile',
-          //   element: <ProfilePage />
-          // },
-          // {
-          //   path: 'settings',
-          //   element: <SettingsPage />
-          // }
+          {
+            path: "player",
+            element: <LazyLoad><PlayerPage /></LazyLoad>
+          },
+          {
+            path: "playlists",
+            element: <LazyLoad><PlaylistPage /></LazyLoad>
+          },
+          {
+            path: "playlists/:id",
+            element: <LazyLoad><PlaylistPage /></LazyLoad>
+          },
+          {
+            path: "likes",
+            element: <LazyLoad><FavoritePage /></LazyLoad>
+          },
+          {
+            path: "discover",
+            element: <LazyLoad><DiscoverPage /></LazyLoad>
+          },
         ]
       },
       {

@@ -1,10 +1,14 @@
 import { Play, Heart } from 'lucide-react';
-import { ARTIST_UPDATES, ARTISTS_FOLLOW, DAILY_PICK_SONGS, GENRES, PERSONAL_SPACE, RECENTLY_PLAYED_BANNERS, TAILORED_PLAYLISTS } from '@/data/home.data';
 import { Button } from '@/shared/components/ui/button';
-import { Card } from '@/shared/components/ui/card';
-import SongRow from '@/features/home/components/SongRow';
 import { Input } from '@/shared/components/ui/input';
+import SongRow from '@/features/home/components/SongRow';
+import PlaylistCard from '@/features/home/components/PlaylistCard';
+import { usePlaylists } from '@/core/services/playlist.service';
+import { useSongs } from '@/core/services/song.service';
+import { useRecentlyPlayed } from '@/core/services/discover.service';
 import { SectionProps } from '@/features/home/types/home.types';
+import { MOCK_ARTIST_UPDATES, MOCK_ARTISTS_FOLLOW, MOCK_GENRES, MOCK_SONGS, MOCK_PLAYLISTS } from '@/data/mock.data';
+import { ENV } from '@/config/env.config';
 
 const Section = ({ title, actionText = "See All", children }: SectionProps) => (
     <div className="px-8 py-6">
@@ -19,37 +23,78 @@ const Section = ({ title, actionText = "See All", children }: SectionProps) => (
 );
 
 const Home = () => {
+  const { data: playlistsData, isLoading: playlistsLoading } = usePlaylists();
+  const { data: songsData, isLoading: songsLoading } = useSongs({ limit: 20 });
+  const { data: recentlyPlayedData, isLoading: recentlyLoading } = useRecentlyPlayed();
+
+  // Sử dụng mock data trong development mode nếu API chưa có data
+  const useMockData = ENV.IS_DEVELOPMENT;
+  const playlists = useMockData && (!playlistsData?.playlists || playlistsData.playlists.length === 0) 
+    ? MOCK_PLAYLISTS 
+    : (playlistsData?.playlists || []);
+  const songs = useMockData && (!songsData?.songs || songsData.songs.length === 0)
+    ? MOCK_SONGS
+    : (songsData?.songs || []);
+  const recentlyPlayed = recentlyPlayedData || [];
+
   return (
     <div className="min-w-screen flex flex-col flex-1 overflow-y-auto pb-32 bg-linear-to-b from-vio-900 via-[#0a0a16] to-[#05050a]">
         
         <section className="px-8 pt-6 pb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            {RECENTLY_PLAYED_BANNERS.map((banner) => (
-                <div key={banner.id} className="relative h-40 rounded-xl overflow-hidden group cursor-pointer">
-                    <img src={banner.coverUrl} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" alt={banner.title} />
-                    <div className={`absolute inset-0 bg-linear-to-b ${banner.accent} opacity-80 mix-blend-multiply`} />
-                    <div className="absolute inset-0 flex flex-col justify-end p-5">
-                        <h3 className="text-xl font-bold text-white mb-1">{banner.title}</h3>
-                        <div className="w-8 h-1 bg-white/50 rounded-full" />
-                    </div>
+            <div className="relative h-40 rounded-xl overflow-hidden group cursor-pointer">
+                <div className="absolute inset-0 bg-linear-to-b from-blue-900 to-black opacity-80" />
+                <div className="absolute inset-0 flex flex-col justify-end p-5">
+                    <h3 className="text-xl font-bold text-white mb-1">Recently Listened</h3>
+                    <div className="w-8 h-1 bg-white/50 rounded-full" />
                 </div>
-            ))}
+            </div>
+            <div className="relative h-40 rounded-xl overflow-hidden group cursor-pointer">
+                <div className="absolute inset-0 bg-linear-to-b from-purple-900 to-black opacity-80" />
+                <div className="absolute inset-0 flex flex-col justify-end p-5">
+                    <h3 className="text-xl font-bold text-white mb-1">Most Listened</h3>
+                    <div className="w-8 h-1 bg-white/50 rounded-full" />
+                </div>
+            </div>
+            <div className="relative h-40 rounded-xl overflow-hidden group cursor-pointer">
+                <div className="absolute inset-0 bg-linear-to-b from-orange-900 to-black opacity-80" />
+                <div className="absolute inset-0 flex flex-col justify-end p-5">
+                    <h3 className="text-xl font-bold text-white mb-1">Liked Tracks</h3>
+                    <div className="w-8 h-1 bg-white/50 rounded-full" />
+                </div>
+            </div>
         </section>
 
         <Section title="Playlists Tailored For You">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {TAILORED_PLAYLISTS.map((item) => <Card key={item.id} data={item} />)}
-            </div>
+            {playlistsLoading ? (
+                <div className="text-gray-400">Loading playlists...</div>
+            ) : playlists.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {playlists.slice(0, 10).map((playlist) => (
+                        <PlaylistCard key={playlist.id} playlist={playlist} />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-gray-400">No playlists available</div>
+            )}
         </Section>
 
         <Section title="Your Personal Music Space">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {PERSONAL_SPACE.map((item) => <Card key={item.id} data={item} />)}
-            </div>
+            {playlistsLoading ? (
+                <div className="text-gray-400">Loading playlists...</div>
+            ) : playlists.length > 10 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {playlists.slice(10, 20).map((playlist) => (
+                        <PlaylistCard key={playlist.id} playlist={playlist} />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-gray-400">No more playlists available</div>
+            )}
         </Section>
 
         <Section title="Updates From Followed Artists">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 {ARTIST_UPDATES.map((item) => (
+                 {MOCK_ARTIST_UPDATES.map((item) => (
                     <div key={item.id} className="flex items-center gap-4 bg-[#13132b]/50 p-4 rounded-lg hover:bg-[#13132b] transition-colors group cursor-pointer border border-white/5">
                         <img src={item.coverUrl} alt={item.title} className="w-16 h-16 rounded shadow-lg" />
                         <div className="flex-1">
@@ -63,18 +108,24 @@ const Home = () => {
         </Section>
 
         <Section title="Daily Pick">
-            <div className="bg-[#13132b]/30 rounded-xl border border-white/5 overflow-hidden">
-                {DAILY_PICK_SONGS.map((song, idx) => (
-                    <div key={song.id} className={idx !== DAILY_PICK_SONGS.length - 1 ? 'border-b border-white/5' : ''}>
-                        <SongRow song={song} />
-                    </div>
-                ))}
-            </div>
+            {songsLoading ? (
+                <div className="text-gray-400">Loading songs...</div>
+            ) : songs.length > 0 ? (
+                <div className="bg-[#13132b]/30 rounded-xl border border-white/5 overflow-hidden">
+                    {songs.slice(0, 10).map((song, idx) => (
+                        <div key={song.id} className={idx !== songs.length - 1 ? 'border-b border-white/5' : ''}>
+                            <SongRow song={song} index={idx} allSongs={songs} />
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="text-gray-400">No songs available</div>
+            )}
         </Section>
 
         <Section title="Artists You Follow">
             <div className="flex gap-8 overflow-x-auto pb-4 scrollbar-hide">
-                {ARTISTS_FOLLOW.map((artist) => (
+                {MOCK_ARTISTS_FOLLOW.map((artist) => (
                     <div key={artist.id} className="flex flex-col items-center gap-3 min-w-[100px] group cursor-pointer">
                         <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-transparent group-hover:border-vio-accent transition-all relative">
                             <img src={artist.imageUrl} alt={artist.name} className="w-full h-full object-cover" />
@@ -108,7 +159,7 @@ const Home = () => {
 
         <Section title="Genres You Interested In">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {GENRES.map(genre => (
+                {MOCK_GENRES.map(genre => (
                     <div key={genre.id} className="relative h-28 rounded-lg overflow-hidden cursor-pointer group">
                         <img src={genre.coverUrl} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={genre.title} />
                         <div className="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-colors" />

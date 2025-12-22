@@ -3,6 +3,7 @@ import { Outlet } from 'react-router';
 import Footer from '@/shared/components/ui/footer';
 import AppSidebar from '@/shared/components/layout/AppSidebar';
 import AppHeader from '@/shared/components/layout/AppHeader';
+import MusicPlayer from '@/shared/components/MusicPlayer';
 import { useBackground } from '@/contexts/BackgroundContext';
 import '@/styles/main-layout.css';
 
@@ -36,6 +37,9 @@ const AppLayout: React.FC = () => {
 
       {/* Footer */}
       <Footer />
+
+      {/* Music Player */}
+      <MusicPlayer />
     </div>
   );
 };

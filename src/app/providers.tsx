@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthContext, AuthUser } from '@/contexts/AuthContext';
+import { MusicPlayerProvider } from '@/contexts/MusicPlayerContext';
 import { queryClient } from '@/config/query.config';
 import { ENV } from '@/config/env.config';
 import { authService } from '@/core/services/auth.service';
@@ -39,6 +40,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (token && savedUser) {
           setUser(JSON.parse(savedUser));
+        } else if (ENV.IS_DEVELOPMENT) {
+          // Tạm thời bypass login trong development mode để xem giao diện
+          const mockUser: AuthUser = {
+            id: 'dev-user-123',
+            name: 'Dev User',
+            email: 'dev@uit-music.local',
+            avatar: 'https://ui-avatars.com/api/?name=Dev+User&background=728AAB&color=fff&size=200',
+          };
+          localStorage.setItem('auth_token', 'dev-mock-token');
+          localStorage.setItem('refresh_token', 'dev-mock-refresh-token');
+          localStorage.setItem('user', JSON.stringify(mockUser));
+          setUser(mockUser);
+          console.log('🔓 Development mode: Auto-logged in as mock user');
         }
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -160,7 +174,9 @@ export const AppProviders = ({ children }: { children: ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {children}
+        <MusicPlayerProvider>
+          {children}
+        </MusicPlayerProvider>
       </AuthProvider>
       {ENV.IS_DEVELOPMENT && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
