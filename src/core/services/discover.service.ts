@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { QUERY_KEYS } from '@/config/query.config';
 import api from '@/config/api.config';
 import { Song } from './song.service';
 

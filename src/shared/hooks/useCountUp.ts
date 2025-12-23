@@ -8,12 +8,13 @@ interface UseCountUpOptions {
 }
 
 export const useCountUp = ({ start = 0, end, duration = 2000, enabled = true }: UseCountUpOptions) => {
-  const [count, setCount] = useState(start)
+  const [count, setCount] = useState(() => start)
 
   useEffect(() => {
     if (!enabled) {
-      setCount(start)
-      return
+      // Use setTimeout to avoid synchronous setState in effect
+      const timer = setTimeout(() => setCount(start), 0);
+      return () => clearTimeout(timer);
     }
 
     let startTime: number | null = null

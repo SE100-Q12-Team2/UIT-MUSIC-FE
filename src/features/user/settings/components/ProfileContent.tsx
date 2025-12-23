@@ -60,7 +60,7 @@ const ProfileContent: React.FC = () => {
     };
   };
 
-  const initialName = parseName((user as any)?.fullName || user?.name || '');
+  const initialName = parseName(user?.fullName || '');
   
   const [formData, setFormData] = useState<ProfileFormData>({
     firstName: initialName.firstName,
@@ -78,7 +78,7 @@ const ProfileContent: React.FC = () => {
   // Update form khi user data thay đổi
   useEffect(() => {
     if (user) {
-      const fullName = (user as any)?.fullName || user.name || '';
+      const fullName = user?.fullName || '';
       const nameParts = parseName(fullName);
       setFormData(prev => ({
         ...prev,
@@ -99,7 +99,7 @@ const ProfileContent: React.FC = () => {
 
   const handleCancel = () => {
     if (user) {
-      const fullName = (user as any)?.fullName || user.name || '';
+      const fullName = user?.fullName || '';
       const nameParts = parseName(fullName);
       setFormData({
         firstName: nameParts.firstName,
@@ -137,9 +137,10 @@ const ProfileContent: React.FC = () => {
 
       toast.success('Profile updated successfully');
       setHasChanges(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Update profile error:', error);
-      const errorMsg = error?.message || error?.response?.data?.message || 'Failed to update profile';
+      const errorObj = error as { message?: string; response?: { data?: { message?: string } } };
+      const errorMsg = errorObj?.message || errorObj?.response?.data?.message || 'Failed to update profile';
       toast.error('Failed to update profile', { description: errorMsg });
     } finally {
       setIsSubmitting(false);
@@ -147,9 +148,9 @@ const ProfileContent: React.FC = () => {
   };
 
   const remainingChars = maxBioLength - formData.bio.length;
-  const displayName = (user as any)?.fullName || user?.name || 'User';
+  const displayName = user?.fullName || 'User';
   const username = user?.email?.split('@')[0] || 'user';
-  const avatarUrl = (user as any)?.profileImage || user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=728AAB&color=fff&size=200`;
+  const avatarUrl = user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=728AAB&color=fff&size=200`;
 
   return (
     <div className="settings-content profile-content">

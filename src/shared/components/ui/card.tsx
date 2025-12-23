@@ -3,12 +3,24 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Playlist } from "@/types/playlist.types";
 
+// Flexible type for card data that accepts both Playlist and mock data structures
+export interface CardData {
+  id: string | number;
+  name?: string;
+  playlistName?: string;
+  title?: string;
+  subtitle?: string;
+  coverUrl?: string;
+  coverImageUrl?: string;
+  [key: string]: unknown;
+}
+
 interface CardProps extends React.ComponentProps<"div"> {
-  data?: Playlist; // Replace with your actual Playlist type
+  data?: CardData | Playlist;
 }
 
 
-function Card({ className, data, ...props }: CardProps) {
+function Card({ className, ...props }: CardProps) {
   return (
     <div
       data-slot="card"

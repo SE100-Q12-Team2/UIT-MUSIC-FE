@@ -1,12 +1,11 @@
 import { Play, Heart } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import SongRow from '@/features/home/components/SongRow';
-import PlaylistCard from '@/features/home/components/PlaylistCard';
+import SongRow from '@/features/user/home/components/SongRow';
+import PlaylistCard from '@/features/user/home/components/PlaylistCard';
 import { usePlaylists } from '@/core/services/playlist.service';
 import { useSongs } from '@/core/services/song.service';
-import { useRecentlyPlayed } from '@/core/services/discover.service';
-import { SectionProps } from '@/features/home/types/home.types';
+import { SectionProps } from '@/features/user/home/types/home.types';
 // Note: MOCK_ARTIST_UPDATES, MOCK_ARTISTS_FOLLOW, MOCK_GENRES are static content for UI
 // These should be replaced with API data when available
 import { MOCK_ARTIST_UPDATES, MOCK_ARTISTS_FOLLOW, MOCK_GENRES } from '@/data/mock.data';
@@ -26,12 +25,10 @@ const Section = ({ title, actionText = "See All", children }: SectionProps) => (
 const Home = () => {
   const { data: playlistsData, isLoading: playlistsLoading } = usePlaylists();
   const { data: songsData, isLoading: songsLoading } = useSongs({ limit: 20 });
-  const { data: recentlyPlayedData, isLoading: recentlyLoading } = useRecentlyPlayed();
 
-  // Use API data only
-  const playlists = playlistsData?.playlists || [];
+  // Use API data only - usePlaylists returns Playlist[] directly
+  const playlists = playlistsData || [];
   const songs = songsData?.items || [];
-  const recentlyPlayed = recentlyPlayedData || [];
 
   return (
     <div className="min-w-screen flex flex-col flex-1 overflow-y-auto pb-32 bg-linear-to-b from-vio-900 via-[#0a0a16] to-[#05050a]">

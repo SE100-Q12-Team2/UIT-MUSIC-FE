@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import SettingsTabs, { SettingsTab } from '../components/SettingsTabs';
-import ProfileContent from '../components/ProfileContent';
-import DetailsContent from '../components/DetailsContent';
-import ContactContent from '../components/ContactContent';
-import FAQContent from '../components/FAQContent';
+import SettingsTabs, { SettingsTab } from '@/features/user/settings/components/SettingsTabs';
+import ProfileContent from '@/features/user/settings/components/ProfileContent';
+import DetailsContent from '@/features/user/settings/components/DetailsContent';
+import ContactContent from '@/features/user/settings/components/ContactContent';
+import FAQContent from '@/features/user/settings/components/FAQContent';
 import { usePageBackground } from '@/shared/hooks/usePageBackground';
 import backgroundSettings from '@/assets/background-settings.png';
 import '@/styles/settings.css';

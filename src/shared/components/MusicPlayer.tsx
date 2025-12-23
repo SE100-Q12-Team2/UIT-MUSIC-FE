@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Play, Pause, SkipBack, SkipForward, Repeat, Shuffle, 
-  Volume2, VolumeX, Mic2, List, Maximize2, Minimize2,
+  Volume2, VolumeX, List, Maximize2, Minimize2,
   Heart, MoreHorizontal
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
@@ -64,7 +64,7 @@ const MusicPlayer: React.FC = () => {
                 {currentSong.title}
               </h4>
               <p className="text-xs text-gray-400 hover:underline cursor-pointer truncate">
-                {currentSong.songArtists?.map((sa) => sa.artist?.artistName || sa.artistName).join(', ') || 'Unknown Artist'}
+                {currentSong.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist'}
               </p>
             </div>
           </div>
@@ -187,7 +187,7 @@ const MusicPlayer: React.FC = () => {
               <div className="text-center">
                 <h3 className="text-3xl font-bold text-white mb-2">{currentSong.title}</h3>
                 <p className="text-lg text-gray-400">
-                  {currentSong.songArtists?.map((sa) => sa.artist?.artistName || sa.artistName).join(', ') || 'Unknown Artist'}
+                  {currentSong.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist'}
                 </p>
                 {currentSong.album && (
                   <p className="text-sm text-gray-500 mt-1">{currentSong.album.albumTitle}</p>

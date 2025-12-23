@@ -4,18 +4,18 @@ import { Search, Bell, Settings } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar';
-import { useAuth } from '@/shared/hooks/useAuth';
+import { useAuth } from '@/shared/hooks/auth/useAuth';
 import logoWithName from '@/assets/logo-w-name.svg';
 
 const AppHeader: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const displayName = (user as any)?.fullName || user?.name || 'User';
-  const avatarUrl = (user as any)?.profileImage || user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=728AAB&color=fff&size=200`;
+  const displayName = user?.fullName || 'User';
+  const avatarUrl = user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=728AAB&color=fff&size=200`;
   const initials = displayName
     .split(' ')
-    .map(n => n[0])
+    .map((n: string) => n[0])
     .join('')
     .toUpperCase()
     .slice(0, 2);

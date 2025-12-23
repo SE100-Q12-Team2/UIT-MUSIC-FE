@@ -24,7 +24,7 @@ const LabelSongManagementPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterValue, setFilterValue] = useState('All');
   const [sortBy, setSortBy] = useState<SortOption>('Latest');
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const limit = 20;
 
   // Dropdown states
@@ -49,9 +49,10 @@ const LabelSongManagementPage: React.FC = () => {
 
   // Filter and sort songs
   const filteredAndSortedSongs = useMemo(() => {
-    if (!songsResponse?.items) return [];
+    const items = songsResponse?.items;
+    if (!items) return [];
 
-    let filtered = songsResponse.items;
+    let filtered = items;
 
     // Search filter
     if (searchQuery) {
@@ -92,14 +93,15 @@ const LabelSongManagementPage: React.FC = () => {
     }
 
     return filtered;
-  }, [songsResponse?.items, searchQuery, filterValue, sortBy]);
+  }, [songsResponse, searchQuery, filterValue, sortBy]);
 
   // Get unique genres for filter
   const genres = useMemo(() => {
-    if (!songsResponse?.items) return [];
-    const uniqueGenres = new Set(songsResponse.items.map((song) => song.genre.genreName));
+    const items = songsResponse?.items;
+    if (!items) return [];
+    const uniqueGenres = new Set(items.map((song) => song.genre.genreName));
     return Array.from(uniqueGenres).sort();
-  }, [songsResponse?.items]);
+  }, [songsResponse]);
 
   // Sort options
   const sortOptions: SortOption[] = ['Latest', 'Oldest', 'Most Played', 'Least Played', 'A-Z', 'Z-A'];
@@ -128,8 +130,9 @@ const LabelSongManagementPage: React.FC = () => {
       await deleteSongMutation.mutateAsync(songId);
       toast.success('Song deleted successfully');
       refetch();
-    } catch (error: any) {
-      const errorMsg = error?.message || error?.response?.data?.message || 'Failed to delete song';
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string; response?: { data?: { message?: string } } };
+      const errorMsg = errorObj?.message || errorObj?.response?.data?.message || 'Failed to delete song';
       toast.error('Failed to delete song', { description: errorMsg });
     }
   };
@@ -147,12 +150,7 @@ const LabelSongManagementPage: React.FC = () => {
   const handlePlay = (song: LabelSong) => {
     // Convert LabelSong to Song format for music player
     // Music player needs Song from '@/core/services/song.service'
-    const artistNames = song.songArtists.map((sa) => sa.artist.artistName).join(', ');
-    const audioUrl = song.asset?.keyMaster 
-      ? `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`
-      : '';
-    
-    const playerSong: Song & { coverUrl?: string; artist?: string; album?: string; audioUrl?: string } = {
+    const playerSong: Song = {
       id: song.id,
       title: song.title,
       description: song.description,
@@ -194,21 +192,16 @@ const LabelSongManagementPage: React.FC = () => {
         id: song.asset.id,
         bucket: song.asset.bucket,
         keyMaster: song.asset.keyMaster,
-      } : undefined,
-      // Add fields for MusicPlayer component
-      coverUrl: song.album.coverImage || '',
-      artist: artistNames,
-      album: song.album.albumTitle,
-      audioUrl: audioUrl,
-    } as Song & { coverUrl?: string; artist?: string; album?: string; audioUrl?: string };
+      } : {
+        id: 0,
+        bucket: '',
+        keyMaster: '',
+      },
+    } as Song;
     
     // Get all songs for queue
-    const allSongs: (Song & { coverUrl?: string; artist?: string; album?: string; audioUrl?: string })[] = 
+    const allSongs: Song[] = 
       (songsResponse?.items || []).map((s) => {
-        const sArtistNames = s.songArtists.map((sa) => sa.artist.artistName).join(', ');
-        const sAudioUrl = s.asset?.keyMaster 
-          ? `${import.meta.env.VITE_API_BASE_URL || ''}/files/${s.asset.keyMaster}`
-          : '';
         return {
           id: s.id,
           title: s.title,
@@ -251,16 +244,15 @@ const LabelSongManagementPage: React.FC = () => {
             id: s.asset.id,
             bucket: s.asset.bucket,
             keyMaster: s.asset.keyMaster,
-          } : undefined,
-          // Add fields for MusicPlayer component
-          coverUrl: s.album.coverImage || '',
-          artist: sArtistNames,
-          album: s.album.albumTitle,
-          audioUrl: sAudioUrl,
+          } : {
+            id: 0,
+            bucket: '',
+            keyMaster: '',
+          },
         };
       });
 
-    play(playerSong as Song, allSongs as Song[]);
+    play(playerSong, allSongs);
     toast.success(`Playing: ${song.title}`);
   };
 

@@ -1,5 +1,11 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useRef, useEffect, ReactNode } from 'react';
 import { Song } from '@/core/services/song.service';
+
+// Extended Song type with optional audioUrl for compatibility
+interface SongWithAudioUrl extends Song {
+  audioUrl?: string;
+}
 
 interface MusicPlayerContextType {
   currentSong: Song | null;
@@ -70,7 +76,8 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
       if (audioRef.current) {
         setCurrentSong(song);
         // Get audio URL from API: asset.keyMaster
-        const audioUrl = (song as any).audioUrl || (song.asset?.keyMaster 
+        const songWithAudio = song as SongWithAudioUrl;
+        const audioUrl = songWithAudio.audioUrl || (song.asset?.keyMaster 
           ? `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`
           : '');
         
@@ -132,7 +139,8 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
     setCurrentSong(song);
     
     // Support both audioUrl (extended) and asset.keyMaster (from API)
-    const audioUrl = (song as any).audioUrl || (song.asset?.keyMaster 
+    const songWithAudio = song as SongWithAudioUrl;
+    const audioUrl = songWithAudio.audioUrl || (song.asset?.keyMaster 
       ? `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`
       : '');
     
@@ -192,7 +200,8 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
       if (audioRef.current) {
         setCurrentSong(song);
         // Get audio URL from API: asset.keyMaster
-        const audioUrl = (song as any).audioUrl || (song.asset?.keyMaster 
+        const songWithAudio = song as SongWithAudioUrl;
+        const audioUrl = songWithAudio.audioUrl || (song.asset?.keyMaster 
           ? `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`
           : '');
         

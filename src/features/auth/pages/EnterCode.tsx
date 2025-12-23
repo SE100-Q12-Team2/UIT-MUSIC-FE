@@ -9,6 +9,10 @@ import { authService } from "@/core/services/auth.service"
 export default function EnterCode() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [otp, setOtp] = useState("")
+  const [error, setError] = useState("")
+  const [isResending, setIsResending] = useState(false)
+  
   const email = location.state?.email || ""
 
   // Redirect nếu không có email
@@ -16,9 +20,6 @@ export default function EnterCode() {
     navigate("/forgot-password", { replace: true })
     return null
   }
-  const [otp, setOtp] = useState("")
-  const [error, setError] = useState("")
-  const [isResending, setIsResending] = useState(false)
 
   const handleSubmit = () => {
     setError("")
@@ -34,8 +35,9 @@ export default function EnterCode() {
     try {
       await authService.resendOtp(email, "FORGOT_PASSWORD")
       toast.success("OTP Resent", { description: "Please check your email again." })
-    } catch (err: any) {
-      const serverMsg = err?.message || err?.response?.data?.message || err?.response?.data?.description || "Could not resend OTP."
+    } catch (err: unknown) {
+      const errorObj = err as { message?: string; response?: { data?: { message?: string; description?: string } } };
+      const serverMsg = errorObj?.message || errorObj?.response?.data?.message || errorObj?.response?.data?.description || "Could not resend OTP."
       toast.error("Failed", { description: serverMsg })
     } finally {
       setIsResending(false)

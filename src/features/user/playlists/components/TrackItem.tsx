@@ -11,13 +11,13 @@ export interface Track {
   isFavorite?: boolean;
 }
 
-// Helper to format duration
-const formatDuration = (seconds?: number): string => {
-  if (!seconds) return '';
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
+// Helper to format duration - unused but kept for potential future use
+// const formatDuration = (seconds?: number): string => {
+//   if (!seconds) return '';
+//   const mins = Math.floor(seconds / 60);
+//   const secs = seconds % 60;
+//   return `${mins}:${secs.toString().padStart(2, '0')}`;
+// };
 
 interface TrackItemProps {
   track: Track;

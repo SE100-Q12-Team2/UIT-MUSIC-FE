@@ -27,10 +27,11 @@ export default function ForgotPassword() {
       setTimeout(() => {
         navigate("/forgot-password/enter-code", { state: { email } })
       }, 1000)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("API Error:", err)
       // Xử lý các loại lỗi từ API
-      const serverMsg = err?.message || err?.response?.data?.message || err?.response?.data?.description || "Email không tồn tại trong hệ thống."
+      const errorObj = err as { message?: string; response?: { data?: { message?: string; description?: string } } };
+      const serverMsg = errorObj?.message || errorObj?.response?.data?.message || errorObj?.response?.data?.description || "Email không tồn tại trong hệ thống."
       setError(serverMsg)
       toast.error("Failed", { description: serverMsg })
     } finally {

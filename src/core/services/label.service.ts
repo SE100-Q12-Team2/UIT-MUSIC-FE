@@ -6,7 +6,6 @@ import {
   LabelAlbumsResponse,
   LabelSongsResponse,
   UpdateLabelRequest,
-  LabelSong,
 } from '@/types/label.types';
 
 export const labelService = {

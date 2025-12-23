@@ -73,8 +73,9 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
         description: '',
         songFile: null,
       });
-    } catch (error: any) {
-      const errorMsg = error?.message || error?.response?.data?.message || 'Failed to create song';
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string; response?: { data?: { message?: string } } };
+      const errorMsg = errorObj?.message || errorObj?.response?.data?.message || 'Failed to create song';
       toast.error('Failed to create song', { description: errorMsg });
     }
   };

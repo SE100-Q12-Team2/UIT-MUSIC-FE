@@ -2,11 +2,14 @@ import React, { useMemo, useEffect, useRef } from 'react';
 import { useMusicPlayer } from '@/contexts/MusicPlayerContext';
 import { formatTime } from '@/shared/utils/formatTime';
 import { cn } from '@/lib/utils';
-import { Song } from '@/core/services/song.service';
 import { usePageBackground } from '@/shared/hooks/usePageBackground';
 import backgroundSettings from '@/assets/background-settings.png';
 import '@/styles/player-page.css';
 
+interface SongWithLyrics {
+  lyrics?: string;
+  [key: string]: unknown;
+}
 
 const PlayerPage: React.FC = () => {
   const {
@@ -25,31 +28,17 @@ const PlayerPage: React.FC = () => {
   const activeSongRef = useRef<HTMLDivElement>(null);
   const activeLyricRef = useRef<HTMLDivElement>(null);
 
-  // Note: In production, PlayerPage should only show when a song is playing
-  // Mock data is only for UI testing/development
-  // Remove auto-play mock in production
-
   // Use current song from player context (from API)
   const displaySong = currentSong;
   const displayTime = currentTime;
   const displayDuration = duration;
   
-  // Show empty state if no song is playing
-  if (!displaySong) {
-    return (
-      <div className="player-page">
-        <div className="player-page__empty">
-          <p className="text-gray-400 text-lg">No song is currently playing</p>
-          <p className="text-gray-500 text-sm mt-2">Select a song to start playing</p>
-        </div>
-      </div>
-    );
-  }
-
   // Parse lyrics into lines
   const lyricsLines = useMemo(() => {
-    if (!displaySong || !(displaySong as any).lyrics) return [];
-    const lyrics = (displaySong as any).lyrics || '';
+    if (!displaySong) return [];
+    const songWithLyrics = displaySong as unknown as SongWithLyrics;
+    if (!songWithLyrics.lyrics) return [];
+    const lyrics = songWithLyrics.lyrics || '';
     return lyrics.split('\n').filter((line: string) => line.trim());
   }, [displaySong]);
 
@@ -88,6 +77,18 @@ const PlayerPage: React.FC = () => {
     }
   }, [currentLineIndex]);
 
+  // Show empty state if no song is playing
+  if (!displaySong) {
+    return (
+      <div className="player-page">
+        <div className="player-page__empty">
+          <p className="text-gray-400 text-lg">No song is currently playing</p>
+          <p className="text-gray-500 text-sm mt-2">Select a song to start playing</p>
+        </div>
+      </div>
+    );
+  }
+
   // Get album name from API
   const albumName = displaySong.album?.albumTitle || '';
 
@@ -105,7 +106,7 @@ const PlayerPage: React.FC = () => {
             const songCoverUrl = song.album?.coverImage || '';
             const songTitle = song.title;
             // Get artist from API: songArtists array
-            const songArtist = song.songArtists?.map((sa) => sa.artist?.artistName || sa.artistName).join(', ') || 'Unknown Artist';
+            const songArtist = song.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist';
             const songDuration = formatTime(song.duration);
             const isCurrent = index === currentIndex;
             const albumTitle = song.album?.albumTitle || '';

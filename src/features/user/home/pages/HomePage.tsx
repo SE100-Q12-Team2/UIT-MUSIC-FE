@@ -1,7 +1,7 @@
 import { Play, Heart } from 'lucide-react';
 import { ARTIST_UPDATES, ARTISTS_FOLLOW, DAILY_PICK_SONGS, GENRES, PERSONAL_SPACE, RECENTLY_PLAYED_BANNERS, TAILORED_PLAYLISTS } from '@/data/home.data';
 import { Button } from '@/shared/components/ui/button';
-import { Card } from '@/shared/components/ui/card';
+import { Card, type CardData } from '@/shared/components/ui/card';
 import SongRow from '@/features/user/home/components/SongRow';
 import { Input } from '@/shared/components/ui/input';
 import { SectionProps } from '@/features/user/home/types/home.types';
@@ -48,13 +48,17 @@ const Home = () => {
 
                 <Section title="Playlists Tailored For You">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {TAILORED_PLAYLISTS.map((item) => <Card key={item.id} data={item} />)}
+                        {TAILORED_PLAYLISTS.map((item) => (
+                          <Card key={item.id} data={item as CardData} />
+                        ))}
                     </div>
                 </Section>
 
                 <Section title="Your Personal Music Space">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {PERSONAL_SPACE.map((item) => <Card key={item.id} data={item} />)}
+                        {PERSONAL_SPACE.map((item) => (
+                          <Card key={item.id} data={item as CardData} />
+                        ))}
                     </div>
                 </Section>
 

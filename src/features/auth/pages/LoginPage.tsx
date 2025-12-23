@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import "../../../styles/auth.css";
 import facebookLogo from "../../../assets/facebook.png";
 import googleLogo from "../../../assets/google.png";

@@ -29,17 +29,22 @@ const EditSongModal: React.FC<EditSongModalProps> = ({ song, isOpen, onClose, on
 
   const updateSongMutation = useUpdateSong();
 
+  // Initialize form data when song changes
   useEffect(() => {
     if (song) {
       const publishDate = song.uploadDate ? new Date(song.uploadDate).toISOString().split('T')[0] : '';
-      setFormData({
-        title: song.title,
-        artist: song.songArtists.map((sa) => sa.artist.artistName).join(', '),
-        genre: song.genre.genreName,
-        publishDate: publishDate,
-        duration: formatTime(song.duration),
-        description: song.description || '',
-      });
+      // Use setTimeout to avoid synchronous setState in effect
+      const timer = setTimeout(() => {
+        setFormData({
+          title: song.title,
+          artist: song.songArtists.map((sa) => sa.artist.artistName).join(', '),
+          genre: song.genre.genreName,
+          publishDate: publishDate,
+          duration: formatTime(song.duration),
+          description: song.description || '',
+        });
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [song]);
 
@@ -71,8 +76,9 @@ const EditSongModal: React.FC<EditSongModalProps> = ({ song, isOpen, onClose, on
       toast.success('Song updated successfully');
       onSuccess?.();
       onClose();
-    } catch (error: any) {
-      const errorMsg = error?.message || error?.response?.data?.message || 'Failed to update song';
+    } catch (error: unknown) {
+      const errorObj = error as { message?: string; response?: { data?: { message?: string } } };
+      const errorMsg = errorObj?.message || errorObj?.response?.data?.message || 'Failed to update song';
       toast.error('Failed to update song', { description: errorMsg });
     }
   };

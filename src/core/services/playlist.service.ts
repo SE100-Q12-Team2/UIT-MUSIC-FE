@@ -2,6 +2,27 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/config/api.config';
 import { Playlist, PlaylistTrack } from '@/types/playlist.types';
 import { useProfileStore } from '@/store/profileStore';
+import { Song } from '@/core/services/song.service';
+
+// Extended Playlist type for compatibility with legacy code
+interface ExtendedPlaylist extends Playlist {
+  coverUrl?: string;
+  name?: string;
+  trackCount?: number;
+}
+
+// Extended Song type for playlist songs (intersection type to avoid conflicts)
+export type PlaylistSong = Song & {
+  coverUrl?: string;
+  artist?: string;
+  album?: string | Song['album'];
+  audioUrl?: string;
+}
+
+// PlaylistDetail type for PlaylistPage
+export interface PlaylistDetail extends ExtendedPlaylist {
+  songs: PlaylistSong[];
+}
 
 export const playlistService = {
   // Get all playlists for a user
@@ -63,7 +84,8 @@ export const playlistService = {
 // Legacy hook placeholder for detail playlist (used by PlaylistPage)
 // Hiện tại backend chưa có API detail playlist riêng, nên ta chỉ dùng mock ở dev.
 // Hook này chỉ để tránh lỗi import khi build.
-export const usePlaylist = (id: string) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const usePlaylist = (_id: string) => {
   return {
     data: undefined,
     isLoading: false,

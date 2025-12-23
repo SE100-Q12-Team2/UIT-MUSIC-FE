@@ -7,6 +7,7 @@ import { Button } from '@/shared/components/ui/button';
 import { formatTime } from '@/shared/utils/formatTime';
 import { Song } from '@/core/services/song.service';
 import { PlaylistDetail } from '@/core/services/playlist.service';
+import { Playlist } from '@/types/playlist.types';
 
 const PlaylistPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,9 +19,9 @@ const PlaylistPage: React.FC = () => {
 
   const isLoading = id ? playlistLoading : playlistsLoading;
   
-  // Use API data only
-  const playlist: PlaylistDetail | null = id ? playlistData : null;
-  const playlists = playlistsData?.playlists || [];
+  // Use API data only - usePlaylists returns Playlist[] directly
+  const playlist: PlaylistDetail | null = id ? (playlistData as PlaylistDetail | null) : null;
+  const playlists = playlistsData || [];
 
   const handlePlay = (song: Song, allSongs: Song[]) => {
     play(song, allSongs);
@@ -36,7 +37,7 @@ const PlaylistPage: React.FC = () => {
 
   // Playlist Detail View
   if (id && playlist) {
-    const songs = playlist.songs || [];
+    const songs: Song[] = (playlist.songs || []) as Song[];
     
     return (
       <div className="min-h-screen pb-32 bg-gradient-to-b from-vio-900 via-[#0a0a16] to-[#05050a]">
@@ -45,20 +46,19 @@ const PlaylistPage: React.FC = () => {
           <div className="flex items-end gap-6">
             <div className="w-56 h-56 rounded-lg overflow-hidden shadow-2xl bg-vio-800">
               <img 
-                src={playlist.coverUrl || 'https://via.placeholder.com/400'} 
-                alt={playlist.name}
+                src={playlist.coverUrl || playlist.coverImageUrl || 'https://via.placeholder.com/400'} 
+                alt={playlist.name || playlist.playlistName}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex-1 pb-4">
               <p className="text-sm text-gray-400 mb-2">Playlist</p>
-              <h1 className="text-5xl font-bold text-white mb-4">{playlist.name}</h1>
+              <h1 className="text-5xl font-bold text-white mb-4">{playlist.name || playlist.playlistName}</h1>
               {playlist.description && (
                 <p className="text-gray-300 mb-4">{playlist.description}</p>
               )}
               <div className="flex items-center gap-2 text-sm text-gray-400">
-                <span>{playlist.trackCount} songs</span>
-                {playlist.duration && <span>• {formatTime(playlist.duration)}</span>}
+                <span>{playlist.trackCount || songs.length} songs</span>
               </div>
             </div>
           </div>
@@ -93,7 +93,7 @@ const PlaylistPage: React.FC = () => {
                 <Clock size={16} />
               </div>
             </div>
-            {songs.map((song, index) => (
+            {songs.map((song: Song, index: number) => (
               <div
                 key={song.id}
                 className="grid grid-cols-[16px_1fr_1fr_1fr_auto] gap-4 px-6 py-3 hover:bg-white/5 transition-colors group cursor-pointer"
@@ -107,16 +107,18 @@ const PlaylistPage: React.FC = () => {
                     <Play size={16} fill="white" className="text-white" />
                   </div>
                   <img
-                    src={song.coverUrl || 'https://via.placeholder.com/100'}
+                    src={song.album?.coverImage || 'https://via.placeholder.com/100'}
                     alt={song.title}
                     className="w-10 h-10 rounded object-cover flex-shrink-0 group-hover:hidden"
                   />
                   <div className="min-w-0 flex-1">
                     <div className="text-white font-medium truncate">{song.title}</div>
-                    <div className="text-sm text-gray-400 truncate">{song.artist}</div>
+                    <div className="text-sm text-gray-400 truncate">
+                      {song.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist'}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center text-gray-400 truncate">{song.album || '-'}</div>
+                <div className="flex items-center text-gray-400 truncate">{song.album?.albumTitle || '-'}</div>
                 <div className="flex items-center text-gray-400">-</div>
                 <div className="flex items-center justify-center text-gray-400">
                   {formatTime(song.duration)}
@@ -135,7 +137,7 @@ const PlaylistPage: React.FC = () => {
       <div className="px-8 pt-8 pb-6">
         <h1 className="text-3xl font-bold text-white mb-6">Your Playlists</h1>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {playlists.map((playlist) => (
+          {playlists.map((playlist: Playlist) => (
             <div
               key={playlist.id}
               className="group cursor-pointer"
@@ -143,8 +145,8 @@ const PlaylistPage: React.FC = () => {
             >
               <div className="relative aspect-square rounded-lg overflow-hidden bg-vio-800 mb-3">
                 <img
-                  src={playlist.coverUrl || 'https://via.placeholder.com/300'}
-                  alt={playlist.name}
+                  src={playlist.coverImageUrl || 'https://via.placeholder.com/300'}
+                  alt={playlist.playlistName}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -153,8 +155,8 @@ const PlaylistPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <h3 className="text-white font-medium truncate">{playlist.name}</h3>
-              <p className="text-sm text-gray-400">{playlist.trackCount} tracks</p>
+              <h3 className="text-white font-medium truncate">{playlist.playlistName}</h3>
+              <p className="text-sm text-gray-400">Playlist</p>
             </div>
           ))}
         </div>

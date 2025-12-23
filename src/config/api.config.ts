@@ -3,6 +3,12 @@ import { ENV } from './env.config';
 import { cookieStorage } from '@/shared/utils/cookies';
 import { ApiResponse, ErrorResponse } from '@/core/types';
 
+interface ApiError {
+  message: string;
+  status?: number;
+  errors?: Record<string, string[]>;
+}
+
 type FailedRequest = {
   resolve: (token: string | null) => void;
   reject: (error: unknown) => void;

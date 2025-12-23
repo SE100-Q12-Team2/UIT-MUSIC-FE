@@ -86,16 +86,18 @@ const FavoritePage: React.FC = () => {
                     <Play size={16} fill="white" className="text-white" />
                   </div>
                   <img
-                    src={song.coverUrl || 'https://via.placeholder.com/100'}
+                    src={song.album?.coverImage || 'https://via.placeholder.com/100'}
                     alt={song.title}
                     className="w-10 h-10 rounded object-cover flex-shrink-0 group-hover:hidden"
                   />
                   <div className="min-w-0 flex-1">
                     <div className="text-white font-medium truncate">{song.title}</div>
-                    <div className="text-sm text-gray-400 truncate">{song.artist}</div>
+                    <div className="text-sm text-gray-400 truncate">
+                      {song.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist'}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center text-gray-400 truncate">{song.album || '-'}</div>
+                <div className="flex items-center text-gray-400 truncate">{song.album?.albumTitle || '-'}</div>
                 <div className="flex items-center text-gray-400">
                   {song.favoritedAt ? new Date(song.favoritedAt).toLocaleDateString() : '-'}
                 </div>

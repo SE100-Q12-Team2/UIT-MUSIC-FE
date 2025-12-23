@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface ApiResponse<T = any> {
     success: boolean;
     data: T;
@@ -5,6 +6,7 @@ export interface ApiResponse<T = any> {
     status?: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface PaginatedResponse<T = any> {
     data: T[];
     total: number;

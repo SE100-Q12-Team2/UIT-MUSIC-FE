@@ -10,6 +10,11 @@ import { authService } from "@/core/services/auth.service"
 export default function ResetPassword() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  
   const { email, code } = location.state || {}
 
   // Redirect nếu không có email hoặc code
@@ -17,10 +22,6 @@ export default function ResetPassword() {
     navigate("/forgot-password/enter-code", { replace: true, state: { email } })
     return null
   }
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
 
   const validatePassword = (password: string): string | null => {
     if (password.length < 6) {
@@ -59,9 +60,10 @@ export default function ResetPassword() {
         navigate("/login")
       }, 1500)
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Reset Password Error:", err)
-      const serverMsg = err?.message || err?.response?.data?.message || err?.response?.data?.description || "Đặt lại mật khẩu thất bại."
+      const errorObj = err as { message?: string; response?: { data?: { message?: string; description?: string } } };
+      const serverMsg = errorObj?.message || errorObj?.response?.data?.message || errorObj?.response?.data?.description || "Đặt lại mật khẩu thất bại."
       
       // Xử lý các loại lỗi cụ thể
       const errorMsg = serverMsg.toLowerCase()

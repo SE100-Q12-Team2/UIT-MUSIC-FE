@@ -1,8 +1,7 @@
 import React from 'react';
-import { Play, Heart, MoreHorizontal } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { useDiscover, useTrending, useNewReleases, useTopArtists, useGenres } from '@/core/services/discover.service';
 import { useMusicPlayer } from '@/contexts/MusicPlayerContext';
-import { Button } from '@/shared/components/ui/button';
 import { Song } from '@/core/services/song.service';
 
 const DiscoverPage: React.FC = () => {
@@ -51,7 +50,7 @@ const DiscoverPage: React.FC = () => {
                 >
                   <div className="relative aspect-square rounded-lg overflow-hidden bg-vio-800 mb-3">
                     <img
-                      src={song.coverUrl || 'https://via.placeholder.com/300'}
+                      src={song.album?.coverImage || 'https://via.placeholder.com/300'}
                       alt={song.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -62,7 +61,9 @@ const DiscoverPage: React.FC = () => {
                     </div>
                   </div>
                   <h3 className="text-white font-medium truncate">{song.title}</h3>
-                  <p className="text-sm text-gray-400 truncate">{song.artist}</p>
+                  <p className="text-sm text-gray-400 truncate">
+                    {song.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist'}
+                  </p>
                 </div>
               ))}
             </div>

@@ -36,12 +36,13 @@ export const useForgotPassword = () => {
       setCodeSent(true);
       setSubmitted(true);
       toast.success("Đã gửi email xác nhận thành công!");
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const errorObj = err as { response?: { data?: { message?: string } } };
         handleApiErrorWithSpecificField(err, "email", form.setError, {
           showToast: false,
           fallbackMessage: "Đã có lỗi xảy ra khi gửi email xác nhận."
         });
-        setError(err?.response?.data?.message || "Đã có lỗi xảy ra khi gửi email xác nhận.");  
+        setError(errorObj?.response?.data?.message || "Đã có lỗi xảy ra khi gửi email xác nhận.");  
     } finally {
       setIsLoading(false);
       setIsSendingCode(false)
