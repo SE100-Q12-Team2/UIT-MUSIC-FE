@@ -24,7 +24,10 @@ const LabelSongManagementPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterValue, setFilterValue] = useState('All');
   const [sortBy, setSortBy] = useState<SortOption>('Latest');
-  const [page] = useState(1);
+  const [page, setPage] = useState(1);
+  // Note: setPage is reserved for future pagination implementation
+  // Currently pagination is handled server-side via the page parameter
+  void setPage; // Suppress unused variable warning
   const limit = 20;
 
   // Dropdown states
@@ -93,7 +96,7 @@ const LabelSongManagementPage: React.FC = () => {
     }
 
     return filtered;
-  }, [songsResponse, searchQuery, filterValue, sortBy]);
+  }, [songsResponse?.items, searchQuery, filterValue, sortBy]);
 
   // Get unique genres for filter
   const genres = useMemo(() => {
@@ -101,7 +104,7 @@ const LabelSongManagementPage: React.FC = () => {
     if (!items) return [];
     const uniqueGenres = new Set(items.map((song) => song.genre.genreName));
     return Array.from(uniqueGenres).sort();
-  }, [songsResponse]);
+  }, [songsResponse?.items]);
 
   // Sort options
   const sortOptions: SortOption[] = ['Latest', 'Oldest', 'Most Played', 'Least Played', 'A-Z', 'Z-A'];

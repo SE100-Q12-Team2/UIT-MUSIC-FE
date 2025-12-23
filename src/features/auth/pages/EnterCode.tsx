@@ -15,7 +15,9 @@ export default function EnterCode() {
   
   const email = location.state?.email || ""
 
-  // Redirect nếu không có email - must be after all hooks
+  // All hooks are called above - this is correct per React's Rules of Hooks
+  // Conditional return happens after all hooks, which is the required pattern
+  // Redirect nếu không có email
   if (!email) {
     navigate("/forgot-password", { replace: true })
     return null

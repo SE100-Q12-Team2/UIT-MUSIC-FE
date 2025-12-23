@@ -1,3 +1,4 @@
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/config/api.config';
 import { Playlist, PlaylistTrack } from '@/types/playlist.types';
@@ -81,19 +82,86 @@ export const playlistService = {
   },
 };
 
-// Legacy hook placeholder for detail playlist (used by PlaylistPage)
-// Hiện tại backend chưa có API detail playlist riêng, nên ta chỉ dùng mock ở dev.
-// Hook này chỉ để tránh lỗi import khi build.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const usePlaylist = (_id: string) => {
+// Hook to get a single playlist with its tracks
+export const usePlaylist = (id: string) => {
+  const playlistId = id ? parseInt(id, 10) : null;
+  
+  // Get all playlists to find the one we need
+  const { data: playlists, isLoading: playlistsLoading } = usePlaylists();
+  
+  // Get tracks for this playlist
+  const { data: tracks, isLoading: tracksLoading } = usePlaylistTracks(playlistId || 0);
+  
+  // Combine data using useMemo to create PlaylistDetail
+  const playlistDetail = React.useMemo(() => {
+    if (!playlistId || !playlists || !tracks) return null;
+    
+    // Find the playlist from the list
+    const playlist = playlists.find(p => p.id === playlistId);
+    if (!playlist) return null;
+    
+    // Convert tracks to songs format
+    const songs: PlaylistSong[] = tracks.map(track => {
+      const playlistSong = track.song;
+      return {
+        id: playlistSong.id,
+        title: playlistSong.title,
+        description: '',
+        duration: playlistSong.duration,
+        language: '',
+        lyrics: '',
+        albumId: playlistSong.album?.id || 0,
+        genreId: 0,
+        labelId: 0,
+        uploadDate: '',
+        isActive: true,
+        copyrightStatus: 'Clear' as const,
+        playCount: 0,
+        isFavorite: false,
+        songArtists: playlistSong.songArtists.map(sa => ({
+          artistId: sa.artist.id,
+          songId: playlistSong.id,
+          role: 'MainArtist' as const,
+          artist: {
+            id: sa.artist.id,
+            artistName: sa.artist.artistName,
+            profileImage: '',
+          },
+        })),
+        album: playlistSong.album ? {
+          id: playlistSong.album.id,
+          albumTitle: playlistSong.album.albumTitle,
+          coverImage: '',
+        } : {
+          id: 0,
+          albumTitle: '',
+          coverImage: '',
+        },
+        genre: {
+          id: 0,
+          genreName: '',
+        },
+        label: {
+          id: 0,
+          labelName: '',
+        },
+      } as PlaylistSong;
+    });
+    
+    // Return PlaylistDetail
+    return {
+      ...playlist,
+      coverUrl: playlist.coverImageUrl,
+      name: playlist.playlistName,
+      trackCount: songs.length,
+      songs,
+    } as PlaylistDetail;
+  }, [playlistId, playlists, tracks]);
+  
   return {
-    data: undefined,
-    isLoading: false,
+    data: playlistDetail,
+    isLoading: playlistsLoading || tracksLoading,
     error: null,
-  } as {
-    data: unknown;
-    isLoading: boolean;
-    error: unknown;
   };
 };
 

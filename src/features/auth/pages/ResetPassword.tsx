@@ -17,7 +17,9 @@ export default function ResetPassword() {
   
   const { email, code } = location.state || {}
 
-  // Redirect nếu không có email hoặc code - must be after all hooks
+  // All hooks are called above - this is correct per React's Rules of Hooks
+  // Conditional return happens after all hooks, which is the required pattern
+  // Redirect nếu không có email hoặc code
   if (!email || !code) {
     navigate("/forgot-password/enter-code", { replace: true, state: { email } })
     return null
