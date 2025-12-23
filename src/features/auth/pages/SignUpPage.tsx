@@ -15,7 +15,14 @@ import {
 import { useSignupForm } from "../hooks/useSignupForm";
 
 const SignUpPage = () => {
-  const { form, isLoading, isSendingCode, codeSent, onSubmit, sendVerificationCode } = useSignupForm();
+  const {
+    form,
+    isLoading,
+    isSendingCode,
+    codeSent,
+    onSubmit,
+    sendVerificationCode,
+  } = useSignupForm();
 
   return (
     <div className="auth-page">
@@ -23,7 +30,11 @@ const SignUpPage = () => {
         <h1 className="auth-title">Sign up</h1>
 
         <Form {...form}>
-          <form noValidate className="auth-form" onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            noValidate
+            className="auth-form"
+            onSubmit={form.handleSubmit(onSubmit)}
+          >
             <FormField
               control={form.control}
               name="fullName"
@@ -65,7 +76,11 @@ const SignUpPage = () => {
                       className="whitespace-nowrap px-4 cursor-pointer"
                       variant={codeSent ? "secondary" : "default"}
                     >
-                      {isSendingCode ? "Sending..." : codeSent ? "Resend" : "Send Code"}
+                      {isSendingCode
+                        ? "Sending..."
+                        : codeSent
+                        ? "Resend"
+                        : "Send Code"}
                     </Button>
                   </div>
                   <FormMessage />
@@ -137,11 +152,7 @@ const SignUpPage = () => {
               </div>
             )}
 
-            <Button
-              type="submit"
-              className="auth-submit"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="auth-submit" disabled={isLoading}>
               {isLoading ? "SIGNING UP..." : "SIGN UP"}
             </Button>
           </form>
