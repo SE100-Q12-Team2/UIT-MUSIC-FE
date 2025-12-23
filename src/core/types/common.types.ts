@@ -2,6 +2,7 @@ export interface ApiResponse<T = any> {
     success: boolean;
     data: T;
     message?: string;
+    status?: number;
 }
 
 export interface PaginatedResponse<T = any> {
@@ -13,7 +14,7 @@ export interface PaginatedResponse<T = any> {
 }
 
 export interface ErrorResponse {
-    success: false;
+    status?: number
     message: string;
     errors?: Record<string, string[]>;
 }
