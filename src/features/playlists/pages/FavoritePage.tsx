@@ -32,6 +32,8 @@ import other3 from "@/assets/Track Cover_8.png";
 import cd1 from "@/assets/CD_1.png";
 import cd2 from "@/assets/CD_2.png";
 import cd3 from "@/assets/CD_3.png";
+import cd4 from "@/assets/CD_4.png";
+import cd5 from "@/assets/CD_5.png";
 
 // Artist images (YMAL)
 import albumCover1 from "@/assets/Album Cover_1.png";
@@ -122,6 +124,7 @@ const otherSongs: OtherSong[] = [
 ];
 
 const suggestions: Suggestion[] = [
+  { id: 1, title: "empty note", artist: "Ghostly Kisses", cover: trackCover3 },
   { id: 2, title: "Unstoppable", artist: "ghostly kisses", cover: trackCover4 },
   { id: 3, title: "No Face No", artist: "Modern Talking", cover: trackCover5 },
   { id: 4, title: "Tungevaag", artist: "Peru", cover: trackCover6 },
@@ -132,6 +135,7 @@ const suggestions: Suggestion[] = [
     artist: "Taylor Soyift",
     cover: trackCover5,
   },
+  { id: 7, title: "empty note", artist: "ghostly kisses", cover: trackCover6 },
   { id: 8, title: "Tonight", artist: "Enrique Iglesias", cover: trackCover6 },
 ];
 
@@ -166,7 +170,7 @@ const ymal: YMALItem[] = [
     artist: "Singer",
     tracks: 7,
     artistImage: albumCover5,
-    cdImage: cd1,
+    cdImage: cd5,
   },
   {
     id: 5,
@@ -174,7 +178,7 @@ const ymal: YMALItem[] = [
     artist: "Selena Gomes",
     tracks: 7,
     artistImage: albumCover4,
-    cdImage: cd2,
+    cdImage: cd4,
   },
   {
     id: 6,
@@ -182,7 +186,7 @@ const ymal: YMALItem[] = [
     artist: "Billie",
     tracks: 7,
     artistImage: albumCover2,
-    cdImage: cd3,
+    cdImage: cd2,
   },
   {
     id: 7,
@@ -190,7 +194,7 @@ const ymal: YMALItem[] = [
     artist: "Jennifer Lopez",
     tracks: 7,
     artistImage: albumCover3,
-    cdImage: cd1,
+    cdImage: cd3,
   },
   {
     id: 8,
@@ -198,12 +202,17 @@ const ymal: YMALItem[] = [
     artist: "Singer",
     tracks: 7,
     artistImage: albumCover1,
-    cdImage: cd2,
+    cdImage: cd1,
   },
 ];
 
 const FavoritePage: React.FC = () => {
   usePageBackground(favoriteBg);
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  const handleToggleFollow = () => {
+    setIsFollowing((prev) => !prev);
+  };
 
   const [favSuggestionIds, setFavSuggestionIds] = useState<Set<number>>(
     new Set()
@@ -313,8 +322,14 @@ const FavoritePage: React.FC = () => {
               her talented English singer and songwriter Adele.
             </p>
 
-            <button type="button" className="favorite-singer__follow">
-              Follow
+            <button
+              type="button"
+              className={`favorite-singer__follow ${
+                isFollowing ? "is-following" : ""
+              }`}
+              onClick={handleToggleFollow}
+            >
+              {isFollowing ? "Following" : "Follow"}
             </button>
           </section>
 
@@ -339,7 +354,7 @@ const FavoritePage: React.FC = () => {
                       type="button"
                       aria-label="Favorite"
                     >
-                      <img src={heartWhiteIcon} alt="" />
+                      <img src={heartIcon} alt="" />
                     </button>
                     <button
                       className="favorite-icon-button"
@@ -390,7 +405,7 @@ const FavoritePage: React.FC = () => {
                   aria-label="Favorite"
                   onClick={() => toggleSuggestion(item.id)}
                 >
-                  <img src={heartWhiteIcon} alt="" />
+                  <img src={heartIcon} alt="" />
                 </button>
                 <button
                   className="favorite-icon-button"
