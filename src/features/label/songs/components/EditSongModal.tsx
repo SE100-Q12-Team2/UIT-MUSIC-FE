@@ -37,14 +37,14 @@ const EditSongModal: React.FC<EditSongModalProps> = ({ song, isOpen, onClose, on
       // when the modal opens with a different song. Using a key prop would reset
       // user input, so we sync state here instead.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFormData({
-        title: song.title,
-        artist: song.songArtists.map((sa) => sa.artist.artistName).join(', '),
-        genre: song.genre.genreName,
-        publishDate: publishDate,
-        duration: formatTime(song.duration),
-        description: song.description || '',
-      });
+        setFormData({
+          title: song.title,
+          artist: song.songArtists.map((sa) => sa.artist.artistName).join(', '),
+          genre: song.genre.genreName,
+          publishDate: publishDate,
+          duration: formatTime(song.duration),
+          description: song.description || '',
+        });
     }
   }, [song]);
 
