@@ -192,7 +192,7 @@ const LabelHomePage: React.FC = () => {
                   <div className="label-home__song-info">
                     <h3 className="label-home__song-title">{song.title}</h3>
                     <p className="label-home__song-artist">
-                      {song.songArtists.map(sa => sa.artist.artistName).join(', ')}
+                      {(song.songArtists || []).map(sa => sa.artist.artistName).join(', ') || 'Unknown Artist'}
                     </p>
                   </div>
                   <span className="label-home__song-plays">{song.playCount.toLocaleString()} plays</span>
