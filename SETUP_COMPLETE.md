@@ -225,7 +225,7 @@ Features:
 
 ## ⚠️ Lưu Ý
 
-1. **Token**: Được tự động thêm từ `localStorage.getItem('auth_token')`
+1. **Token**: Được tự động thêm từ `localStorage.getItem('access_token')`
 2. **401 Error**: Auto logout và redirect to `/login`
 3. **Environment**: Đảm bảo `.env` file tồn tại (đã có sẵn)
 4. **DevTools**: Chỉ hiển thị trong development mode

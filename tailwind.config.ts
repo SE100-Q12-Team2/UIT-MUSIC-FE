@@ -18,6 +18,10 @@ const config: Config = {
         'theme-text-muted': 'var(--color-text-muted)',
         'theme-accent': 'var(--color-accent)',
         'theme-border': 'var(--color-border)',
+        // VioTune brand colors
+        'vio-accent': '#728AAB',
+        'vio-800': 'rgba(18, 32, 68, 0.8)',
+        'vio-900': 'rgba(12, 19, 41, 0.9)',
       },
     },
   },

@@ -8,12 +8,15 @@ interface UseCountUpOptions {
 }
 
 export const useCountUp = ({ start = 0, end, duration = 2000, enabled = true }: UseCountUpOptions) => {
-  const [count, setCount] = useState(start)
+  const [count, setCount] = useState(() => start)
 
   useEffect(() => {
     if (!enabled) {
-      setCount(start)
-      return
+      // Reset count when disabled - this setState in effect is necessary
+      // to sync the count with the start value when the animation is disabled
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCount(start);
+      return;
     }
 
     let startTime: number | null = null

@@ -26,6 +26,7 @@
 .main-layout__content {
   flex: 1;
   margin-left: 120px; /* 72px sidebar + 24px left margin + 24px gap */
+  margin-right: 40px;
   transition: margin-left 0.3s ease;
   min-width: 0;
 }

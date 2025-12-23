@@ -1,9 +1,19 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query.config';
-import { AuthResponse, LoginRequest, MessageResponse, RegisterRequest, RegisterResponse, SendOTPRequest, UserProfile } from '@/types/auth.types';
+import {
+  AuthResponse,
+  LoginRequest,
+  MessageResponse,
+  RegisterRequest,
+  RegisterResponse,
+  SendOTPRequest,
+  UserProfile,
+  UpdateProfileRequest,
+} from '@/types/auth.types';
 import { authApi } from '@/core/api/auth.api';
 import { cookieStorage } from '@/shared/utils/cookies';
 import { ENV } from '@/config/env.config';
+import { TypeOfVerificationCode } from '@/core/constants/auth.constant';
 
 
 export const authService = {
@@ -38,8 +48,16 @@ export const authService = {
     return authApi.getProfile();
   },
 
+  updateProfile: async (data: UpdateProfileRequest): Promise<UserProfile> => {
+    return authApi.updateProfile(data);
+  },
+
   forgotPassword: async (email: string): Promise<MessageResponse> => {
-    return authApi.forgotPassword({ email });
+    return authApi.forgotPassword({ email, type: TypeOfVerificationCode.FORGOT_PASSWORD });
+  },
+
+  resendOtp: async (email: string, type: string = 'FORGOT_PASSWORD'): Promise<MessageResponse> => {
+    return authApi.sendOTP({ email, type: type as 'REGISTER' | 'FORGOT_PASSWORD' });
   },
 
   resetPassword: async (resetToken: string, newPassword: string, confirmNewPassword: string): Promise<MessageResponse> => {
@@ -66,7 +84,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (credentials: LoginRequest) => authService.login(credentials),
     onSuccess: (data) => {
-      cookieStorage.setItem('auth_token', data.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
+      cookieStorage.setItem('access_token', data.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
       cookieStorage.setItem('refresh_token', data.refreshToken, { days: 30, secure: ENV.IS_PRODUCTION });
     },
   });
@@ -91,7 +109,7 @@ export const useLogout = () => {
       return authService.logout(refreshToken);
     },
     onSuccess: () => {
-      cookieStorage.removeItem('auth_token');
+      cookieStorage.removeItem('access_token');
       cookieStorage.removeItem('refresh_token');
       cookieStorage.removeItem('user');
       window.location.href = '/login';
@@ -103,7 +121,13 @@ export const useProfile = () => {
   return useQuery({
     queryKey: QUERY_KEYS.auth.profile,
     queryFn: () => authService.getProfile(),
-    enabled: !!cookieStorage.getItem('auth_token'),
+    enabled: !!cookieStorage.getItem('access_token'),
+  });
+};
+
+export const useUpdateProfile = () => {
+  return useMutation({
+    mutationFn: (data: UpdateProfileRequest) => authService.updateProfile(data),
   });
 };
 

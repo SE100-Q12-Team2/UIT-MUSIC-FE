@@ -6,6 +6,7 @@ import { useRegister, useSendOTP } from "@/core/services/auth.service";
 import { TypeOfVerificationCode } from "@/core/constants/auth.constant";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { handleApiValidationError, handleApiErrorWithSpecificField } from "../utils/handleApiError";
 
 export const useSignupForm = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -48,38 +49,10 @@ export const useSignupForm = () => {
       setCodeSent(true);
       toast.success("Verification code sent to your email");
     } catch (err: unknown) {
-      const error = err as { 
-        errors?: unknown;
-        message?: Array<{ path: string; message: string }> | string;
-        status?: number;
-      };
-
-      console.log("err", err);
-      
-      if (error?.message && Array.isArray(error.message)) {
-        const emailError = error.message.find((e: { path: string; message: string }) => e.path === "email");
-        if (emailError) {
-          form.setError("email", {
-            type: "manual",
-            message: emailError.message,
-          });
-          toast.error(emailError.message);
-        } else {
-          const errorMessage = error.message[0]?.message || "Failed to send verification code";
-          form.setError("email", {
-            type: "manual",
-            message: errorMessage,
-          });
-          toast.error(errorMessage);
-        }
-      } else {
-        const errorMessage = err instanceof Error ? err.message : "Failed to send verification code";
-        form.setError("email", {
-          type: "manual",
-          message: errorMessage,
-        });
-        toast.error(errorMessage);
-      }
+      handleApiErrorWithSpecificField(err, "email", form.setError, {
+        showToast: true,
+        fallbackMessage: "Failed to send verification code"
+      });
     } finally {
       setIsSendingCode(false);
     }
@@ -101,46 +74,10 @@ export const useSignupForm = () => {
       
       await new Promise(resolve => setTimeout(resolve, 1000));
     } catch (err: unknown) {
-      const error = err as { 
-        errors?: unknown;
-        message?: Array<{ path: string; message: string }> | string;
-        status?: number;
-        response?: { data?: { message?: Array<{ path: string; message: string }> } }
-      };
-
-      if (error?.message && Array.isArray(error.message)) {
-        error.message.forEach((validationError: { path: string; message: string }) => {
-          const fieldName = validationError.path as keyof SignUpFormValues;
-          if (fieldName && fieldName in data) {
-            form.setError(fieldName, {
-              type: "manual",
-              message: validationError.message === "Error.InvalidOTP" 
-                ? "Invalid or expired verification code" 
-                : validationError.message,
-            });
-          }
-        });
-      } 
-      else if (error?.response?.data?.message && Array.isArray(error.response.data.message)) {
-        error.response.data.message.forEach((validationError: { path: string; message: string }) => {
-          const fieldName = validationError.path as keyof SignUpFormValues;
-          if (fieldName && fieldName in data) {
-            form.setError(fieldName, {
-              type: "manual",
-              message: validationError.message === "Error.InvalidOTP" 
-                ? "Invalid or expired verification code" 
-                : validationError.message,
-            });
-          }
-        });
-      } 
-      else {
-        const errorMessage = err instanceof Error ? err.message : "Sign up failed";
-        form.setError("root", {
-          type: "manual",
-          message: errorMessage,
-        });
-      }
+      handleApiValidationError(err, data, form.setError, {
+        showToast: false,
+        fallbackMessage: "Sign up failed"
+      });
     } finally {
       setIsLoading(false);
     }

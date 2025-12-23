@@ -17,7 +17,7 @@ const getInitialTheme = (): Theme => {
 }
 
 export const useTheme = () => {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme)
+  const [theme, setTheme] = useState<Theme>(() => getInitialTheme())
 
   useEffect(() => {
     const root = document.documentElement
@@ -33,15 +33,8 @@ export const useTheme = () => {
     localStorage.setItem('theme', theme)
   }, [theme])
 
-  // Initialize on mount
-  useEffect(() => {
-    const initialTheme = getInitialTheme()
-    setTheme(initialTheme)
-    
-    if (initialTheme === 'dark') {
-      document.documentElement.classList.add('dark')
-    }
-  }, [])
+  // Initialize on mount - use lazy initialization in useState instead
+  // Removed separate useEffect to avoid setState in effect warning
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark')

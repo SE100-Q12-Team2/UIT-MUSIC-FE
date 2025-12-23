@@ -3,6 +3,12 @@ import { ENV } from './env.config';
 import { cookieStorage } from '@/shared/utils/cookies';
 import { ApiResponse, ErrorResponse } from '@/core/types';
 
+interface ApiError {
+  message: string;
+  status?: number;
+  errors?: Record<string, string[]>;
+}
+
 type FailedRequest = {
   resolve: (token: string | null) => void;
   reject: (error: unknown) => void;
@@ -24,7 +30,7 @@ const processQueue = (error: unknown | null, token: string | null = null) => {
 };
 
 const redirectToLogin = () => {
-  cookieStorage.removeItem('auth_token');
+  cookieStorage.removeItem('access_token');
   cookieStorage.removeItem('refresh_token');
   cookieStorage.removeItem('user');
   window.location.href = '/login';
@@ -42,7 +48,7 @@ const createApiClient = (): AxiosInstance => {
 
   instance.interceptors.request.use(
     (config) => {
-      const token = cookieStorage.getItem('auth_token');
+      const token = cookieStorage.getItem('access_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -89,9 +95,18 @@ const createApiClient = (): AxiosInstance => {
       const status = error.response?.status;
 
       if (status === 401 && originalRequest) {
-        const isAuthEndpoint = (originalRequest.url || '').includes('/auth/');
+        const requestUrl = originalRequest.url || '';
+        const isLoginEndpoint = requestUrl.includes('/auth/login');
+        const isRegisterEndpoint = requestUrl.includes('/auth/register') || requestUrl.includes('/auth/signup');
+        const isAuthEndpoint = requestUrl.includes('/auth/');
         const refreshToken = cookieStorage.getItem('refresh_token');
 
+        // Không redirect nếu đang login/register - để lỗi được hiển thị cho user
+        if (isLoginEndpoint || isRegisterEndpoint) {
+          return Promise.reject(error);
+        }
+
+        // Nếu là endpoint auth khác hoặc không có refresh token, redirect
         if (isAuthEndpoint || !refreshToken) {
           redirectToLogin();
           return Promise.reject(error);
@@ -137,7 +152,7 @@ const createApiClient = (): AxiosInstance => {
                 throw new Error('Invalid refresh response');
               }
 
-              cookieStorage.setItem('auth_token', accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
+              cookieStorage.setItem('access_token', accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
               if (newRefreshToken) {
                 cookieStorage.setItem('refresh_token', newRefreshToken, { days: 30, secure: ENV.IS_PRODUCTION });
               }
@@ -186,11 +201,12 @@ export const apiRequest = async <T = unknown>(
     const response = await apiClient.request<ApiResponse<T>>(config);
     return (response.data.data || response.data) as T;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const apiError: ErrorResponse = {
-        message: error.response?.data?.message || error.message,
+      if (axios.isAxiosError(error)) {
+      const responseData = error.response?.data;
+      const apiError: ApiError = {
+        message: responseData?.message || responseData?.description || responseData?.error || error.message,
         status: error.response?.status,
-        errors: error.response?.data?.errors,
+        errors: responseData?.errors,
       };
       throw apiError;
     }

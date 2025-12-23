@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthContext, AuthUser } from '@/contexts/AuthContext';
+import { MusicPlayerProvider } from '@/contexts/MusicPlayerContext';
 import { queryClient } from '@/config/query.config';
 import { ENV } from '@/config/env.config';
 import { authService } from '@/core/services/auth.service';
@@ -9,7 +10,7 @@ import { cookieStorage } from '@/shared/utils/cookies';
 import { useProfileStore } from '@/store/profileStore';
 
 const persistSession = (tokens: { accessToken: string; refreshToken: string }) => {
-  cookieStorage.setItem('auth_token', tokens.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
+  cookieStorage.setItem('access_token', tokens.accessToken, { days: 7, secure: ENV.IS_PRODUCTION });
   cookieStorage.setItem('refresh_token', tokens.refreshToken, { days: 30, secure: ENV.IS_PRODUCTION });
 };
 
@@ -26,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = cookieStorage.getItem('auth_token');
+        const token = cookieStorage.getItem('access_token');
         const savedUser = cookieStorage.getItem('user');
         
         if (token && savedUser) {
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         console.error('Auth check failed:', error);
-        cookieStorage.removeItem('auth_token');
+        cookieStorage.removeItem('access_token');
         cookieStorage.removeItem('refresh_token');
         cookieStorage.removeItem('user');
         clearProfile();
@@ -82,10 +83,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-
       const response = await authService.login({ email, password });
       persistSession({ accessToken: response.accessToken, refreshToken: response.refreshToken });
-      
       const profile = await authService.getProfile();
       const sessionUser: AuthUser = {
         id: profile.id,
@@ -96,16 +95,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         roleId: profile.roleId,
         role: profile.role,
       };
-      
       persistUser(sessionUser);
       setUser(sessionUser);
-      // Sync to profileStore for other services
       setProfile(profile);
     } catch (error) {
       console.error('Login failed:', error);
-      const message =
-        (error as { message?: string })?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
-      throw new Error(message);
+      throw error; // Giữ nguyên object lỗi gốc
     } finally {
       setIsLoading(false);
     }
@@ -121,7 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setIsLoading(true);
       
-      const response = await authService.register({ 
+      await authService.register({ 
         fullName, 
         email, 
         password, 
@@ -131,7 +126,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       cookieStorage.setItem('registered_email', email, { days: 1, secure: ENV.IS_PRODUCTION });
       
-      console.log('Registration successful:', response);
     } catch (error) {
       console.error('Register failed:', error);
       const message =
@@ -143,7 +137,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    cookieStorage.removeItem('auth_token');
+    cookieStorage.removeItem('access_token');
     cookieStorage.removeItem('refresh_token');
     cookieStorage.removeItem('user');
     setUser(null);
@@ -180,7 +174,9 @@ export const AppProviders = ({ children }: { children: ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {children}
+        <MusicPlayerProvider>
+          {children}
+        </MusicPlayerProvider>
       </AuthProvider>
       {ENV.IS_DEVELOPMENT && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>

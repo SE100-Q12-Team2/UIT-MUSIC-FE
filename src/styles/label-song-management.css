@@ -1,0 +1,352 @@
+/* Label Song Management Styles */
+.label-song-management {
+  min-height: 100vh;
+  padding: 10px 10px;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: transparent;
+  color: #fff;
+}
+
+.label-song-management__header {
+  margin-bottom: 2rem;
+}
+
+.label-song-management__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* Tabs */
+.label-song-management__tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 60px;
+  margin-bottom: 40px;
+  justify-content: flex-start;
+}
+
+.label-song-management__tab {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  text-transform: capitalize;
+  color: var(--color-primary-20, rgba(114, 138, 171, 0.8));
+  background: transparent;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.label-song-management__tab:hover {
+  color: var(--color-white-10, rgba(255, 255, 255, 0.9));
+  background: rgba(114, 138, 171, 0.4);
+}
+
+.label-song-management__tab--active {
+  color: var(--color-white-10, rgba(255, 255, 255, 0.9));
+  background: rgba(114, 138, 171, 0.64); /* #728AABA3 */
+}
+
+/* Content */
+.label-song-management__content {
+  width: 100%;
+  padding: 0 60px;
+}
+
+/* Toolbar */
+.label-song-management__toolbar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.label-song-management__search {
+  flex: 1;
+  position: relative;
+  max-width: 400px;
+}
+
+.label-song-management__search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+.label-song-management__search-input {
+  width: 100%;
+  padding: 0.625rem 0.75rem 0.625rem 2.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.label-song-management__search-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.label-song-management__filters {
+  display: flex;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.label-song-management__dropdown {
+  position: relative;
+}
+
+.label-song-management__filter-btn,
+.label-song-management__sort-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  position: relative;
+}
+
+.label-song-management__chevron--open {
+  transform: rotate(180deg);
+  transition: transform 0.2s;
+}
+
+.label-song-management__dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: rgba(26, 31, 58, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.5rem;
+  min-width: 160px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.label-song-management__dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.label-song-management__dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.label-song-management__dropdown-item--active {
+  background: rgba(114, 138, 171, 0.2);
+  color: #fff;
+}
+
+.label-song-management__dropdown-item--active:hover {
+  background: rgba(114, 138, 171, 0.3);
+}
+
+.label-song-management__filter-btn:hover,
+.label-song-management__sort-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Table */
+.label-song-management__table-wrapper {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  max-height: calc(100vh - 400px);
+  overflow-y: auto;
+}
+
+.label-song-management__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.label-song-management__table thead {
+  background: rgba(255, 255, 255, 0.03);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.label-song-management__table th {
+  padding: 0.875rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.label-song-management__table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  color: #fff;
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+
+.label-song-management__table tbody tr {
+  transition: background 0.2s;
+}
+
+.label-song-management__table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.label-song-management__song-name {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.label-song-management__song-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.label-song-management__song-title {
+  flex: 1;
+}
+
+.label-song-management__song-title--clickable {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.label-song-management__song-title--clickable:hover {
+  opacity: 0.8;
+}
+
+.label-song-management__play-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0;
+}
+
+.label-song-management__table tbody tr:hover .label-song-management__play-btn {
+  opacity: 1;
+}
+
+.label-song-management__play-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.label-song-management__song-cover {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* Actions */
+.label-song-management__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.label-song-management__action-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.label-song-management__action-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.label-song-management__action-btn--delete:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Loading & Empty States */
+.label-song-management__loading,
+.label-song-management__empty {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.label-song-management__error {
+  text-align: center;
+  padding: 3rem;
+  color: #ef4444;
+}
+
+/* Create Song Placeholder */
+.label-song-management__create-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.label-song-management__create-icon {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.label-song-management__create-placeholder h2 {
+  margin: 0.5rem 0;
+  color: #fff;
+}
+

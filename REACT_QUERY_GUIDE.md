@@ -150,7 +150,7 @@ QUERY_KEYS.auth.profile; // ['auth', 'profile']
 
 ```typescript
 // Token được tự động thêm vào mọi request
-const token = localStorage.getItem("auth_token");
+const token = localStorage.getItem("access_token");
 config.headers.Authorization = `Bearer ${token}`;
 ```
 

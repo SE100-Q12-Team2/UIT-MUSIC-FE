@@ -1,7 +1,8 @@
 // Application routes
 export const ROUTES = {
-    HOME: "/",
+    HOME: "/home",
     LOGIN: "/login",
+    FORGOT_PASSWORD: "/forgot-password",
     REGISTER: "/register",
     PROFILE: "/profile",
     SEARCH: "/search",

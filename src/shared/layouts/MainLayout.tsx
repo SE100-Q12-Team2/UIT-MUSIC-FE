@@ -3,6 +3,7 @@ import { Outlet } from "react-router";
 import AppHeader from "@/shared/components/ui/AppHeader";
 import Sidebar from "@/shared/components/ui/Sidebar";
 import Footer from "@/shared/components/ui/footer";
+import MusicPlayer from "@/shared/components/MusicPlayer";
 import { useBackground } from "@/contexts/BackgroundContext";
 import "@/styles/main-layout.css";
 
@@ -33,6 +34,7 @@ const MainLayout: React.FC = () => {
         </main>
       </div>
       <Footer />
+      <MusicPlayer />
     </div>
   );
 };

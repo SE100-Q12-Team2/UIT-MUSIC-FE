@@ -18,6 +18,7 @@ export interface SendOTPRequest {
 
 export interface ForgotPasswordRequest {
   email: string;
+  type: 'FORGOT_PASSWORD';
 }
 
 export interface ResetPasswordRequest {
@@ -79,6 +80,20 @@ export interface UserProfile {
       module: string;
     }>;
   };
+}
+
+export interface UpdateProfileRequest {
+  fullName?: string;
+  email?: string;
+  profileImage?: string | null;
+  dateOfBirth?: string | null;
+  gender?: 'MALE' | 'FEMALE' | 'OTHER' | null;
+}
+
+export interface ChangePasswordRequest {
+  password: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 export interface GoogleLinkResponse {

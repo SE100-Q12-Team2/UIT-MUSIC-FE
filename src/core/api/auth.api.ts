@@ -1,5 +1,21 @@
 import api from '@/config/api.config';
-import { AuthResponse, FacebookLinkResponse, ForgotPasswordRequest, GoogleLinkResponse, LoginRequest, LogoutRequest, MessageResponse, RefreshTokenRequest, RegisterRequest, RegisterResponse, ResetPasswordRequest, SendOTPRequest, UserProfile } from '@/types/auth.types';
+import {
+  AuthResponse,
+  FacebookLinkResponse,
+  ForgotPasswordRequest,
+  GoogleLinkResponse,
+  LoginRequest,
+  LogoutRequest,
+  MessageResponse,
+  RefreshTokenRequest,
+  RegisterRequest,
+  RegisterResponse,
+  ResetPasswordRequest,
+  SendOTPRequest,
+  UserProfile,
+  UpdateProfileRequest,
+  ChangePasswordRequest,
+} from '@/types/auth.types';
 
 export const authApi = {
   sendOTP: async (data: SendOTPRequest): Promise<MessageResponse> => {
@@ -49,6 +65,16 @@ export const authApi = {
 
   getProfile: async (): Promise<UserProfile> => {
     const response = await api.get<UserProfile>('/profile');
+    return response;
+  },
+
+  updateProfile: async (data: UpdateProfileRequest): Promise<UserProfile> => {
+    const response = await api.patch<UserProfile>('/profile', data);
+    return response;
+  },
+
+  changePassword: async (data: ChangePasswordRequest): Promise<MessageResponse> => {
+    const response = await api.patch<MessageResponse>('/profile/change-password', data);
     return response;
   },
 };

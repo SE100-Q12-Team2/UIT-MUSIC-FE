@@ -6,42 +6,77 @@ import api from '@/config/api.config';
 export interface SongArtist {
   id: number;
   artistName: string;
-  profileImage: string | null;
+  profileImage: string;
 }
 
-// Song detail from API GET /songs/{id}
-export interface Song {
-  id: number;
-  title: string;
+// Song artist with role
+export interface SongArtistWithRole {
   artistId: number;
-  genreId: number;
-  albumId: number | null;
-  duration: number;
-  releaseDate: string;
-  filePath: string;
-  thumbnailPath: string;
-  lyricsFilePath: string | null;
-  playCount: number;
-  likeCount: number;
-  createdById: number;
-  updatedById: number | null;
-  createdAt: string;
-  updatedAt: string;
+  songId: number;
+  role: 'MainArtist' | 'FeaturedArtist' | 'Composer' | 'Producer';
   artist: SongArtist;
 }
 
+// Album info
+export interface SongAlbum {
+  id: number;
+  albumTitle: string;
+  coverImage: string;
+}
+
+// Genre info
+export interface SongGenre {
+  id: number;
+  genreName: string;
+}
+
+// Label info
+export interface SongLabel {
+  id: number;
+  labelName: string;
+}
+
+// Asset info
+export interface SongAsset {
+  id: number;
+  bucket: string;
+  keyMaster: string;
+}
+
+// Song detail from API GET /songs
+export interface Song {
+  id: number;
+  title: string;
+  description: string;
+  duration: number;
+  language: string;
+  lyrics: string;
+  albumId: number;
+  genreId: number;
+  labelId: number;
+  uploadDate: string;
+  isActive: boolean;
+  copyrightStatus: 'Clear' | 'Pending' | 'Disputed';
+  playCount: number;
+  isFavorite: boolean;
+  songArtists: SongArtistWithRole[];
+  album: SongAlbum;
+  genre: SongGenre;
+  label: SongLabel;
+  asset?: SongAsset;
+}
+
 export interface SongFilters {
-  genre?: string;
-  artist?: string;
-  search?: string;
   page?: number;
   limit?: number;
+  order?: 'latest' | 'oldest' | 'popular';
 }
 
 export interface SongsResponse {
-  songs: Song[];
+  items: Song[];
   total: number;
   page: number;
+  limit: number;
   totalPages: number;
 }
 
@@ -113,9 +148,12 @@ export const useCreateSong = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<Song>) => songService.createSong(data),
+    mutationFn: async (data: Partial<Song>) => {
+      return songService.createSong(data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.songs.all });
+      queryClient.invalidateQueries({ queryKey: ['label-songs'] });
     },
   });
 };
@@ -124,11 +162,13 @@ export const useUpdateSong = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<Song> }) =>
-      songService.updateSong(id, data),
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Song> }) => {
+      return songService.updateSong(id, data);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.songs.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.songs.all });
+      queryClient.invalidateQueries({ queryKey: ['label-songs'] });
     },
   });
 };
@@ -137,9 +177,12 @@ export const useDeleteSong = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => songService.deleteSong(id),
+    mutationFn: async (id: number) => {
+      return songService.deleteSong(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.songs.all });
+      queryClient.invalidateQueries({ queryKey: ['label-songs'] });
     },
   });
 };
