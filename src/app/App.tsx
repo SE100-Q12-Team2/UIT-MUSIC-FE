@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 import { BackgroundProvider } from "@/contexts/BackgroundContext";
-import { Toaster } from 'sonner';
+import { Toaster } from "sonner";
 
 const App: React.FC = () => {
   return (
