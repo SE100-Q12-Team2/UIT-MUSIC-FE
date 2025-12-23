@@ -30,15 +30,12 @@ export const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: [
+      // Landing page - WITHOUT MainLayout (no sidebar, no app header)
       {
-        element: <MainLayout />,
-        children: [
-          {
-            index: true,
-            element: <LazyLoad><LandingPage /></LazyLoad>
-          },
-        ]
+        index: true,
+        element: <LazyLoad><LandingPage /></LazyLoad>
       },
+      // Other pages WITH MainLayout (with sidebar and app header)
       {
         element: <MainLayout />,
         children: [
