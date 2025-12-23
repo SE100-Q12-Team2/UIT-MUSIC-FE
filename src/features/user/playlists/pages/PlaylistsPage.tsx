@@ -109,8 +109,10 @@ const PlaylistsPage: React.FC = () => {
       </div>
     );
   }
-  
-  if (error && playlists.length === 0) {
+
+  // Only show error if there's an actual error AND we have no data
+  // Don't show error when playlists is just empty array (valid state)
+  if (error && !Array.isArray(playlists)) {
     return (
       <div className="playlists-page">
         <div className="playlists-page__error">Failed to load playlists</div>

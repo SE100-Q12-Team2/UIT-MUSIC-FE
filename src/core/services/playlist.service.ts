@@ -28,30 +28,41 @@ export interface PlaylistDetail extends ExtendedPlaylist {
 export const playlistService = {
   // Get all playlists for a user
   getPlaylists: async (ownerId: number): Promise<Playlist[]> => {
-    // api.get already unwraps response.data.data, so we get array directly
-    const playlists = await api.get<Playlist[]>('/playlists', {
+    const response = await api.get<Playlist[] | { data: Playlist[] }>('/playlists', {
       params: { ownerId },
     });
+    // Handle both direct array and object with data property
+    const playlists = Array.isArray(response) ? response : (response.data || []);
     return playlists;
   },
 
   // Get tracks in a playlist
   getPlaylistTracks: async (playlistId: number): Promise<PlaylistTrack[]> => {
-    // api.get already unwraps response.data.data, so we get array directly
-    const tracks = await api.get<PlaylistTrack[]>(`/playlists/${playlistId}/tracks`);
+    const response = await api.get<PlaylistTrack[] | { data: PlaylistTrack[] }>(`/playlists/${playlistId}/tracks`);
+    // Handle both direct array and object with data property
+    const tracks = Array.isArray(response) ? response : (response.data || []);
     return tracks;
   },
 
   // Get track count for multiple playlists
   getPlaylistsWithTrackCounts: async (ownerId: number): Promise<(Playlist & { trackCount: number })[]> => {
-    const playlists = await api.get<Playlist[]>('/playlists', {
+    const response = await api.get<Playlist[] | { data: Playlist[] }>('/playlists', {
       params: { ownerId },
     });
+    
+    // Handle both direct array and object with data property
+    const playlists = Array.isArray(response) ? response : (response.data || []);
+    
+    // If no playlists, return empty array
+    if (!Array.isArray(playlists) || playlists.length === 0) {
+      return [];
+    }
     
     // Fetch track counts for all playlists
     const playlistsWithCounts = await Promise.all(
       playlists.map(async (playlist) => {
-        const tracks = await api.get<PlaylistTrack[]>(`/playlists/${playlist.id}/tracks`);
+        const tracksResponse = await api.get<PlaylistTrack[] | { data: PlaylistTrack[] }>(`/playlists/${playlist.id}/tracks`);
+        const tracks = Array.isArray(tracksResponse) ? tracksResponse : (tracksResponse.data || []);
         return {
           ...playlist,
           trackCount: tracks.length,
@@ -64,16 +75,24 @@ export const playlistService = {
   
   // Get all song IDs from all user's playlists
   getAllPlaylistSongIds: async (ownerId: number): Promise<Set<number>> => {
-    const playlists = await api.get<Playlist[]>('/playlists', {
+    const response = await api.get<Playlist[] | { data: Playlist[] }>('/playlists', {
       params: { ownerId },
     });
     
+    // Handle both direct array and object with data property
+    const playlists = Array.isArray(response) ? response : (response.data || []);
     const allSongIds = new Set<number>();
+    
+    // If no playlists, return empty set
+    if (!Array.isArray(playlists) || playlists.length === 0) {
+      return allSongIds;
+    }
     
     // Fetch all tracks from all playlists
     await Promise.all(
       playlists.map(async (playlist) => {
-        const tracks = await api.get<PlaylistTrack[]>(`/playlists/${playlist.id}/tracks`);
+        const tracksResponse = await api.get<PlaylistTrack[] | { data: PlaylistTrack[] }>(`/playlists/${playlist.id}/tracks`);
+        const tracks = Array.isArray(tracksResponse) ? tracksResponse : (tracksResponse.data || []);
         tracks.forEach(track => allSongIds.add(track.songId));
       })
     );

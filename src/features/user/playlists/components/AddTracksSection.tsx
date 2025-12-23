@@ -35,7 +35,7 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
     return songsResponse.items
       .filter(song => !songsInPlaylists.has(song.id))
       .map((song): AddTrack => {
-        const artistNames = song.songArtists
+        const artistNames = (song.songArtists || [])
           .map(sa => sa.artist.artistName)
           .join(', ');
         
@@ -43,9 +43,9 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
           id: song.id,
           title: song.title,
           artist: artistNames || 'Unknown Artist',
-          album: song.album.albumTitle,
+          album: song.album?.albumTitle || 'Unknown Album',
           duration: song.duration,
-          coverImage: song.album.coverImage,
+          coverImage: song.album?.coverImage || '/default-cover.jpg',
           isFavorite: song.isFavorite,
         };
       });
