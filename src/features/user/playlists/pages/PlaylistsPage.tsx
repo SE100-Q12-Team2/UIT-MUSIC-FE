@@ -109,8 +109,8 @@ const PlaylistsPage: React.FC = () => {
       </div>
     );
   }
-
-  if (error) {
+  
+  if (error && playlists.length === 0) {
     return (
       <div className="playlists-page">
         <div className="playlists-page__error">Failed to load playlists</div>

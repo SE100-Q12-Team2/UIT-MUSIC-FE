@@ -22,24 +22,23 @@ const RoleBasedRedirect: React.FC = () => {
     }
 
     const roleName = user.role?.name;
+    const roleId = user.roleId;
     const currentPath = location.pathname;
 
-    // Don't redirect if already on the correct path
-    if (roleName === 'Label' && currentPath.startsWith('/label')) {
-      return;
-    }
-    if (roleName === 'User' && !currentPath.startsWith('/label')) {
-      return;
-    }
-
+    // Check if user is Label (either by roleId === 3 or role.name === 'Label')
+    const isLabel = roleId === 3 || roleName === 'Label';
+    
     // Redirect based on role
-    if (roleName === 'Label') {
-      navigate('/label/home', { replace: true });
-    } else if (roleName === 'User') {
-      navigate('/home', { replace: true });
+    if (isLabel) {
+      // Label users should be redirected to /label/home if not already on /label path
+      if (!currentPath.startsWith('/label')) {
+        navigate('/label/home', { replace: true });
+      }
     } else {
-      // Default to user home for unknown roles
-      navigate('/home', { replace: true });
+      // Non-label users should NOT access /label paths
+      if (currentPath.startsWith('/label')) {
+        navigate('/home', { replace: true });
+      }
     }
   }, [user, isLoading, navigate, location.pathname]);
 
