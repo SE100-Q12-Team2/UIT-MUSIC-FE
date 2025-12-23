@@ -20,7 +20,12 @@ interface CardProps extends React.ComponentProps<"div"> {
 }
 
 
-function Card({ className, ...props }: CardProps) {
+function Card({ className, data: _unusedData, ...props }: CardProps) {
+  // data prop is extracted to prevent it from being spread as a DOM attribute
+  // It's available for future use if needed for card content rendering
+  // Currently unused but kept in interface for API compatibility
+  // Prefix with underscore to mark as intentionally unused
+  void _unusedData; // Suppress unused variable warning
   return (
     <div
       data-slot="card"

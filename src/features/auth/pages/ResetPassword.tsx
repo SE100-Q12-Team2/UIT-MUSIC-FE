@@ -17,7 +17,7 @@ export default function ResetPassword() {
   
   const { email, code } = location.state || {}
 
-  // Redirect nếu không có email hoặc code
+  // Redirect nếu không có email hoặc code - must be after all hooks
   if (!email || !code) {
     navigate("/forgot-password/enter-code", { replace: true, state: { email } })
     return null

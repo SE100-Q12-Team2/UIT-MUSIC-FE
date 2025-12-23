@@ -2,6 +2,7 @@ import React from 'react';
 import { Heart, GripVertical } from 'lucide-react';
 import { Song } from '@/features/user/home/types/home.types';
 import { Song as ApiSong } from '@/core/services/song.service';
+import { formatTime } from '@/shared/utils/formatTime';
 
 interface SongRowProps {
   song: Song | ApiSong;
@@ -23,7 +24,7 @@ const SongRow: React.FC<SongRowProps> = ({ song }) => {
   const coverUrl = songWithCover.coverUrl || apiSong.album?.coverImage || 'https://via.placeholder.com/100';
   const artist = songWithCover.artist || apiSong.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist';
   const album = songWithCover.album || apiSong.album?.albumTitle || '-';
-  const duration = typeof song.duration === 'string' ? song.duration : '-';
+  const duration = typeof song.duration === 'string' ? song.duration : formatTime(song.duration);
 
   return (
     <div 

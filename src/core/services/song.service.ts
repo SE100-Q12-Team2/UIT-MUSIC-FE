@@ -63,7 +63,7 @@ export interface Song {
   album: SongAlbum;
   genre: SongGenre;
   label: SongLabel;
-  asset: SongAsset;
+  asset?: SongAsset;
 }
 
 export interface SongFilters {

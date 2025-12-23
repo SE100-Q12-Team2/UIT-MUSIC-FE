@@ -192,11 +192,7 @@ const LabelSongManagementPage: React.FC = () => {
         id: song.asset.id,
         bucket: song.asset.bucket,
         keyMaster: song.asset.keyMaster,
-      } : {
-        id: 0,
-        bucket: '',
-        keyMaster: '',
-      },
+      } : undefined,
     } as Song;
     
     // Get all songs for queue
@@ -244,11 +240,7 @@ const LabelSongManagementPage: React.FC = () => {
             id: s.asset.id,
             bucket: s.asset.bucket,
             keyMaster: s.asset.keyMaster,
-          } : {
-            id: 0,
-            bucket: '',
-            keyMaster: '',
-          },
+          } : undefined,
         };
       });
 

@@ -77,6 +77,10 @@ const PlayerPage: React.FC = () => {
     }
   }, [currentLineIndex]);
 
+  // IMPORTANT: All hooks must be called before any conditional returns
+  // This follows React's Rules of Hooks - hooks must be called unconditionally
+  // at the top level. The early return below is safe because all hooks above
+  // handle null/empty cases internally (useMemo returns empty arrays, useEffect has guards)
   // Show empty state if no song is playing
   if (!displaySong) {
     return (
@@ -106,7 +110,7 @@ const PlayerPage: React.FC = () => {
             const songCoverUrl = song.album?.coverImage || '';
             const songTitle = song.title;
             // Get artist from API: songArtists array
-            const songArtist = song.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist';
+            const songArtist = song.songArtists?.map((sa) => sa.artist?.artistName || (sa as { artistName?: string }).artistName).join(', ') || 'Unknown Artist';
             const songDuration = formatTime(song.duration);
             const isCurrent = index === currentIndex;
             const albumTitle = song.album?.albumTitle || '';

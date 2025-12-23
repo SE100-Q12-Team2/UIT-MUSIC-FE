@@ -33,18 +33,18 @@ const EditSongModal: React.FC<EditSongModalProps> = ({ song, isOpen, onClose, on
   useEffect(() => {
     if (song) {
       const publishDate = song.uploadDate ? new Date(song.uploadDate).toISOString().split('T')[0] : '';
-      // Use setTimeout to avoid synchronous setState in effect
-      const timer = setTimeout(() => {
-        setFormData({
-          title: song.title,
-          artist: song.songArtists.map((sa) => sa.artist.artistName).join(', '),
-          genre: song.genre.genreName,
-          publishDate: publishDate,
-          duration: formatTime(song.duration),
-          description: song.description || '',
-        });
-      }, 0);
-      return () => clearTimeout(timer);
+      // This setState in effect is necessary to sync form state with the song prop
+      // when the modal opens with a different song. Using a key prop would reset
+      // user input, so we sync state here instead.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFormData({
+        title: song.title,
+        artist: song.songArtists.map((sa) => sa.artist.artistName).join(', '),
+        genre: song.genre.genreName,
+        publishDate: publishDate,
+        duration: formatTime(song.duration),
+        description: song.description || '',
+      });
     }
   }, [song]);
 

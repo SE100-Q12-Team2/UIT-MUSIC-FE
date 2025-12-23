@@ -17,7 +17,7 @@ const getInitialTheme = (): Theme => {
 }
 
 export const useTheme = () => {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme)
+  const [theme, setTheme] = useState<Theme>(() => getInitialTheme())
 
   useEffect(() => {
     const root = document.documentElement

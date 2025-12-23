@@ -15,7 +15,7 @@ export default function EnterCode() {
   
   const email = location.state?.email || ""
 
-  // Redirect nếu không có email
+  // Redirect nếu không có email - must be after all hooks
   if (!email) {
     navigate("/forgot-password", { replace: true })
     return null
