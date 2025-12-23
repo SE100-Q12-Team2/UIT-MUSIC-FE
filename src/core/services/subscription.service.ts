@@ -5,10 +5,13 @@ import { SubscriptionPlan } from "@/types/subscription.types";
 export const subscriptionService = {
   // Fetch subscription plans
   getPlans: async (): Promise<SubscriptionPlan[]> => {
-    const response = await api.get<SubscriptionPlan[]>('/subscription-plans');
+    const response = await api.get<SubscriptionPlan[] | { data: SubscriptionPlan[] }>('/subscription-plans');
+    
+    // Handle both direct array and object with data property
+    const plans = Array.isArray(response) ? response : (response.data || []);
     
     // Sort by duration (Annual first, then Quarterly, then Monthly)
-    return response.sort(
+    return plans.sort(
       (a: SubscriptionPlan, b: SubscriptionPlan) => b.durationMonths - a.durationMonths
     );
   },
