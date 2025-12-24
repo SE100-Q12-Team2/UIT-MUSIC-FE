@@ -23,7 +23,20 @@ const SongRow: React.FC<SongRowProps> = ({ song }) => {
   const apiSong = song as ApiSong;
   const coverUrl = songWithCover.coverUrl || apiSong.album?.coverImage || 'https://via.placeholder.com/100';
   const artist = songWithCover.artist || apiSong.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist';
-  const album = songWithCover.album || apiSong.album?.albumTitle || '-';
+  
+  // Fix: ensure album is always a string, not an object
+  // Check both songWithCover.album and apiSong.album for object type
+  let album = '-';
+  if (songWithCover.album && typeof songWithCover.album === 'string') {
+    album = songWithCover.album;
+  } else if (songWithCover.album && typeof songWithCover.album === 'object') {
+    album = (songWithCover.album as { albumTitle?: string }).albumTitle || '-';
+  } else if (apiSong.album && typeof apiSong.album === 'object') {
+    album = apiSong.album.albumTitle || '-';
+  } else if (typeof apiSong.album === 'string') {
+    album = apiSong.album;
+  }
+  
   const duration = typeof song.duration === 'string' ? song.duration : formatTime(song.duration);
 
   return (
