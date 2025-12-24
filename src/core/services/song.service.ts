@@ -66,6 +66,37 @@ export interface Song {
   asset?: SongAsset;
 }
 
+// Contributor info for trending songs
+export interface TrendingSongContributor {
+  songId: number;
+  labelId: number;
+  role: string;
+  label: SongLabel;
+}
+
+// Trending song from API GET /songs/trending
+export interface TrendingSong {
+  id: number;
+  title: string;
+  description: string | null;
+  duration: number;
+  language: string | null;
+  lyrics: string | null;
+  albumId: number;
+  genreId: number;
+  labelId: number;
+  uploadDate: string;
+  isActive: boolean;
+  copyrightStatus: 'Clear' | 'Disputed' | 'Violation';
+  playCount: number;
+  contributors: TrendingSongContributor[];
+  album: SongAlbum;
+  genre: SongGenre;
+  label: SongLabel;
+  asset?: SongAsset;
+  favorites: any[];
+}
+
 export interface SongFilters {
   page?: number;
   limit?: number;
@@ -80,9 +111,17 @@ export interface SongsResponse {
   totalPages: number;
 }
 
+export interface TrendingSongsResponse {
+  items: TrendingSong[];
+}
+
 export const songService = {
   getSongs: async (filters?: SongFilters): Promise<SongsResponse> => {
     return api.get<SongsResponse>('/songs', { params: filters });
+  },
+
+  getTrendingSongs: async (): Promise<TrendingSongsResponse> => {
+    return api.get<TrendingSongsResponse>('/songs/trending');
   },
 
   getSongById: async (id: number): Promise<Song> => {
@@ -110,6 +149,14 @@ export const useSongs = (filters?: SongFilters) => {
   return useQuery({
     queryKey: QUERY_KEYS.songs.list(filters),
     queryFn: () => songService.getSongs(filters),
+    enabled: true,
+  });
+};
+
+export const useTrendingSongs = () => {
+  return useQuery({
+    queryKey: ['songs', 'trending'],
+    queryFn: () => songService.getTrendingSongs(),
     enabled: true,
   });
 };
