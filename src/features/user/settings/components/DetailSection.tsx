@@ -1,4 +1,5 @@
 import React from "react";
+import '@/styles/detail.css';
 
 import detailsBanner from "@/assets/details-banner.png";
 import detailsProfileAvatar from "@/assets/details-profile-avatar.png";
