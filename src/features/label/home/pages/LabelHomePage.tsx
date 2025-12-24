@@ -38,7 +38,7 @@ const LabelHomePage: React.FC = () => {
   
   // Get recent albums (first 4)
   const recentAlbums = useMemo(() => {
-    return albumsResponse?.items.slice(0, 4) || [];
+    return albumsResponse?.items|| [];
   }, [albumsResponse]);
   
   if (isLoadingLabels) {
@@ -182,7 +182,7 @@ const LabelHomePage: React.FC = () => {
         ) : (
           <div className="label-home__songs">
             {songsResponse?.items && songsResponse.items.length > 0 ? (
-              songsResponse.items.slice(0, 5).map((song) => (
+              songsResponse.items.map((song) => (
                 <div key={song.id} className="label-home__song-item">
                   <img 
                     src={song.album.coverImage} 
