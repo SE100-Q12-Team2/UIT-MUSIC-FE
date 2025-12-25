@@ -36,6 +36,7 @@ import LabelSongManagementPage from "@/features/label/songs/pages/LabelSongManag
 import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
 import RoleBasedRedirect from "@/shared/components/RoleBasedRedirect";
 import PremiumSubscriptionsPage from "@/features/user/subscription/pages/PremiumSubscriptionsPage";
+import { CopyrightReportPage } from "@/features/label/cp-report/pages";
 
 const LandingPage = lazy(
   () => import("@/features/user/landing/pages/LandingPage")
@@ -165,7 +166,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "report",
-            element: <div>Label Report Page (Coming Soon)</div>,
+            element: <LazyLoad><CopyrightReportPage/></LazyLoad>,
           },
         ],
       },
