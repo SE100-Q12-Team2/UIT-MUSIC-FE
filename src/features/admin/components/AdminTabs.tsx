@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type AdminTab = 'users' | 'labels' | 'reports' | 'analytics' | 'subscriptions' | 'advertisement';
+export type AdminTab = 'users' | 'labels' | 'reports' | 'analytics' | 'subscriptions' | 'advertisement' | 'songs' | 'albums' | 'genres';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
@@ -18,6 +18,12 @@ const analyticsTabs: { id: AdminTab; label: string }[] = [
   { id: 'analytics', label: 'Analytics' },
   { id: 'subscriptions', label: 'Subscriptions' },
   { id: 'advertisement', label: 'Advertisement' },
+];
+
+const resourceTabs: { id: AdminTab; label: string }[] = [
+  { id: 'songs', label: 'Songs' },
+  { id: 'albums', label: 'Albums' },
+  { id: 'genres', label: 'Genres' },
 ];
 
 const AdminTabs: React.FC<AdminTabsProps> = ({ activeTab, onTabChange, tabs }) => {
@@ -38,6 +44,6 @@ const AdminTabs: React.FC<AdminTabsProps> = ({ activeTab, onTabChange, tabs }) =
   );
 };
 
-export { analyticsTabs };
+export { analyticsTabs, resourceTabs };
 export default AdminTabs;
 

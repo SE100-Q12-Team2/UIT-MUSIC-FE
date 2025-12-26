@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import AdminTabs, { AdminTab, resourceTabs } from '../../components/AdminTabs';
 import { SongsTab, AlbumsTab, GenresTab } from '../components';
 import '@/styles/resource-screen.css';
 
@@ -6,12 +7,6 @@ type ResourceTabType = 'songs' | 'albums' | 'genres';
 
 const ResourceScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ResourceTabType>('songs');
-
-  const tabs = [
-    { id: 'songs' as ResourceTabType, label: 'Songs' },
-    { id: 'albums' as ResourceTabType, label: 'Albums' },
-    { id: 'genres' as ResourceTabType, label: 'Genres' },
-  ];
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -29,17 +24,11 @@ const ResourceScreen: React.FC = () => {
   return (
     <div className="resource-screen">
       {/* Tabs Navigation */}
-      <div className="resource-tabs">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`resource-tabs__item ${activeTab === tab.id ? 'resource-tabs__item--active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <AdminTabs
+        activeTab={activeTab as AdminTab}
+        onTabChange={(tab) => setActiveTab(tab as ResourceTabType)}
+        tabs={resourceTabs}
+      />
 
       {/* Tab Content */}
       <div className="resource-screen__content">
