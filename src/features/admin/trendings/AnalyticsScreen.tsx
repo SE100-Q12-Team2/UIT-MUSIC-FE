@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import AdminTabs, { AdminTab } from '../components/AdminTabs';
+import AdminTabs, { AdminTab, analyticsTabs } from '../components/AdminTabs';
 import { AnalyticsTab, SubscriptionsTab, AdvertisementTab } from './components';
 import '@/styles/analytics-screen.css';
 
@@ -22,14 +22,11 @@ const AnalyticsScreen: React.FC = () => {
   };
 
   return (
-    <div className="analytics-screen">
-      <div className="analytics-screen__header">
-        <h1 className="analytics-screen__title">Analytics & Insights</h1>
-      </div>
-      
+    <div className="analytics-screen">  
       <AdminTabs 
         activeTab={activeTab as AdminTab} 
         onTabChange={(tab) => setActiveTab(tab as AnalyticsTabType)} 
+        tabs={analyticsTabs}
       />
       
       <div className="analytics-screen__content">
