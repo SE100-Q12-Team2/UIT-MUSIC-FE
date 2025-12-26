@@ -39,6 +39,8 @@
 
 .resource-screen__content {
   margin-top: 24px;
+  padding-left: 60px;
+  padding-right: 60px;
 }
 
 /* Songs Tab */
@@ -536,6 +538,11 @@
 @media (max-width: 768px) {
   .resource-screen {
     padding: 16px;
+  }
+
+  .resource-screen__content {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .resource-tabs {
