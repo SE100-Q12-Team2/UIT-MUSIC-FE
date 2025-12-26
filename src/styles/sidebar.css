@@ -79,11 +79,12 @@
 }
 
 .sidebar__item--active {
-  background: rgba(216, 223, 245, 0.64); /* Light background for active */
+  background: rgba(255, 255, 255, 0.15); /* Light gray background for active - matching design */
+  border-radius: 8px;
 }
 
 .sidebar__item--active:hover {
-  background: rgba(216, 223, 245, 0.7);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Icon Wrapper */
@@ -99,6 +100,17 @@
 .sidebar__icon {
   width: 32px;
   height: 32px;
+}
+
+.sidebar__icon-wrapper svg {
+  width: 32px;
+  height: 32px;
+  color: var(--color-primary-10);
+  transition: color 0.2s ease;
+}
+
+.sidebar__item--active .sidebar__icon-wrapper svg {
+  color: var(--color-white-10);
 }
 
 /* Label */
