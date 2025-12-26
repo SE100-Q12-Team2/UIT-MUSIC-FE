@@ -27,6 +27,8 @@ const RoleBasedRedirect: React.FC = () => {
 
     // Check if user is Label (either by roleId === 3 or role.name === 'Label')
     const isLabel = roleId === 3 || roleName === 'Label';
+
+    const isAdmin = roleId === 2 || roleName === 'Admin';
     
     // Redirect based on role
     if (isLabel) {
@@ -34,7 +36,14 @@ const RoleBasedRedirect: React.FC = () => {
       if (!currentPath.startsWith('/label')) {
         navigate('/label/home', { replace: true });
       }
-    } else {
+    }
+    else if (isAdmin) {
+      // Admin users should be redirected to /admin/home if not already on /admin path
+      if (!currentPath.startsWith('/admin')) {
+        navigate('/admin/home', { replace: true });
+      }
+    }
+     else {
       // Non-label users should NOT access /label paths
       if (currentPath.startsWith('/label')) {
         navigate('/home', { replace: true });
