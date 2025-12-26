@@ -12,6 +12,7 @@ import LazyLoad from "@/shared/components/common/LazyLoad";
 // layouts
 import MainLayout from "@/shared/layouts/MainLayout";
 import LabelLayout from "@/shared/layouts/LabelLayout";
+import AdminLayout from "@/shared/layouts/AdminLayout";
 
 // pages (auth)
 import LoginPage from "@/features/auth/pages/LoginPage";
@@ -31,6 +32,10 @@ import PlayerPage from "@/features/player/pages/PlayerPage";
 // label pages
 import LabelHomePage from "@/features/label/home/pages/LabelHomePage";
 import LabelSongManagementPage from "@/features/label/songs/pages/LabelSongManagementPage";
+
+// admin pages
+import AdminDashboardPage from "@/features/admin/pages/AdminDashboardPage";
+import AdminHomePage from "@/features/admin/home/pages/AdminHomePage";
 
 // others
 import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
@@ -167,6 +172,62 @@ export const router = createBrowserRouter([
           {
             path: "report",
             element: <LazyLoad><CopyrightReportPage/></LazyLoad>,
+          },
+        ],
+      },
+
+      // Admin area - Protected route requiring Admin role
+      {
+        path: "admin",
+        element: (
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/admin/home" replace />,
+          },
+          {
+            path: "home",
+            element: (
+              <LazyLoad>
+                <AdminHomePage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: "trendings",
+            element: (
+              <LazyLoad>
+                <div className="settings-page">
+                  <div className="settings-page__content">
+                    <div className="admin-users-management__empty">Trendings Page (Coming Soon)</div>
+                  </div>
+                </div>
+              </LazyLoad>
+            ),
+          },
+          {
+            path: "human",
+            element: (
+              <LazyLoad>
+                <AdminDashboardPage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: "songs",
+            element: (
+              <LazyLoad>
+                <div className="settings-page">
+                  <div className="settings-page__content">
+                    <div className="admin-users-management__empty">Songs Page (Coming Soon)</div>
+                  </div>
+                </div>
+              </LazyLoad>
+            ),
           },
         ],
       },

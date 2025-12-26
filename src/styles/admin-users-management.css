@@ -1,5 +1,5 @@
-/* Label Song Management Styles */
-.label-song-management {
+/* Admin Users Management Styles */
+.admin-users-management {
   min-height: 100vh;
   padding: 10px 10px;
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -7,20 +7,8 @@
   color: #fff;
 }
 
-.label-song-management__header {
-  margin-bottom: 2rem;
-}
-
-.label-song-management__title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #fff;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
 /* Tabs */
-.label-song-management__tabs {
+.admin-users-management__tabs {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -29,7 +17,7 @@
   justify-content: flex-start;
 }
 
-.label-song-management__tab {
+.admin-users-management__tab {
   font-family: "Inter", sans-serif;
   font-weight: 600;
   font-size: 16px;
@@ -43,39 +31,39 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
 }
 
-.label-song-management__tab:hover {
+.admin-users-management__tab:hover {
   color: var(--color-white-10, rgba(255, 255, 255, 0.9));
-  background: rgba(114, 138, 171, 0.4);
 }
 
-.label-song-management__tab--active {
+.admin-users-management__tab--active {
   color: var(--color-white-10, rgba(255, 255, 255, 0.9));
-  background: rgba(114, 138, 171, 0.64); /* #728AABA3 */
+  border-bottom-color: rgba(114, 138, 171, 0.8);
 }
 
 /* Content */
-.label-song-management__content {
+.admin-users-management__content {
   width: 100%;
   padding: 0 60px;
 }
 
 /* Toolbar */
-.label-song-management__toolbar {
+.admin-users-management__toolbar {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.5rem;
   align-items: center;
 }
 
-.label-song-management__search {
+.admin-users-management__search {
   flex: 1;
   position: relative;
   max-width: 400px;
 }
 
-.label-song-management__search-icon {
+.admin-users-management__search-icon {
   position: absolute;
   left: 0.75rem;
   top: 50%;
@@ -84,7 +72,7 @@
   pointer-events: none;
 }
 
-.label-song-management__search-input {
+.admin-users-management__search-input {
   width: 100%;
   padding: 0.625rem 0.75rem 0.625rem 2.5rem;
   background: rgba(255, 255, 255, 0.08);
@@ -94,22 +82,22 @@
   font-size: 0.875rem;
 }
 
-.label-song-management__search-input::placeholder {
+.admin-users-management__search-input::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
 
-.label-song-management__filters {
+.admin-users-management__filters {
   display: flex;
   gap: 0.75rem;
   position: relative;
 }
 
-.label-song-management__dropdown {
+.admin-users-management__dropdown {
   position: relative;
 }
 
-.label-song-management__filter-btn,
-.label-song-management__sort-btn {
+.admin-users-management__filter-btn,
+.admin-users-management__sort-btn {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.9);
@@ -122,12 +110,12 @@
   position: relative;
 }
 
-.label-song-management__chevron--open {
+.admin-users-management__chevron--open {
   transform: rotate(180deg);
   transition: transform 0.2s;
 }
 
-.label-song-management__dropdown-menu {
+.admin-users-management__dropdown-menu {
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
@@ -142,7 +130,7 @@
   overflow: hidden;
 }
 
-.label-song-management__dropdown-item {
+.admin-users-management__dropdown-item {
   width: 100%;
   display: flex;
   align-items: center;
@@ -157,27 +145,27 @@
   text-align: left;
 }
 
-.label-song-management__dropdown-item:hover {
+.admin-users-management__dropdown-item:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
 
-.label-song-management__dropdown-item--active {
+.admin-users-management__dropdown-item--active {
   background: rgba(114, 138, 171, 0.2);
   color: #fff;
 }
 
-.label-song-management__dropdown-item--active:hover {
+.admin-users-management__dropdown-item--active:hover {
   background: rgba(114, 138, 171, 0.3);
 }
 
-.label-song-management__filter-btn:hover,
-.label-song-management__sort-btn:hover {
+.admin-users-management__filter-btn:hover,
+.admin-users-management__sort-btn:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
 /* Table */
-.label-song-management__table-wrapper {
+.admin-users-management__table-wrapper {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 0.5rem;
   overflow: hidden;
@@ -186,19 +174,19 @@
   overflow-y: auto;
 }
 
-.label-song-management__table {
+.admin-users-management__table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.label-song-management__table thead {
+.admin-users-management__table thead {
   background: rgba(255, 255, 255, 0.03);
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-.label-song-management__table th {
+.admin-users-management__table th {
   padding: 0.875rem 1rem;
   text-align: left;
   font-weight: 600;
@@ -210,7 +198,7 @@
   white-space: nowrap;
 }
 
-.label-song-management__table td {
+.admin-users-management__table td {
   padding: 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   color: #fff;
@@ -218,78 +206,113 @@
   vertical-align: middle;
 }
 
-.label-song-management__table tbody tr {
+.admin-users-management__table tbody tr {
   transition: background 0.2s;
 }
 
-.label-song-management__table tbody tr:hover {
+.admin-users-management__table tbody tr:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 
-.label-song-management__song-name {
+.admin-users-management__user {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.label-song-management__song-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.label-song-management__song-title {
-  flex: 1;
-}
-
-.label-song-management__song-title--clickable {
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.label-song-management__song-title--clickable:hover {
-  opacity: 0.8;
-}
-
-.label-song-management__play-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  width: 28px;
-  height: 28px;
+.admin-users-management__user-avatar {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  opacity: 0;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #fff;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.label-song-management__table tbody tr:hover .label-song-management__play-btn {
-  opacity: 1;
+.admin-users-management__user-name {
+  font-weight: 500;
 }
 
-.label-song-management__play-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
+.admin-users-management__email {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.label-song-management__song-cover {
-  width: 48px;
-  height: 48px;
-  border-radius: 0.5rem;
-  object-fit: cover;
+.admin-users-management__email-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+}
+
+.admin-users-management__plan-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.admin-users-management__plan-badge--premium {
+  background: rgba(251, 146, 60, 0.2);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.admin-users-management__premium-icon {
   flex-shrink: 0;
 }
 
+.admin-users-management__plan-badge--free {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: inline-flex;
+  align-items: center;
+}
+
+.admin-users-management__status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.admin-users-management__status-badge--active {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.admin-users-management__status-badge--suspended {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.admin-users-management__status-badge--inactive {
+  background: rgba(156, 163, 175, 0.2);
+  color: #9ca3af;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
 /* Actions */
-.label-song-management__actions {
+.admin-users-management__actions {
   display: flex;
   gap: 0.5rem;
 }
 
-.label-song-management__action-btn {
+.admin-users-management__action-btn {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.7);
@@ -304,50 +327,57 @@
   height: 32px;
 }
 
-.label-song-management__action-btn:hover {
+.admin-users-management__action-btn:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-.label-song-management__action-btn--delete:hover {
+.admin-users-management__dropdown-content {
+  background: rgba(22, 40, 65, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  min-width: 180px;
+  overflow: hidden !important;
+  max-height: fit-content !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  isolation: isolate;
+}
+
+.admin-users-management__dropdown-content * {
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.admin-users-management__dropdown-content [data-slot="dropdown-menu-item"] {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-users-management__dropdown-content [data-slot="dropdown-menu-item"]:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-users-management__dropdown-content [data-slot="dropdown-menu-item"][data-variant="destructive"] {
   color: #ef4444;
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.admin-users-management__dropdown-content [data-slot="dropdown-menu-item"][data-variant="destructive"]:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
 }
 
 /* Loading & Empty States */
-.label-song-management__loading,
-.label-song-management__empty {
+.admin-users-management__loading,
+.admin-users-management__empty {
   text-align: center;
   padding: 3rem;
   color: rgba(255, 255, 255, 0.5);
 }
 
-.label-song-management__error {
+.admin-users-management__error {
   text-align: center;
   padding: 3rem;
   color: #ef4444;
-}
-
-/* Create Song Placeholder */
-.label-song-management__create-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.label-song-management__create-icon {
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.label-song-management__create-placeholder h2 {
-  margin: 0.5rem 0;
-  color: #fff;
 }
 

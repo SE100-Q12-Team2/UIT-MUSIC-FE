@@ -104,6 +104,10 @@
   --color-yellow-100: #2d2a0d;
 }
 
+html {
+  overflow-y: scroll; /* Always show scrollbar to prevent layout shift */
+}
+
 body {
   margin: 0;
   min-height: 100vh;
