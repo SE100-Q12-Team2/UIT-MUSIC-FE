@@ -42,6 +42,8 @@ import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
 import RoleBasedRedirect from "@/shared/components/RoleBasedRedirect";
 import PremiumSubscriptionsPage from "@/features/user/subscription/pages/PremiumSubscriptionsPage";
 import { CopyrightReportPage } from "@/features/label/cp-report/pages";
+import AnalyticsScreen from "@/features/admin/trendings/AnalyticsScreen";
+import ResourceScreen from "@/features/admin/songs-resource/pages/ResourceScreen";
 
 const LandingPage = lazy(
   () => import("@/features/user/landing/pages/LandingPage")
@@ -201,11 +203,7 @@ export const router = createBrowserRouter([
             path: "trendings",
             element: (
               <LazyLoad>
-                <div className="settings-page">
-                  <div className="settings-page__content">
-                    <div className="admin-users-management__empty">Trendings Page (Coming Soon)</div>
-                  </div>
-                </div>
+                <AnalyticsScreen/>
               </LazyLoad>
             ),
           },
@@ -221,11 +219,7 @@ export const router = createBrowserRouter([
             path: "songs",
             element: (
               <LazyLoad>
-                <div className="settings-page">
-                  <div className="settings-page__content">
-                    <div className="admin-users-management__empty">Songs Page (Coming Soon)</div>
-                  </div>
-                </div>
+                <ResourceScreen/>
               </LazyLoad>
             ),
           },
