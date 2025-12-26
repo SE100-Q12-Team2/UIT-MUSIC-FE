@@ -79,12 +79,11 @@
 }
 
 .sidebar__item--active {
-  background: rgba(255, 255, 255, 0.15); /* Light gray background for active - matching design */
-  border-radius: 8px;
+  background: rgba(216, 223, 245, 0.64); /* Light background for active */
 }
 
 .sidebar__item--active:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(216, 223, 245, 0.7);
 }
 
 /* Icon Wrapper */
