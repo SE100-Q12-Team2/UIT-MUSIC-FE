@@ -182,6 +182,7 @@ const FavoritePage: React.FC = () => {
   // Component to render favorite button with check status
   const FavoriteButton: React.FC<{ songId: number }> = ({ songId }) => {
     const { data: favoriteStatus } = useCheckFavorite(user?.id, songId);
+    console.log('Favorite status for song', songId, ':', favoriteStatus);
     const isFavorited = favoriteStatus?.isFavorite || false;
 
     return (
@@ -189,8 +190,12 @@ const FavoritePage: React.FC = () => {
         className={`favorite-icon-button ${isFavorited ? 'is-favorited' : ''}`}
         type="button"
         aria-label="Favorite"
+        style={{
+          opacity: isFavorited ? 1 : 0.5,
+          filter: isFavorited ? 'none' : 'grayscale(100%)',
+        }}
       >
-        <img src={heartWhiteIcon} alt="" />
+        <img src={isFavorited ? heartWhiteIcon : heartIcon} alt="" />
       </button>
     );
   };

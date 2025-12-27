@@ -1,14 +1,16 @@
 import React from 'react';
 import { Heart, MoreHorizontal } from 'lucide-react';
+import { useCheckFavorite } from '@/core/services/favorite.service';
 
 export interface AddTrack {
   id: number;
   title: string;
-  artist: string;
+  artist: string | React.ReactNode;
   album: string;
   duration: number;
   coverImage: string;
   isFavorite?: boolean;
+  labelId?: number;
 }
 
 // Helper to format duration
@@ -20,6 +22,7 @@ const formatDuration = (seconds: number): string => {
 
 interface AddTrackItemProps {
   track: AddTrack;
+  userId?: number;
   onFavoriteToggle?: (trackId: number) => void;
   onMoreClick?: (trackId: number) => void;
   onClick?: (track: AddTrack) => void;
@@ -27,10 +30,15 @@ interface AddTrackItemProps {
 
 const AddTrackItem: React.FC<AddTrackItemProps> = ({
   track,
+  userId,
   onFavoriteToggle,
   onMoreClick,
   onClick,
 }) => {
+  // Check favorite status from API
+  const { data: favoriteStatus } = useCheckFavorite(userId, track.id);
+  const isFavorited = favoriteStatus?.isFavorite || false;
+
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onFavoriteToggle?.(track.id);
@@ -56,12 +64,12 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
       <div className="add-track-item__duration">{formatDuration(track.duration)}</div>
       <div className="add-track-item__actions">
         <button
-          className={`add-track-item__favorite ${track.isFavorite ? 'add-track-item__favorite--active' : ''}`}
+          className={`add-track-item__favorite ${isFavorited ? 'add-track-item__favorite--active' : ''}`}
           onClick={handleFavoriteClick}
         >
           <Heart 
             size={18} 
-            fill={track.isFavorite ? '#fff' : 'none'}
+            fill={isFavorited ? '#fff' : 'none'}
             stroke="#fff"
           />
         </button>

@@ -52,8 +52,8 @@ export const favoriteService = {
     return api.get<FavoriteSongsData>(`/favorites/songs/${userId}`);
   },
 
-  checkFavorite: async (userId: number, songId: number): Promise<CheckFavoriteResponse> => {
-    return api.get<CheckFavoriteResponse>('/favorites/check', { 
+  checkFavorite: async (userId: number, songId: number): Promise<{ isFavorite: boolean; likedAt?: string }> => {
+    return api.get<{ isFavorite: boolean; likedAt?: string }>('/favorites/check', { 
       params: { userId, songId } 
     });
   },
@@ -129,7 +129,8 @@ export const useCheckFavorite = (userId: number | undefined, songId: number | un
       }
       try {
         const result = await favoriteService.checkFavorite(userId, songId);
-        return result.data || { isFavorite: false, likedAt: undefined };
+        // result is already unwrapped by api.get, it's { isFavorite, likedAt }
+        return result || { isFavorite: false, likedAt: undefined };
       } catch (error) {
         // If API fails or returns error, assume not favorited
         console.warn('Failed to check favorite status:', error);
