@@ -20,7 +20,17 @@ export function useSimilarSongs(songId: number, limit?: number) {
 export function useDiscoverWeekly() {
   return useQuery<RecommendationSong[]>({
     queryKey: ['recommendations', 'discover-weekly'],
-    queryFn: () => recommendationApi.getDiscoverWeekly(),
+    queryFn: async () => {
+      try {
+        const result = await recommendationApi.getDiscoverWeekly();
+        return result || [];
+      } catch (error) {
+        console.warn('Failed to fetch recommendations:', error);
+        return [];
+      }
+    },
+    // Ensure query data is never undefined
+    placeholderData: [],
   });
 }
 

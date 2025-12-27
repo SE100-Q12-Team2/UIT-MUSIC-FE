@@ -1,7 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import "@/styles/favorite.css";
 
 import { usePageBackground } from "@/shared/hooks/usePageBackground";
+import { useAuth } from "@/shared/hooks/auth/useAuth";
+import { useFavoriteSongs, useCheckFavorite } from "@/core/services/favorite.service";
+import { useSongsByIds } from "@/core/services/song.service";
+import { useRecordLabel } from "@/core/services/label.service";
+import { useDiscoverWeekly } from "@/core/services/recommendation.service";
+import { Song } from "@/core/services/song.service";
 
 import favoriteBg from "@/assets/background-playlist.jpg";
 
@@ -17,16 +23,7 @@ import shareIcon from "@/assets/share.svg";
 // About singer image (đúng: singer.png)
 import singerImage from "@/assets/singer.png";
 
-// Favorite track covers (table)
-import trackCover3 from "@/assets/Track Cover_3.png";
-import trackCover4 from "@/assets/Track Cover_4.png";
-import trackCover5 from "@/assets/Track Cover_5.png";
 import trackCover6 from "@/assets/Track Cover_6.png";
-
-// Other Song covers (đúng: Track Cover_6/7/8)
-import other1 from "@/assets/Track Cover_6.png";
-import other2 from "@/assets/Track Cover_7.png";
-import other3 from "@/assets/Track Cover_8.png";
 
 // CDs (YMAL)
 import cd1 from "@/assets/CD_1.png";
@@ -42,28 +39,7 @@ import albumCover3 from "@/assets/Album Cover_3.png";
 import albumCover4 from "@/assets/Album Cover_4.png";
 import albumCover5 from "@/assets/Album Cover_5.png";
 
-interface FavoriteTrack {
-  id: number;
-  name: string;
-  artist: string;
-  album: string;
-  time: string;
-  cover: string;
-}
 
-interface OtherSong {
-  id: number;
-  title: string;
-  artist: string;
-  cover: string;
-}
-
-interface Suggestion {
-  id: number;
-  title: string;
-  artist: string;
-  cover: string;
-}
 
 interface YMALItem {
   id: number;
@@ -74,70 +50,7 @@ interface YMALItem {
   cdImage: string;
 }
 
-const favoriteTracks: FavoriteTrack[] = [
-  {
-    id: 1,
-    name: "Lonely",
-    artist: "Cupido",
-    album: "Fear When You Fly - Single",
-    time: "3:48",
-    cover: trackCover6,
-  },
-  {
-    id: 2,
-    name: "Adrian Bringo",
-    artist: "Billie Eilish",
-    album: "Hit Me Hard and soft",
-    time: "3:26",
-    cover: trackCover4,
-  },
-  {
-    id: 3,
-    name: "Chihiro",
-    artist: "Benyamin",
-    album: "Disease - Single",
-    time: "3:18",
-    cover: trackCover5,
-  },
-  {
-    id: 4,
-    name: "Shape Of You",
-    artist: "Ed Sheeran",
-    album: "Hit Me Hard and soft",
-    time: "4:08",
-    cover: trackCover3,
-  },
-  {
-    id: 5,
-    name: "Chihiro",
-    artist: "Benyamin",
-    album: "Disease - Single",
-    time: "3:58",
-    cover: trackCover6,
-  },
-];
 
-const otherSongs: OtherSong[] = [
-  { id: 1, title: "Nothings", artist: "Adele", cover: other1 },
-  { id: 2, title: "Set Fire to the Rain", artist: "Adele", cover: other2 },
-  { id: 3, title: "Hello", artist: "Adele", cover: other3 },
-];
-
-const suggestions: Suggestion[] = [
-  { id: 1, title: "empty note", artist: "Ghostly Kisses", cover: trackCover3 },
-  { id: 2, title: "Unstoppable", artist: "ghostly kisses", cover: trackCover4 },
-  { id: 3, title: "No Face No", artist: "Modern Talking", cover: trackCover5 },
-  { id: 4, title: "Tungevaag", artist: "Peru", cover: trackCover6 },
-  { id: 5, title: "Unstoppable", artist: "Sia", cover: trackCover4 },
-  {
-    id: 6,
-    title: "The Torture...",
-    artist: "Taylor Soyift",
-    cover: trackCover5,
-  },
-  { id: 7, title: "empty note", artist: "ghostly kisses", cover: trackCover6 },
-  { id: 8, title: "Tonight", artist: "Enrique Iglesias", cover: trackCover6 },
-];
 
 const ymal: YMALItem[] = [
   {
@@ -208,37 +121,97 @@ const ymal: YMALItem[] = [
 
 const FavoritePage: React.FC = () => {
   usePageBackground(favoriteBg);
+  const { user } = useAuth();
+  
   const [isFollowing, setIsFollowing] = useState(false);
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handleToggleFollow = () => {
     setIsFollowing((prev) => !prev);
   };
 
-  const [favSuggestionIds, setFavSuggestionIds] = useState<Set<number>>(
-    new Set()
-  );
-  const [favYmalIds, setFavYmalIds] = useState<Set<number>>(new Set());
+  // Fetch favorite song IDs
+  const { data: favoritesData, isLoading: loadingFavorites } = useFavoriteSongs(user?.id);
+  // Memoize songIds to prevent unnecessary re-renders
+  const songIds = useMemo(() => {
+    const ids = favoritesData?.songIds || [];
+    return ids;
+  }, [favoritesData?.songIds]);
 
-  const toggleSuggestion = (id: number) => {
-    setFavSuggestionIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+  // Fetch song details for all favorite songs
+  const { data: songs, isLoading: loadingSongs } = useSongsByIds(songIds);
+
+  // Fetch recommendations for suggestions
+  const { data: recommendations, isLoading: loadingRecommendations } = useDiscoverWeekly();
+  
+  // Get only first 8 recommendations for display
+  const displayedSuggestions = useMemo(() => {
+    return recommendations?.slice(0, 8) || [];
+  }, [recommendations]);
+  
+  // Fetch record label info for selected song
+  const { data: recordLabel, isLoading: loadingLabel } = useRecordLabel(
+    selectedSong?.labelId
+  );
+
+  const handleSongClick = (song: Song) => {
+    setSelectedSong(song);
+    setIsPopupOpen(true);
   };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedSong(null);
+  };
+
+  const [favYmalIds, setFavYmalIds] = useState<Set<number>>(new Set());
 
   const toggleYmal = (id: number) => {
     setFavYmalIds((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
+  };
+
+  // Component to render favorite button with check status
+  const FavoriteButton: React.FC<{ songId: number }> = ({ songId }) => {
+    const { data: favoriteStatus } = useCheckFavorite(user?.id, songId);
+    console.log('Favorite status for song', songId, ':', favoriteStatus);
+    const isFavorited = favoriteStatus?.isFavorite || false;
+
+    return (
+      <button
+        className={`favorite-icon-button ${isFavorited ? 'is-favorited' : ''}`}
+        type="button"
+        aria-label="Favorite"
+        style={{
+          opacity: isFavorited ? 1 : 0.5,
+          filter: isFavorited ? 'none' : 'grayscale(100%)',
+        }}
+      >
+        <img src={isFavorited ? heartWhiteIcon : heartIcon} alt="" />
+      </button>
+    );
+  };
+
+  // Component to fetch and display artist name from labelId
+  const ArtistName: React.FC<{ labelId: number }> = ({ labelId }) => {
+    const { data: label, isLoading } = useRecordLabel(labelId);
+    
+    if (isLoading) return <span>Loading...</span>;
+    return <span>{label?.labelName || "Unknown Artist"}</span>;
   };
 
   return (
     <div className="favorite-page">
       {/* TOP: left(main) + right(cards) */}
-      <section className="favorite-top">
+      <section className={`favorite-top ${isPopupOpen ? 'has-sidebar' : ''}`}>
         {/* LEFT */}
         <div className="favorite-top__left">
           <div
@@ -270,105 +243,184 @@ const FavoritePage: React.FC = () => {
             </div>
 
             <div className="favorite-table__body">
-              {favoriteTracks.map((t) => (
-                <article key={t.id} className="favorite-track">
-                  <div className="favorite-track__name">
-                    <div className="favorite-track__cover">
-                      <img src={t.cover} alt={t.name} />
-                    </div>
-                    <div className="favorite-track__meta">
-                      <div className="favorite-track__title">{t.name}</div>
-                      <div className="favorite-track__artist">{t.artist}</div>
-                    </div>
-                  </div>
+              {loadingFavorites || loadingSongs ? (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+                  Loading your favorite songs...
+                </div>
+              ) : songs && songs.length > 0 ? (
+                songs.map((song) => {
+                  // Format duration from seconds to mm:ss
+                  const minutes = Math.floor(song.duration / 60);
+                  const seconds = song.duration % 60;
+                  const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-                  <div className="favorite-track__album">{t.album}</div>
-                  <div className="favorite-track__time">{t.time}</div>
+                  // Get the cover image from album
+                  const coverImage = song.album?.coverImage || trackCover6;
 
-                  <div className="favorite-track__actions">
-                    <button
-                      className="favorite-icon-button"
-                      type="button"
-                      aria-label="Favorite"
+                  return (
+                    <article 
+                      key={song.id} 
+                      className="favorite-track"
+                      onClick={() => handleSongClick(song)}
+                      style={{ cursor: 'pointer' }}
                     >
-                      <img src={heartWhiteIcon} alt="" />
-                    </button>
-                    <button
-                      className="favorite-icon-button"
-                      type="button"
-                      aria-label="More"
-                    >
-                      <img src={menuIcon} alt="" />
-                    </button>
-                  </div>
-                </article>
-              ))}
+                      <div className="favorite-track__name">
+                        <div className="favorite-track__cover">
+                          <img src={coverImage} alt={song.title} />
+                        </div>
+                        <div className="favorite-track__meta">
+                          <div className="favorite-track__title">{song.title}</div>
+                          <div className="favorite-track__artist">
+                            <ArtistName labelId={song.labelId} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="favorite-track__album">
+                        {song.album?.albumTitle || "Unknown Album"}
+                      </div>
+                      <div className="favorite-track__time">{formattedTime}</div>
+
+                      <div className="favorite-track__actions" onClick={(e) => e.stopPropagation()}>
+                        <FavoriteButton songId={song.id} />
+                        <button
+                          className="favorite-icon-button"
+                          type="button"
+                          aria-label="More"
+                        >
+                          <img src={menuIcon} alt="" />
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })
+              ) : (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+                  No favorite songs yet. Start adding songs to your favorites!
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* RIGHT */}
-        <aside className="favorite-top__right">
-          <section className="favorite-card favorite-singer">
-            <h2 className="favorite-card__title">About Songer</h2>
-
-            <div className="favorite-singer__avatar">
-              <img src={singerImage} alt="Singer" />
-            </div>
-
-            <h3 className="favorite-singer__name">Adele Laurie Blue Adkins</h3>
-            <p className="favorite-singer__bio">
-              born May 5, 1988 better known by her stage name Adele. We all know
-              her talented English singer and songwriter Adele.
-            </p>
-
-            <button
+        {/* RIGHT - Sidebar Panel */}
+        {isPopupOpen && selectedSong && (
+          <aside className="favorite-top__right favorite-sidebar">
+            <button 
+              className="favorite-sidebar__close"
+              onClick={handleClosePopup}
               type="button"
-              className={`favorite-singer__follow ${
-                isFollowing ? "is-following" : ""
-              }`}
-              onClick={handleToggleFollow}
+              aria-label="Close"
             >
-              {isFollowing ? "Following" : "Follow"}
+              ×
             </button>
-          </section>
 
-          <section className="favorite-card favorite-other">
-            <h3 className="favorite-card__title">Other Song</h3>
+            <section className="favorite-card favorite-singer">
+                <h2 className="favorite-card__title">Record Label Info</h2>
 
-            <div className="favorite-other__list">
-              {otherSongs.map((s) => (
-                <article key={s.id} className="favorite-other__item">
-                  <div className="favorite-other__cover">
-                    <img src={s.cover} alt={s.title} />
+                {loadingLabel ? (
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+                    Loading label info...
                   </div>
+                ) : recordLabel ? (
+                  <>
+                    <div className="favorite-singer__avatar">
+                      <img 
+                        src={recordLabel.imageUrl|| singerImage} 
+                        alt={recordLabel.labelName}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = singerImage;
+                        }}
+                      />
+                    </div>
 
-                  <div className="favorite-other__meta">
-                    <div className="favorite-other__song-title">{s.title}</div>
-                    <div className="favorite-other__artist">{s.artist}</div>
-                  </div>
+                    <h3 className="favorite-singer__name">{recordLabel.labelName}</h3>
+                    <p className="favorite-singer__bio">
+                      {recordLabel.description || "No description available"}
+                    </p>
 
-                  <div className="favorite-other__actions">
+                    {recordLabel.website && (
+                      <a 
+                        href={recordLabel.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ 
+                          color: '#fff', 
+                          textDecoration: 'underline',
+                          display: 'block',
+                          marginTop: '10px'
+                        }}
+                      >
+                        Visit Website
+                      </a>
+                    )}
+
+                    {recordLabel.contactEmail && (
+                      <p style={{ marginTop: '10px', fontSize: '14px' }}>
+                        Contact: {recordLabel.contactEmail}
+                      </p>
+                    )}
+
                     <button
-                      className="favorite-icon-button"
                       type="button"
-                      aria-label="Favorite"
+                      className={`favorite-singer__follow ${
+                        isFollowing ? "is-following" : ""
+                      }`}
+                      onClick={handleToggleFollow}
                     >
-                      <img src={heartIcon} alt="" />
+                      {isFollowing ? "Following" : "Follow"}
                     </button>
-                    <button
-                      className="favorite-icon-button"
-                      type="button"
-                      aria-label="More"
-                    >
-                      <img src={menuIcon} alt="" />
-                    </button>
+                  </>
+                ) : (
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+                    No label information available
                   </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        </aside>
+                )}
+              </section>
+
+              <section className="favorite-card favorite-other">
+                <h3 className="favorite-card__title">Selected Song Details</h3>
+
+                <div className="favorite-other__list">
+                  <article className="favorite-other__item">
+                    <div className="favorite-other__cover">
+                      <img 
+                        src={selectedSong.album?.coverImage || trackCover6} 
+                        alt={selectedSong.title}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = trackCover6;
+                        }}
+                      />
+                    </div>
+
+                    <div className="favorite-other__meta">
+                      <div className="favorite-other__song-title">{selectedSong.title}</div>
+                      <div className="favorite-other__artist">
+                        <ArtistName labelId={selectedSong.labelId} />
+                      </div>
+                      <div style={{ fontSize: '12px', marginTop: '5px' }}>
+                        Genre: {selectedSong.genre?.genreName || "Unknown"}
+                      </div>
+                      <div style={{ fontSize: '12px' }}>
+                        Plays: {selectedSong.playCount?.toLocaleString() || 0}
+                      </div>
+                    </div>
+
+                    <div className="favorite-other__actions">
+                      <FavoriteButton songId={selectedSong.id} />
+                      <button
+                        className="favorite-icon-button"
+                        type="button"
+                        aria-label="More"
+                      >
+                        <img src={menuIcon} alt="" />
+                      </button>
+                    </div>
+                  </article>
+                </div>
+              </section>
+          </aside>
+        )}
       </section>
 
       {/* Suggestions */}
@@ -381,47 +433,52 @@ const FavoritePage: React.FC = () => {
         </div>
 
         <div className="favorite-suggestions">
-          {suggestions.map((item) => (
-            <article key={item.id} className="favorite-suggestion-card">
-              <div className="favorite-suggestion-card__cover">
-                <img src={item.cover} alt={item.title} />
-              </div>
+          {loadingRecommendations ? (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+              Loading suggestions...
+            </div>
+          ) : displayedSuggestions.length > 0 ? (
+            displayedSuggestions.map((song) => {
+              const coverImage = song.album?.coverImage || trackCover6;
+              
+              return (
+                <article key={song.id} className="favorite-suggestion-card">
+                  <div className="favorite-suggestion-card__cover">
+                    <img src={coverImage} alt={song.title} />
+                  </div>
 
-              <div className="favorite-suggestion-card__meta">
-                <div className="favorite-suggestion-card__title">
-                  {item.title}
-                </div>
-                <div className="favorite-suggestion-card__artist">
-                  {item.artist}
-                </div>
-              </div>
+                  <div className="favorite-suggestion-card__meta">
+                    <div className="favorite-suggestion-card__title">
+                      {song.title}
+                    </div>
+                    <div className="favorite-suggestion-card__artist">
+                      <ArtistName labelId={song.labelId!} />
+                    </div>
+                  </div>
 
-              <div className="favorite-suggestion-card__actions">
-                <button
-                  className={`favorite-icon-button ${
-                    favSuggestionIds.has(item.id) ? "is-active" : ""
-                  }`}
-                  type="button"
-                  aria-label="Favorite"
-                  onClick={() => toggleSuggestion(item.id)}
-                >
-                  <img src={heartIcon} alt="" />
-                </button>
-                <button
-                  className="favorite-icon-button"
-                  type="button"
-                  aria-label="More"
-                >
-                  <img src={menuIcon} alt="" />
-                </button>
-              </div>
-            </article>
-          ))}
+                  <div className="favorite-suggestion-card__actions" onClick={(e) => e.stopPropagation()}>
+                    <FavoriteButton songId={song.id} />
+                    <button
+                      className="favorite-icon-button"
+                      type="button"
+                      aria-label="More"
+                    >
+                      <img src={menuIcon} alt="" />
+                    </button>
+                  </div>
+                </article>
+              );
+            })
+          ) : (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+              No suggestions available at the moment.
+            </div>
+          )}
         </div>
       </section>
 
       {/* You Might Also Like */}
-      <section className="favorite-section">
+      {/* <section className="favorite-section">
         <div className="favorite-section__header">
           <h2 className="favorite-section__title">You Might Also Like</h2>
           <button className="favorite-section__see-all" type="button">
@@ -473,7 +530,7 @@ const FavoritePage: React.FC = () => {
             </article>
           ))}
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };

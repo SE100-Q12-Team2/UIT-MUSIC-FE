@@ -171,15 +171,25 @@ export const useSong = (id: number) => {
 
 // Hook to fetch multiple songs by IDs
 export const useSongsByIds = (songIds: number[]) => {
+  // Create a stable key by sorting and joining
+  const sortedIds = [...songIds].sort((a, b) => a - b);
+  const idsKey = sortedIds.join(',');
+  
   return useQuery({
-    queryKey: ['songs', 'byIds', songIds],
+    queryKey: ['songs', 'byIds', idsKey],
     queryFn: async () => {
+      console.log('Fetching songs for IDs:', songIds);
+      if (songIds.length === 0) {
+        return [];
+      }
       const songs = await Promise.all(
         songIds.map((id) => songService.getSongById(id))
       );
+      console.log('Fetched songs:', songs);
       return songs;
     },
     enabled: songIds.length > 0,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 };
 

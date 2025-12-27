@@ -11,20 +11,20 @@ import {
 import '@/styles/playlists.css';
 
 // Import category images
-import categoryRecent from '@/assets/category-recent.jpg';
-import categoryMost from '@/assets/category-most.jpg';
-import categoryLiked from '@/assets/category-liked.jpg';
+// import categoryRecent from '@/assets/category-recent.jpg';
+// import categoryMost from '@/assets/category-most.jpg';
+// import categoryLiked from '@/assets/category-liked.jpg';
 
 // Default categories
-const defaultCategories = [
-  { id: 'recent', label: 'Recently Listened', image: categoryRecent },
-  { id: 'most', label: 'Most Listened', image: categoryMost },
-  { id: 'liked', label: 'Liked Tracks', image: categoryLiked },
-];
+// const defaultCategories = [
+//   { id: 'recent', label: 'Recently Listened', image: categoryRecent },
+//   { id: 'most', label: 'Most Listened', image: categoryMost },
+//   { id: 'liked', label: 'Liked Tracks', image: categoryLiked },
+// ];
 
 // Helper function to convert PlaylistTrack to Track for UI
 const playlistTrackToTrack = (playlistTrack: PlaylistTrackType, playlistCoverImage: string): Track => {
-  const artistNames = playlistTrack.song.songArtists
+  const artistNames = (playlistTrack.song.songArtists || [])
     .map((sa) => sa.artist.artistName)
     .join(', ');
   
@@ -53,7 +53,7 @@ const formatTotalDuration = (tracks: PlaylistTrackType[]): string => {
 };
 
 const PlaylistsPage: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState<string>('recent');
+  // const [activeCategory, setActiveCategory] = useState<string>('recent');
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
   const [showAllPlaylists, setShowAllPlaylists] = useState<boolean>(false);
   
@@ -125,11 +125,11 @@ const PlaylistsPage: React.FC = () => {
       {/* Main Content */}
       <div className="playlists-page__main">
         {/* Category Tabs */}
-        <CategoryTabs
+        {/* <CategoryTabs
           categories={defaultCategories}
           activeCategory={activeCategory}
           onCategoryClick={setActiveCategory}
-        />
+        /> */}
 
         {/* Your Playlists Section */}
         <PlaylistSection
