@@ -6,8 +6,8 @@ import { useAuth } from "@/shared/hooks/auth/useAuth";
 import { useFavoriteSongs, useCheckFavorite } from "@/core/services/favorite.service";
 import { useSongsByIds } from "@/core/services/song.service";
 import { useRecordLabel } from "@/core/services/label.service";
+import { useDiscoverWeekly } from "@/core/services/recommendation.service";
 import { Song } from "@/core/services/song.service";
-import { RecordLabel } from "@/types/label.types";
 
 import favoriteBg from "@/assets/background-playlist.jpg";
 
@@ -23,10 +23,6 @@ import shareIcon from "@/assets/share.svg";
 // About singer image (đúng: singer.png)
 import singerImage from "@/assets/singer.png";
 
-// Favorite track covers (table)
-import trackCover3 from "@/assets/Track Cover_3.png";
-import trackCover4 from "@/assets/Track Cover_4.png";
-import trackCover5 from "@/assets/Track Cover_5.png";
 import trackCover6 from "@/assets/Track Cover_6.png";
 
 // CDs (YMAL)
@@ -45,13 +41,6 @@ import albumCover5 from "@/assets/Album Cover_5.png";
 
 
 
-interface Suggestion {
-  id: number;
-  title: string;
-  artist: string;
-  cover: string;
-}
-
 interface YMALItem {
   id: number;
   title: string;
@@ -62,22 +51,6 @@ interface YMALItem {
 }
 
 
-
-const suggestions: Suggestion[] = [
-  { id: 1, title: "empty note", artist: "Ghostly Kisses", cover: trackCover3 },
-  { id: 2, title: "Unstoppable", artist: "ghostly kisses", cover: trackCover4 },
-  { id: 3, title: "No Face No", artist: "Modern Talking", cover: trackCover5 },
-  { id: 4, title: "Tungevaag", artist: "Peru", cover: trackCover6 },
-  { id: 5, title: "Unstoppable", artist: "Sia", cover: trackCover4 },
-  {
-    id: 6,
-    title: "The Torture...",
-    artist: "Taylor Soyift",
-    cover: trackCover5,
-  },
-  { id: 7, title: "empty note", artist: "ghostly kisses", cover: trackCover6 },
-  { id: 8, title: "Tonight", artist: "Enrique Iglesias", cover: trackCover6 },
-];
 
 const ymal: YMALItem[] = [
   {
@@ -169,7 +142,14 @@ const FavoritePage: React.FC = () => {
   // Fetch song details for all favorite songs
   const { data: songs, isLoading: loadingSongs } = useSongsByIds(songIds);
 
-
+  // Fetch recommendations for suggestions
+  const { data: recommendations, isLoading: loadingRecommendations } = useDiscoverWeekly();
+  
+  // Get only first 8 recommendations for display
+  const displayedSuggestions = useMemo(() => {
+    return recommendations?.slice(0, 8) || [];
+  }, [recommendations]);
+  
   // Fetch record label info for selected song
   const { data: recordLabel, isLoading: loadingLabel } = useRecordLabel(
     selectedSong?.labelId
@@ -185,22 +165,7 @@ const FavoritePage: React.FC = () => {
     setSelectedSong(null);
   };
 
-  const [favSuggestionIds, setFavSuggestionIds] = useState<Set<number>>(
-    new Set()
-  );
   const [favYmalIds, setFavYmalIds] = useState<Set<number>>(new Set());
-
-  const toggleSuggestion = (id: number) => {
-    setFavSuggestionIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
 
   const toggleYmal = (id: number) => {
     setFavYmalIds((prev) => {
@@ -463,47 +428,52 @@ const FavoritePage: React.FC = () => {
         </div>
 
         <div className="favorite-suggestions">
-          {suggestions.map((item) => (
-            <article key={item.id} className="favorite-suggestion-card">
-              <div className="favorite-suggestion-card__cover">
-                <img src={item.cover} alt={item.title} />
-              </div>
+          {loadingRecommendations ? (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+              Loading suggestions...
+            </div>
+          ) : displayedSuggestions.length > 0 ? (
+            displayedSuggestions.map((song) => {
+              const coverImage = song.album?.coverImage || trackCover6;
+              
+              return (
+                <article key={song.id} className="favorite-suggestion-card">
+                  <div className="favorite-suggestion-card__cover">
+                    <img src={coverImage} alt={song.title} />
+                  </div>
 
-              <div className="favorite-suggestion-card__meta">
-                <div className="favorite-suggestion-card__title">
-                  {item.title}
-                </div>
-                <div className="favorite-suggestion-card__artist">
-                  {item.artist}
-                </div>
-              </div>
+                  <div className="favorite-suggestion-card__meta">
+                    <div className="favorite-suggestion-card__title">
+                      {song.title}
+                    </div>
+                    <div className="favorite-suggestion-card__artist">
+                      <ArtistName labelId={song.labelId!} />
+                    </div>
+                  </div>
 
-              <div className="favorite-suggestion-card__actions">
-                <button
-                  className={`favorite-icon-button ${
-                    favSuggestionIds.has(item.id) ? "is-active" : ""
-                  }`}
-                  type="button"
-                  aria-label="Favorite"
-                  onClick={() => toggleSuggestion(item.id)}
-                >
-                  <img src={heartIcon} alt="" />
-                </button>
-                <button
-                  className="favorite-icon-button"
-                  type="button"
-                  aria-label="More"
-                >
-                  <img src={menuIcon} alt="" />
-                </button>
-              </div>
-            </article>
-          ))}
+                  <div className="favorite-suggestion-card__actions" onClick={(e) => e.stopPropagation()}>
+                    <FavoriteButton songId={song.id} />
+                    <button
+                      className="favorite-icon-button"
+                      type="button"
+                      aria-label="More"
+                    >
+                      <img src={menuIcon} alt="" />
+                    </button>
+                  </div>
+                </article>
+              );
+            })
+          ) : (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+              No suggestions available at the moment.
+            </div>
+          )}
         </div>
       </section>
 
       {/* You Might Also Like */}
-      <section className="favorite-section">
+      {/* <section className="favorite-section">
         <div className="favorite-section__header">
           <h2 className="favorite-section__title">You Might Also Like</h2>
           <button className="favorite-section__see-all" type="button">
@@ -555,7 +525,7 @@ const FavoritePage: React.FC = () => {
             </article>
           ))}
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };
