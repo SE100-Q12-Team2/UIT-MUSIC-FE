@@ -3,10 +3,11 @@ import "@/styles/favorite.css";
 
 import { usePageBackground } from "@/shared/hooks/usePageBackground";
 import { useAuth } from "@/shared/hooks/auth/useAuth";
-import { useFavoriteSongs } from "@/core/services/favorite.service";
+import { useFavoriteSongs, useCheckFavorite } from "@/core/services/favorite.service";
 import { useSongsByIds } from "@/core/services/song.service";
 import { useRecordLabel } from "@/core/services/label.service";
 import { Song } from "@/core/services/song.service";
+import { RecordLabel } from "@/types/label.types";
 
 import favoriteBg from "@/assets/background-playlist.jpg";
 
@@ -27,11 +28,6 @@ import trackCover3 from "@/assets/Track Cover_3.png";
 import trackCover4 from "@/assets/Track Cover_4.png";
 import trackCover5 from "@/assets/Track Cover_5.png";
 import trackCover6 from "@/assets/Track Cover_6.png";
-
-// Other Song covers (đúng: Track Cover_6/7/8)
-import other1 from "@/assets/Track Cover_6.png";
-import other2 from "@/assets/Track Cover_7.png";
-import other3 from "@/assets/Track Cover_8.png";
 
 // CDs (YMAL)
 import cd1 from "@/assets/CD_1.png";
@@ -167,7 +163,6 @@ const FavoritePage: React.FC = () => {
   // Memoize songIds to prevent unnecessary re-renders
   const songIds = useMemo(() => {
     const ids = favoritesData?.songIds || [];
-    console.log('useMemo - songIds extracted:', ids);
     return ids;
   }, [favoritesData?.songIds]);
 
@@ -219,10 +214,34 @@ const FavoritePage: React.FC = () => {
     });
   };
 
+  // Component to render favorite button with check status
+  const FavoriteButton: React.FC<{ songId: number }> = ({ songId }) => {
+    const { data: favoriteStatus } = useCheckFavorite(user?.id, songId);
+    const isFavorited = favoriteStatus?.isFavorite || false;
+
+    return (
+      <button
+        className={`favorite-icon-button ${isFavorited ? 'is-favorited' : ''}`}
+        type="button"
+        aria-label="Favorite"
+      >
+        <img src={heartWhiteIcon} alt="" />
+      </button>
+    );
+  };
+
+  // Component to fetch and display artist name from labelId
+  const ArtistName: React.FC<{ labelId: number }> = ({ labelId }) => {
+    const { data: label, isLoading } = useRecordLabel(labelId);
+    
+    if (isLoading) return <span>Loading...</span>;
+    return <span>{label?.labelName || "Unknown Artist"}</span>;
+  };
+
   return (
     <div className="favorite-page">
       {/* TOP: left(main) + right(cards) */}
-      <section className="favorite-top">
+      <section className={`favorite-top ${isPopupOpen ? 'has-sidebar' : ''}`}>
         {/* LEFT */}
         <div className="favorite-top__left">
           <div
@@ -265,8 +284,8 @@ const FavoritePage: React.FC = () => {
                   const seconds = song.duration % 60;
                   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-                  // Get the cover image from the album or first artist
-                  const coverImage = song.album?.coverImage || song.songArtists?.[0]?.artist?.profileImage || trackCover6;
+                  // Get the cover image from album
+                  const coverImage = song.album?.coverImage || trackCover6;
 
                   return (
                     <article 
@@ -282,9 +301,7 @@ const FavoritePage: React.FC = () => {
                         <div className="favorite-track__meta">
                           <div className="favorite-track__title">{song.title}</div>
                           <div className="favorite-track__artist">
-                            {song.songArtists
-                              ?.map((sa) => sa.artist.artistName)
-                              .join(", ") || "Unknown Artist"}
+                            <ArtistName labelId={song.labelId} />
                           </div>
                         </div>
                       </div>
@@ -295,13 +312,7 @@ const FavoritePage: React.FC = () => {
                       <div className="favorite-track__time">{formattedTime}</div>
 
                       <div className="favorite-track__actions" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          className="favorite-icon-button"
-                          type="button"
-                          aria-label="Favorite"
-                        >
-                          <img src={heartWhiteIcon} alt="" />
-                        </button>
+                        <FavoriteButton songId={song.id} />
                         <button
                           className="favorite-icon-button"
                           type="button"
@@ -322,26 +333,19 @@ const FavoritePage: React.FC = () => {
           </div>
         </div>
 
-        {/* RIGHT - Popup Panel */}
+        {/* RIGHT - Sidebar Panel */}
         {isPopupOpen && selectedSong && (
-          <div 
-            className="favorite-popup-overlay"
-            onClick={handleClosePopup}
-          >
-            <aside 
-              className="favorite-top__right favorite-popup"
-              onClick={(e) => e.stopPropagation()}
+          <aside className="favorite-top__right favorite-sidebar">
+            <button 
+              className="favorite-sidebar__close"
+              onClick={handleClosePopup}
+              type="button"
+              aria-label="Close"
             >
-              <button 
-                className="favorite-popup__close"
-                onClick={handleClosePopup}
-                type="button"
-                aria-label="Close"
-              >
-                ×
-              </button>
+              ×
+            </button>
 
-              <section className="favorite-card favorite-singer">
+            <section className="favorite-card favorite-singer">
                 <h2 className="favorite-card__title">Record Label Info</h2>
 
                 {loadingLabel ? (
@@ -352,8 +356,11 @@ const FavoritePage: React.FC = () => {
                   <>
                     <div className="favorite-singer__avatar">
                       <img 
-                        src={singerImage} 
-                        alt={recordLabel.labelName} 
+                        src={recordLabel.imageUrl|| singerImage} 
+                        alt={recordLabel.labelName}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = singerImage;
+                        }}
                       />
                     </div>
 
@@ -409,16 +416,17 @@ const FavoritePage: React.FC = () => {
                     <div className="favorite-other__cover">
                       <img 
                         src={selectedSong.album?.coverImage || trackCover6} 
-                        alt={selectedSong.title} 
+                        alt={selectedSong.title}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = trackCover6;
+                        }}
                       />
                     </div>
 
                     <div className="favorite-other__meta">
                       <div className="favorite-other__song-title">{selectedSong.title}</div>
                       <div className="favorite-other__artist">
-                        {selectedSong.songArtists
-                          ?.map((sa) => sa.artist.artistName)
-                          .join(", ") || "Unknown Artist"}
+                        <ArtistName labelId={selectedSong.labelId} />
                       </div>
                       <div style={{ fontSize: '12px', marginTop: '5px' }}>
                         Genre: {selectedSong.genre?.genreName || "Unknown"}
@@ -429,13 +437,7 @@ const FavoritePage: React.FC = () => {
                     </div>
 
                     <div className="favorite-other__actions">
-                      <button
-                        className="favorite-icon-button"
-                        type="button"
-                        aria-label="Favorite"
-                      >
-                        <img src={heartIcon} alt="" />
-                      </button>
+                      <FavoriteButton songId={selectedSong.id} />
                       <button
                         className="favorite-icon-button"
                         type="button"
@@ -447,8 +449,7 @@ const FavoritePage: React.FC = () => {
                   </article>
                 </div>
               </section>
-            </aside>
-          </div>
+          </aside>
         )}
       </section>
 

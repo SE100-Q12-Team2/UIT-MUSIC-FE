@@ -5,6 +5,8 @@ export interface RecordLabel {
   labelName: string;
   description: string;
   website: string;
+  imageUrl: string;
+  labelType: "COMPANY" | "INDEPENDENT";
   contactEmail: string;
   hasPublicProfile: boolean;
   createdAt: string;

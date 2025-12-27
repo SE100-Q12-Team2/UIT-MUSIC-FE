@@ -30,6 +30,19 @@ export interface FavoriteSongsData {
   songIds: number[];
 }
 
+// Check favorite response
+export interface CheckFavoriteResponse {
+  success: boolean;
+  data: {
+    isFavorite: boolean;
+    likedAt?: string;
+  };
+  message: string;
+  meta: {
+    timestamp: string;
+  };
+}
+
 export const favoriteService = {
   getFavorites: async (): Promise<FavoritesResponse> => {
     return api.get<FavoritesResponse>('/favorites');
@@ -37,6 +50,12 @@ export const favoriteService = {
 
   getFavoriteSongs: async (userId: number): Promise<FavoriteSongsData> => {
     return api.get<FavoriteSongsData>(`/favorites/songs/${userId}`);
+  },
+
+  checkFavorite: async (userId: number, songId: number): Promise<CheckFavoriteResponse> => {
+    return api.get<CheckFavoriteResponse>('/favorites/check', { 
+      params: { userId, songId } 
+    });
   },
 
   addToFavorites: async (songId: string): Promise<void> => {
@@ -97,6 +116,30 @@ export const useFavoriteSongs = (userId: number | undefined) => {
     },
     enabled: !!userId,
     staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+  });
+};
+
+// React Query hook to check if a song is favorited
+export const useCheckFavorite = (userId: number | undefined, songId: number | undefined) => {
+  return useQuery({
+    queryKey: ['favorites', 'check', userId, songId],
+    queryFn: async () => {
+      if (!userId || !songId) {
+        return { isFavorite: false, likedAt: undefined };
+      }
+      try {
+        const result = await favoriteService.checkFavorite(userId, songId);
+        return result.data || { isFavorite: false, likedAt: undefined };
+      } catch (error) {
+        // If API fails or returns error, assume not favorited
+        console.warn('Failed to check favorite status:', error);
+        return { isFavorite: false, likedAt: undefined };
+      }
+    },
+    enabled: !!userId && !!songId,
+    staleTime: 1 * 60 * 1000, // Cache for 1 minute
+    // Ensure query data is never undefined
+    placeholderData: { isFavorite: false, likedAt: undefined },
   });
 };
 
