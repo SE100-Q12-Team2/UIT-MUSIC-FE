@@ -555,3 +555,87 @@
 .favorite-singer__follow.is-following:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+
+/* Popup Styles */
+.favorite-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.favorite-popup {
+  position: relative;
+  animation: slideInRight 0.3s ease-out;
+  margin-top: 60px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.favorite-popup__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.favorite-popup__close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.favorite-popup::-webkit-scrollbar {
+  width: 6px;
+}
+
+.favorite-popup::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+
+@media (max-width: 768px) {
+  .favorite-popup-overlay {
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .favorite-popup {
+    margin-top: 0;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+  }
+}

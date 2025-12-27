@@ -12,9 +12,31 @@ export interface FavoritesResponse {
   total: number;
 }
 
+export interface FavoriteSongsResponse {
+  success: boolean;
+  data: {
+    userId: number;
+    songIds: number[];
+  };
+  message: string;
+  meta: {
+    timestamp: string;
+  };
+}
+
+// Actual response from API (without wrapper)
+export interface FavoriteSongsData {
+  userId: number;
+  songIds: number[];
+}
+
 export const favoriteService = {
   getFavorites: async (): Promise<FavoritesResponse> => {
     return api.get<FavoritesResponse>('/favorites');
+  },
+
+  getFavoriteSongs: async (userId: number): Promise<FavoriteSongsData> => {
+    return api.get<FavoriteSongsData>(`/favorites/songs/${userId}`);
   },
 
   addToFavorites: async (songId: string): Promise<void> => {
@@ -62,6 +84,19 @@ export const useRemoveFromFavorites = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user.favorites });
     },
+  });
+};
+
+// React Query hook for user's favorite songs
+export const useFavoriteSongs = (userId: number | undefined) => {
+  return useQuery({
+    queryKey: ['favorites', 'songs', userId],
+    queryFn: () => {
+      if (!userId) throw new Error('User ID not available');
+      return favoriteService.getFavoriteSongs(userId);
+    },
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
   });
 };
 

@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import "@/styles/favorite.css";
 
 import { usePageBackground } from "@/shared/hooks/usePageBackground";
+import { useAuth } from "@/shared/hooks/auth/useAuth";
+import { useFavoriteSongs } from "@/core/services/favorite.service";
+import { useSongsByIds } from "@/core/services/song.service";
+import { useRecordLabel } from "@/core/services/label.service";
+import { Song } from "@/core/services/song.service";
 
 import favoriteBg from "@/assets/background-playlist.jpg";
 
@@ -42,21 +47,7 @@ import albumCover3 from "@/assets/Album Cover_3.png";
 import albumCover4 from "@/assets/Album Cover_4.png";
 import albumCover5 from "@/assets/Album Cover_5.png";
 
-interface FavoriteTrack {
-  id: number;
-  name: string;
-  artist: string;
-  album: string;
-  time: string;
-  cover: string;
-}
 
-interface OtherSong {
-  id: number;
-  title: string;
-  artist: string;
-  cover: string;
-}
 
 interface Suggestion {
   id: number;
@@ -74,54 +65,7 @@ interface YMALItem {
   cdImage: string;
 }
 
-const favoriteTracks: FavoriteTrack[] = [
-  {
-    id: 1,
-    name: "Lonely",
-    artist: "Cupido",
-    album: "Fear When You Fly - Single",
-    time: "3:48",
-    cover: trackCover6,
-  },
-  {
-    id: 2,
-    name: "Adrian Bringo",
-    artist: "Billie Eilish",
-    album: "Hit Me Hard and soft",
-    time: "3:26",
-    cover: trackCover4,
-  },
-  {
-    id: 3,
-    name: "Chihiro",
-    artist: "Benyamin",
-    album: "Disease - Single",
-    time: "3:18",
-    cover: trackCover5,
-  },
-  {
-    id: 4,
-    name: "Shape Of You",
-    artist: "Ed Sheeran",
-    album: "Hit Me Hard and soft",
-    time: "4:08",
-    cover: trackCover3,
-  },
-  {
-    id: 5,
-    name: "Chihiro",
-    artist: "Benyamin",
-    album: "Disease - Single",
-    time: "3:58",
-    cover: trackCover6,
-  },
-];
 
-const otherSongs: OtherSong[] = [
-  { id: 1, title: "Nothings", artist: "Adele", cover: other1 },
-  { id: 2, title: "Set Fire to the Rain", artist: "Adele", cover: other2 },
-  { id: 3, title: "Hello", artist: "Adele", cover: other3 },
-];
 
 const suggestions: Suggestion[] = [
   { id: 1, title: "empty note", artist: "Ghostly Kisses", cover: trackCover3 },
@@ -208,10 +152,42 @@ const ymal: YMALItem[] = [
 
 const FavoritePage: React.FC = () => {
   usePageBackground(favoriteBg);
+  const { user } = useAuth();
+  
   const [isFollowing, setIsFollowing] = useState(false);
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handleToggleFollow = () => {
     setIsFollowing((prev) => !prev);
+  };
+
+  // Fetch favorite song IDs
+  const { data: favoritesData, isLoading: loadingFavorites } = useFavoriteSongs(user?.id);
+  // Memoize songIds to prevent unnecessary re-renders
+  const songIds = useMemo(() => {
+    const ids = favoritesData?.songIds || [];
+    console.log('useMemo - songIds extracted:', ids);
+    return ids;
+  }, [favoritesData?.songIds]);
+
+  // Fetch song details for all favorite songs
+  const { data: songs, isLoading: loadingSongs } = useSongsByIds(songIds);
+
+
+  // Fetch record label info for selected song
+  const { data: recordLabel, isLoading: loadingLabel } = useRecordLabel(
+    selectedSong?.labelId
+  );
+
+  const handleSongClick = (song: Song) => {
+    setSelectedSong(song);
+    setIsPopupOpen(true);
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedSong(null);
   };
 
   const [favSuggestionIds, setFavSuggestionIds] = useState<Set<number>>(
@@ -222,7 +198,11 @@ const FavoritePage: React.FC = () => {
   const toggleSuggestion = (id: number) => {
     setFavSuggestionIds((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -230,7 +210,11 @@ const FavoritePage: React.FC = () => {
   const toggleYmal = (id: number) => {
     setFavYmalIds((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -270,105 +254,202 @@ const FavoritePage: React.FC = () => {
             </div>
 
             <div className="favorite-table__body">
-              {favoriteTracks.map((t) => (
-                <article key={t.id} className="favorite-track">
-                  <div className="favorite-track__name">
-                    <div className="favorite-track__cover">
-                      <img src={t.cover} alt={t.name} />
-                    </div>
-                    <div className="favorite-track__meta">
-                      <div className="favorite-track__title">{t.name}</div>
-                      <div className="favorite-track__artist">{t.artist}</div>
-                    </div>
-                  </div>
+              {loadingFavorites || loadingSongs ? (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+                  Loading your favorite songs...
+                </div>
+              ) : songs && songs.length > 0 ? (
+                songs.map((song) => {
+                  // Format duration from seconds to mm:ss
+                  const minutes = Math.floor(song.duration / 60);
+                  const seconds = song.duration % 60;
+                  const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-                  <div className="favorite-track__album">{t.album}</div>
-                  <div className="favorite-track__time">{t.time}</div>
+                  // Get the cover image from the album or first artist
+                  const coverImage = song.album?.coverImage || song.songArtists?.[0]?.artist?.profileImage || trackCover6;
 
-                  <div className="favorite-track__actions">
-                    <button
-                      className="favorite-icon-button"
-                      type="button"
-                      aria-label="Favorite"
+                  return (
+                    <article 
+                      key={song.id} 
+                      className="favorite-track"
+                      onClick={() => handleSongClick(song)}
+                      style={{ cursor: 'pointer' }}
                     >
-                      <img src={heartWhiteIcon} alt="" />
-                    </button>
-                    <button
-                      className="favorite-icon-button"
-                      type="button"
-                      aria-label="More"
-                    >
-                      <img src={menuIcon} alt="" />
-                    </button>
-                  </div>
-                </article>
-              ))}
+                      <div className="favorite-track__name">
+                        <div className="favorite-track__cover">
+                          <img src={coverImage} alt={song.title} />
+                        </div>
+                        <div className="favorite-track__meta">
+                          <div className="favorite-track__title">{song.title}</div>
+                          <div className="favorite-track__artist">
+                            {song.songArtists
+                              ?.map((sa) => sa.artist.artistName)
+                              .join(", ") || "Unknown Artist"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="favorite-track__album">
+                        {song.album?.albumTitle || "Unknown Album"}
+                      </div>
+                      <div className="favorite-track__time">{formattedTime}</div>
+
+                      <div className="favorite-track__actions" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className="favorite-icon-button"
+                          type="button"
+                          aria-label="Favorite"
+                        >
+                          <img src={heartWhiteIcon} alt="" />
+                        </button>
+                        <button
+                          className="favorite-icon-button"
+                          type="button"
+                          aria-label="More"
+                        >
+                          <img src={menuIcon} alt="" />
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })
+              ) : (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+                  No favorite songs yet. Start adding songs to your favorites!
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* RIGHT */}
-        <aside className="favorite-top__right">
-          <section className="favorite-card favorite-singer">
-            <h2 className="favorite-card__title">About Songer</h2>
-
-            <div className="favorite-singer__avatar">
-              <img src={singerImage} alt="Singer" />
-            </div>
-
-            <h3 className="favorite-singer__name">Adele Laurie Blue Adkins</h3>
-            <p className="favorite-singer__bio">
-              born May 5, 1988 better known by her stage name Adele. We all know
-              her talented English singer and songwriter Adele.
-            </p>
-
-            <button
-              type="button"
-              className={`favorite-singer__follow ${
-                isFollowing ? "is-following" : ""
-              }`}
-              onClick={handleToggleFollow}
+        {/* RIGHT - Popup Panel */}
+        {isPopupOpen && selectedSong && (
+          <div 
+            className="favorite-popup-overlay"
+            onClick={handleClosePopup}
+          >
+            <aside 
+              className="favorite-top__right favorite-popup"
+              onClick={(e) => e.stopPropagation()}
             >
-              {isFollowing ? "Following" : "Follow"}
-            </button>
-          </section>
+              <button 
+                className="favorite-popup__close"
+                onClick={handleClosePopup}
+                type="button"
+                aria-label="Close"
+              >
+                ×
+              </button>
 
-          <section className="favorite-card favorite-other">
-            <h3 className="favorite-card__title">Other Song</h3>
+              <section className="favorite-card favorite-singer">
+                <h2 className="favorite-card__title">Record Label Info</h2>
 
-            <div className="favorite-other__list">
-              {otherSongs.map((s) => (
-                <article key={s.id} className="favorite-other__item">
-                  <div className="favorite-other__cover">
-                    <img src={s.cover} alt={s.title} />
+                {loadingLabel ? (
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+                    Loading label info...
                   </div>
+                ) : recordLabel ? (
+                  <>
+                    <div className="favorite-singer__avatar">
+                      <img 
+                        src={singerImage} 
+                        alt={recordLabel.labelName} 
+                      />
+                    </div>
 
-                  <div className="favorite-other__meta">
-                    <div className="favorite-other__song-title">{s.title}</div>
-                    <div className="favorite-other__artist">{s.artist}</div>
-                  </div>
+                    <h3 className="favorite-singer__name">{recordLabel.labelName}</h3>
+                    <p className="favorite-singer__bio">
+                      {recordLabel.description || "No description available"}
+                    </p>
 
-                  <div className="favorite-other__actions">
+                    {recordLabel.website && (
+                      <a 
+                        href={recordLabel.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ 
+                          color: '#fff', 
+                          textDecoration: 'underline',
+                          display: 'block',
+                          marginTop: '10px'
+                        }}
+                      >
+                        Visit Website
+                      </a>
+                    )}
+
+                    {recordLabel.contactEmail && (
+                      <p style={{ marginTop: '10px', fontSize: '14px' }}>
+                        Contact: {recordLabel.contactEmail}
+                      </p>
+                    )}
+
                     <button
-                      className="favorite-icon-button"
                       type="button"
-                      aria-label="Favorite"
+                      className={`favorite-singer__follow ${
+                        isFollowing ? "is-following" : ""
+                      }`}
+                      onClick={handleToggleFollow}
                     >
-                      <img src={heartIcon} alt="" />
+                      {isFollowing ? "Following" : "Follow"}
                     </button>
-                    <button
-                      className="favorite-icon-button"
-                      type="button"
-                      aria-label="More"
-                    >
-                      <img src={menuIcon} alt="" />
-                    </button>
+                  </>
+                ) : (
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+                    No label information available
                   </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        </aside>
+                )}
+              </section>
+
+              <section className="favorite-card favorite-other">
+                <h3 className="favorite-card__title">Selected Song Details</h3>
+
+                <div className="favorite-other__list">
+                  <article className="favorite-other__item">
+                    <div className="favorite-other__cover">
+                      <img 
+                        src={selectedSong.album?.coverImage || trackCover6} 
+                        alt={selectedSong.title} 
+                      />
+                    </div>
+
+                    <div className="favorite-other__meta">
+                      <div className="favorite-other__song-title">{selectedSong.title}</div>
+                      <div className="favorite-other__artist">
+                        {selectedSong.songArtists
+                          ?.map((sa) => sa.artist.artistName)
+                          .join(", ") || "Unknown Artist"}
+                      </div>
+                      <div style={{ fontSize: '12px', marginTop: '5px' }}>
+                        Genre: {selectedSong.genre?.genreName || "Unknown"}
+                      </div>
+                      <div style={{ fontSize: '12px' }}>
+                        Plays: {selectedSong.playCount?.toLocaleString() || 0}
+                      </div>
+                    </div>
+
+                    <div className="favorite-other__actions">
+                      <button
+                        className="favorite-icon-button"
+                        type="button"
+                        aria-label="Favorite"
+                      >
+                        <img src={heartIcon} alt="" />
+                      </button>
+                      <button
+                        className="favorite-icon-button"
+                        type="button"
+                        aria-label="More"
+                      >
+                        <img src={menuIcon} alt="" />
+                      </button>
+                    </div>
+                  </article>
+                </div>
+              </section>
+            </aside>
+          </div>
+        )}
       </section>
 
       {/* Suggestions */}
