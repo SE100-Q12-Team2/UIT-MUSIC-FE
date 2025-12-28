@@ -1,0 +1,208 @@
+.lad-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 14, 28, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 999;
+}
+
+.lad-dialog {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(980px, calc(100vw - 40px));
+  background: rgba(22, 44, 78, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.lad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lad-title {
+  margin: 0;
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 700;
+}
+
+.lad-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.lad-body {
+  padding: 18px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.lad-top {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.lad-cover {
+  width: 240px;
+  height: 240px;
+  border-radius: 16px;
+  background: rgba(90, 130, 255, 0.25);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.lad-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lad-cover-fallback {
+  font-size: 48px;
+  opacity: 0.9;
+}
+
+.lad-album-name {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.lad-artist {
+  margin-top: 6px;
+  opacity: 0.85;
+}
+
+.lad-badges {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.lad-badge {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.lad-desc {
+  margin-top: 10px;
+  opacity: 0.85;
+}
+
+.lad-section-title {
+  margin: 14px 0 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.lad-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.lad-stat {
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lad-stat-label {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-bottom: 6px;
+}
+
+.lad-stat-value {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.lad-stat-sub {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 6px;
+}
+
+.lad-table-wrap {
+  margin-top: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lad-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.lad-table th,
+.lad-table td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lad-table th {
+  text-align: left;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.lad-td-strong {
+  font-weight: 700;
+}
+
+.lad-genre {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+}
+
+.lad-empty {
+  padding: 18px 6px;
+  opacity: 0.8;
+}
+
+@media (max-width: 820px) {
+  .lad-top {
+    grid-template-columns: 1fr;
+  }
+  .lad-cover {
+    width: 100%;
+    height: 220px;
+  }
+  .lad-stats {
+    grid-template-columns: 1fr;
+  }
+}
