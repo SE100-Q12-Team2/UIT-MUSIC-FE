@@ -105,6 +105,93 @@
   min-height: 100px;
 }
 
+.create-playlist-modal__tag-input-wrapper {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.create-playlist-modal__tag-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 15px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.create-playlist-modal__tag-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(78, 108, 150, 0.6);
+}
+
+.create-playlist-modal__tag-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.create-playlist-modal__tag-add-btn {
+  padding: 12px 20px;
+  background: rgba(78, 108, 150, 0.8);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 44px;
+}
+
+.create-playlist-modal__tag-add-btn:hover:not(:disabled) {
+  background: rgba(78, 108, 150, 1);
+}
+
+.create-playlist-modal__tag-add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.create-playlist-modal__tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.create-playlist-modal__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(78, 108, 150, 0.4);
+  border: 1px solid rgba(78, 108, 150, 0.6);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+}
+
+.create-playlist-modal__tag-remove {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.create-playlist-modal__tag-remove:hover:not(:disabled) {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.create-playlist-modal__tag-remove:disabled {
+  cursor: not-allowed;
+}
+
 .create-playlist-modal__checkbox-label {
   display: flex;
   align-items: center;

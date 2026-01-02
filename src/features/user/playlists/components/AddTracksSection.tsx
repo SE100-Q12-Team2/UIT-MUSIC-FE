@@ -127,9 +127,10 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
       <SelectPlaylistModal
         isOpen={showSelectPlaylistModal}
         playlists={playlists}
+        trackId={selectedTrackId ?? undefined}
         onClose={() => setShowSelectPlaylistModal(false)}
         onConfirm={(playlistId) => {
-          console.log('Add track', selectedTrackId, 'to playlist:', playlistId);
+          console.log('Added track', selectedTrackId, 'to playlist:', playlistId);
           setShowSelectPlaylistModal(false);
         }}
       />
@@ -137,9 +138,10 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
       {/* Create New Playlist Modal */}
       <CreatePlaylistModal
         isOpen={showCreatePlaylistModal}
+        trackId={selectedTrackId ?? undefined}
         onClose={() => setShowCreatePlaylistModal(false)}
         onPlaylistCreated={(playlistId) => {
-          console.log('Created playlist:', playlistId, 'for track:', selectedTrackId);
+          console.log('Created playlist:', playlistId, 'with track:', selectedTrackId);
           setShowCreatePlaylistModal(false);
         }}
       />

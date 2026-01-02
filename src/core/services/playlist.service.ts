@@ -113,8 +113,8 @@ export const playlistService = {
   },
 
   // Add a track to a playlist
-  addTrackToPlaylist: async (playlistId: number, songId: number): Promise<void> => {
-    return api.post<void>(`/playlists/${playlistId}/tracks`, { songId });
+  addTrackToPlaylist: async (playlistId: number, trackId: number): Promise<void> => {
+    return api.post<void>(`/playlists/${playlistId}/tracks`, { trackId });
   },
 };
 
@@ -273,8 +273,8 @@ export const useAddTrackToPlaylist = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ playlistId, songId }: { playlistId: number; songId: number }) =>
-      playlistService.addTrackToPlaylist(playlistId, songId),
+    mutationFn: ({ playlistId, trackId }: { playlistId: number; trackId: number }) =>
+      playlistService.addTrackToPlaylist(playlistId, trackId),
     onSuccess: (_, variables) => {
       // Invalidate specific playlist tracks query
       queryClient.invalidateQueries({ queryKey: ['playlist-tracks', variables.playlistId] });

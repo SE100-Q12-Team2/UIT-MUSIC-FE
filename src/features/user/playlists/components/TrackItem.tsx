@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Heart } from 'lucide-react';
 import menuIcon from '@/assets/Menu.svg';
+import { useAlbumDetails } from '@/core/services/album.service';
+
 export interface Track {
   id: number;
   title: string;
   artist: string;
-  coverImage: string;
+  coverImage?: string;
+  albumId?: number;
   album?: string;
   duration?: number;
   isFavorite?: boolean;
@@ -32,6 +35,18 @@ const TrackItem: React.FC<TrackItemProps> = ({
   onMoreClick,
   onClick,
 }) => {
+  // Fetch album cover if not provided but albumId available
+  const { data: album } = useAlbumDetails(
+    !track.coverImage && track.albumId ? track.albumId : undefined
+  );
+
+  // Use provided cover image or fetched album cover or default
+  const coverImage = useMemo(() => {
+    if (track.coverImage) return track.coverImage;
+    if (album?.coverImage) return album.coverImage;
+    return '/default-track.jpg';
+  }, [track.coverImage, album?.coverImage]);
+
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onFavoriteToggle?.(track.id);
@@ -45,7 +60,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
   return (
     <div className="track-item" onClick={() => onClick?.(track)}>
       <img
-        src={track.coverImage || '/default-track.jpg'}
+        src={coverImage}
         alt={track.title}
         className="track-item__image"
       />

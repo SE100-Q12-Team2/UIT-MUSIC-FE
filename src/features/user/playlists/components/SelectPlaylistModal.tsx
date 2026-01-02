@@ -9,6 +9,7 @@ interface SelectPlaylistModalProps {
   onClose: () => void;
   onConfirm?: (playlistId: number) => void;
   sourcePlaylistId?: number; // The playlist we're adding tracks from
+  trackId?: number; // Track ID to add to the selected playlist
   isLoading?: boolean;
 }
 
@@ -18,6 +19,7 @@ const SelectPlaylistModal: React.FC<SelectPlaylistModalProps> = ({
   onClose,
   onConfirm,
   sourcePlaylistId,
+  trackId,
   isLoading = false,
 }) => {
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<number | null>(null);
@@ -31,11 +33,25 @@ const SelectPlaylistModal: React.FC<SelectPlaylistModalProps> = ({
     : playlists;
 
   const handleConfirm = async () => {
-    if (selectedPlaylistId) {
-      onConfirm?.(selectedPlaylistId);
-      // Reset state
-      setSelectedPlaylistId(null);
+    if (selectedPlaylistId && trackId) {
+      try {
+        // Call API to add track to playlist
+        await addTrackMutation.mutateAsync({
+          playlistId: selectedPlaylistId,
+          trackId: trackId,
+        });
+        onConfirm?.(selectedPlaylistId);
+        // Reset state
+        setSelectedPlaylistId(null);
+      } catch (error) {
+        console.error('Failed to add track to playlist:', error);
+      }
     }
+  };
+
+  const handlePlaylistSelect = (playlistId: number) => {
+    // Toggle: if already selected, unselect it; otherwise select it
+    setSelectedPlaylistId((prev) => (prev === playlistId ? null : playlistId));
   };
 
   return (
@@ -63,7 +79,7 @@ const SelectPlaylistModal: React.FC<SelectPlaylistModalProps> = ({
                     name="playlist"
                     value={playlist.id}
                     checked={selectedPlaylistId === playlist.id}
-                    onChange={() => setSelectedPlaylistId(playlist.id)}
+                    onChange={() => handlePlaylistSelect(playlist.id)}
                     className="select-playlist-modal__radio"
                   />
                   <span className="select-playlist-modal__item-text">

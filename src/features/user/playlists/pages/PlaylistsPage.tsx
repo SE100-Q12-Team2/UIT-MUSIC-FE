@@ -11,7 +11,7 @@ import {
 } from '../components';
 import '@/styles/playlists.css';
 
-const playlistTrackToTrack = (playlistTrack: PlaylistTrackType, playlistCoverImage: string): Track => {
+const playlistTrackToTrack = (playlistTrack: PlaylistTrackType): Track => {
   const artistNames = (playlistTrack.song.songArtists || [])
     .map((sa) => sa.artist.artistName)
     .join(', ');
@@ -20,7 +20,8 @@ const playlistTrackToTrack = (playlistTrack: PlaylistTrackType, playlistCoverIma
     id: playlistTrack.song.id,
     title: playlistTrack.song.title,
     artist: artistNames || 'Unknown Artist',
-    coverImage: playlistCoverImage || '/default-track.jpg',
+    coverImage: playlistTrack.song.album?.coverImage,
+    albumId: playlistTrack.song.album?.id,
     album: playlistTrack.song.album?.albumTitle,
     duration: playlistTrack.song.duration,
     isFavorite: false,
@@ -54,10 +55,10 @@ const PlaylistsPage: React.FC = () => {
   const { data: playlistTracks = [], isLoading: isLoadingTracks } = usePlaylistTracks(
     selectedPlaylist?.id ?? 0
   );
-  // Convert playlist tracks to Track format for UI (use playlist cover image for all tracks)
+  // Convert playlist tracks to Track format for UI (use album cover image for each track)
   const tracks: Track[] = useMemo(() => 
-    playlistTracks.map((pt) => playlistTrackToTrack(pt, selectedPlaylist?.coverImageUrl || '')),
-    [playlistTracks, selectedPlaylist?.coverImageUrl]
+    playlistTracks.map((pt) => playlistTrackToTrack(pt)),
+    [playlistTracks]
   );
   
   // Calculate total duration from playlist tracks

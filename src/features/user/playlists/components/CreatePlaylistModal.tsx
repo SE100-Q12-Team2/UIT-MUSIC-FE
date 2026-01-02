@@ -8,6 +8,7 @@ interface CreatePlaylistModalProps {
   onClose: () => void;
   onPlaylistCreated?: (playlistId: number) => void;
   trackToAdd?: { playlistId?: number; songId?: number };
+  trackId?: number; // Track ID to add to the newly created playlist
 }
 
 const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
@@ -15,6 +16,7 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
   onClose,
   onPlaylistCreated,
   trackToAdd,
+  trackId,
 }) => {
   const { user } = useAuth();
   const createPlaylistMutation = useCreatePlaylist();
@@ -26,6 +28,8 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
     isPublic: false,
   });
 
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
@@ -42,6 +46,25 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
         ...prev,
         [name]: value,
       }));
+    }
+  };
+
+  const handleAddTag = () => {
+    const trimmedTag = tagInput.trim();
+    if (trimmedTag && !tags.includes(trimmedTag)) {
+      setTags((prev) => [...prev, trimmedTag]);
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags((prev) => prev.filter((tag) => tag !== tagToRemove));
+  };
+
+  const handleTagInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddTag();
     }
   };
 
@@ -65,8 +88,16 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
         playlistName: formData.playlistName,
         description: formData.description,
         isPublic: formData.isPublic,
-        tags: [],
+        tags: tags,
       });
+
+      // If trackId is provided, add the track to the newly created playlist
+      if (trackId) {
+        await addTrackMutation.mutateAsync({
+          playlistId: newPlaylist.id,
+          trackId: trackId,
+        });
+      }
 
       onPlaylistCreated?.(newPlaylist.id);
 
@@ -76,6 +107,8 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
         description: '',
         isPublic: false,
       });
+      setTags([]);
+      setTagInput('');
       onClose();
     } catch (err) {
       setError(
@@ -135,6 +168,46 @@ const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
                 disabled={isLoading}
                 rows={4}
               />
+            </div>
+
+            <div className="create-playlist-modal__field">
+              <label className="create-playlist-modal__label">Tags</label>
+              <div className="create-playlist-modal__tag-input-wrapper">
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyPress={handleTagInputKeyPress}
+                  className="create-playlist-modal__tag-input"
+                  placeholder="Enter a tag (optional)"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddTag}
+                  className="create-playlist-modal__tag-add-btn"
+                  disabled={isLoading || !tagInput.trim()}
+                >
+                  +
+                </button>
+              </div>
+              {tags.length > 0 && (
+                <div className="create-playlist-modal__tags-list">
+                  {tags.map((tag) => (
+                    <span key={tag} className="create-playlist-modal__tag">
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTag(tag)}
+                        className="create-playlist-modal__tag-remove"
+                        disabled={isLoading}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="create-playlist-modal__field">
