@@ -6,6 +6,8 @@ import {
   PlaylistDetail,
   Track,
   AddTracksSection,
+  SelectPlaylistModal,
+  CreatePlaylistModal,
 } from '../components';
 import '@/styles/playlists.css';
 
@@ -42,6 +44,8 @@ const PlaylistsPage: React.FC = () => {
   // const [activeCategory, setActiveCategory] = useState<string>('recent');
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
   const [showAllPlaylists, setShowAllPlaylists] = useState<boolean>(false);
+  const [showSelectPlaylistModal, setShowSelectPlaylistModal] = useState(false);
+  const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
   
   // Fetch playlists with track counts from API
   const { data: playlists = [], isLoading, error } = usePlaylistsWithTrackCounts();
@@ -117,7 +121,8 @@ const PlaylistsPage: React.FC = () => {
           playlists={displayedPlaylists}
           onSeeAll={!showAllPlaylists && playlists.length > 6 ? handleSeeAllPlaylists : undefined}
           onPlaylistClick={handlePlaylistClick}
-          onFavoriteToggle={handleFavoriteToggle}
+          onAddToExisting={() => setShowSelectPlaylistModal(true)}
+          onAddToNew={() => setShowCreatePlaylistModal(true)}
         />
 
         {/* Add Tracks To Your Playlists Section */}
@@ -148,6 +153,27 @@ const PlaylistsPage: React.FC = () => {
           )}
         </aside>
       )}
+
+      {/* Select Existing Playlist Modal */}
+      <SelectPlaylistModal
+        isOpen={showSelectPlaylistModal}
+        playlists={playlists}
+        onClose={() => setShowSelectPlaylistModal(false)}
+        onConfirm={(playlistId) => {
+          console.log('Add to playlist:', playlistId);
+          setShowSelectPlaylistModal(false);
+        }}
+      />
+
+      {/* Create New Playlist Modal */}
+      <CreatePlaylistModal
+        isOpen={showCreatePlaylistModal}
+        onClose={() => setShowCreatePlaylistModal(false)}
+        onPlaylistCreated={(playlistId) => {
+          console.log('Playlist created:', playlistId);
+          setShowCreatePlaylistModal(false);
+        }}
+      />
     </div>
   );
 };

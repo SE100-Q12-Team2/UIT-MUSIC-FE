@@ -7,7 +7,8 @@ interface PlaylistSectionProps {
   playlists: (Playlist & { trackCount?: number })[];
   onSeeAll?: () => void;
   onPlaylistClick?: (playlist: Playlist) => void;
-  onFavoriteToggle?: (playlistId: number) => void;
+  onAddToExisting?: () => void;
+  onAddToNew?: () => void;
 }
 
 const PlaylistSection: React.FC<PlaylistSectionProps> = ({
@@ -15,7 +16,8 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   playlists,
   onSeeAll,
   onPlaylistClick,
-  onFavoriteToggle,
+  onAddToExisting,
+  onAddToNew,
 }) => {
   return (
     <section className="playlist-section">
@@ -33,8 +35,9 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
             key={playlist.id}
             trackCount={playlist.trackCount}
             playlist={playlist}
-            onClick={onPlaylistClick}
-            onFavoriteToggle={onFavoriteToggle}
+            onPlaylistClick={onPlaylistClick}
+            onAddToExisting={onAddToExisting}
+            onAddToNew={onAddToNew}
           />
         ))}
       </div>
