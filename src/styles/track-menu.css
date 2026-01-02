@@ -58,6 +58,14 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.track-menu__item--danger {
+  color: #ff4444;
+}
+
+.track-menu__item--danger:hover {
+  background: rgba(255, 68, 68, 0.15);
+}
+
 .track-menu__item-text {
   font-size: 14px;
   font-weight: 400;

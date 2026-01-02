@@ -116,6 +116,11 @@ export const playlistService = {
   addTrackToPlaylist: async (playlistId: number, trackId: number): Promise<void> => {
     return api.post<void>(`/playlists/${playlistId}/tracks`, { trackId });
   },
+
+  // Remove a track from a playlist
+  removeTrackFromPlaylist: async (playlistId: number, trackId: number): Promise<void> => {
+    return api.delete<void>(`/playlists/${playlistId}/tracks/${trackId}`);
+  },
 };
 
 // Hook to get a single playlist with its tracks
@@ -275,6 +280,21 @@ export const useAddTrackToPlaylist = () => {
   return useMutation({
     mutationFn: ({ playlistId, trackId }: { playlistId: number; trackId: number }) =>
       playlistService.addTrackToPlaylist(playlistId, trackId),
+    onSuccess: (_, variables) => {
+      // Invalidate specific playlist tracks query
+      queryClient.invalidateQueries({ queryKey: ['playlist-tracks', variables.playlistId] });
+      queryClient.invalidateQueries({ queryKey: ['all-playlist-song-ids'] });
+    },
+  });
+};
+
+// Mutation hook to remove a track from a playlist
+export const useRemoveTrackFromPlaylist = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ playlistId, trackId }: { playlistId: number; trackId: number }) =>
+      playlistService.removeTrackFromPlaylist(playlistId, trackId),
     onSuccess: (_, variables) => {
       // Invalidate specific playlist tracks query
       queryClient.invalidateQueries({ queryKey: ['playlist-tracks', variables.playlistId] });

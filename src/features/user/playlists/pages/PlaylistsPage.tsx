@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { usePlaylistsWithTrackCounts, usePlaylistTracks } from '@/core/services/playlist.service';
+import { useNavigate } from 'react-router-dom';
+import { usePlaylistsWithTrackCounts, usePlaylistTracks, useRemoveTrackFromPlaylist } from '@/core/services/playlist.service';
 import { Playlist, PlaylistTrack as PlaylistTrackType } from '@/types/playlist.types';
 import {
   PlaylistSection,
@@ -11,7 +12,7 @@ import {
 } from '../components';
 import '@/styles/playlists.css';
 
-const playlistTrackToTrack = (playlistTrack: PlaylistTrackType): Track => {
+const playlistTrackToTrack = (playlistTrack: PlaylistTrackType, playlistId: number): Track => {
   const artistNames = (playlistTrack.song.songArtists || [])
     .map((sa) => sa.artist.artistName)
     .join(', ');
@@ -25,6 +26,7 @@ const playlistTrackToTrack = (playlistTrack: PlaylistTrackType): Track => {
     album: playlistTrack.song.album?.albumTitle,
     duration: playlistTrack.song.duration,
     isFavorite: false,
+    playlistId: playlistId,
   };
 };
 
@@ -47,6 +49,7 @@ const PlaylistsPage: React.FC = () => {
   const [showAllPlaylists, setShowAllPlaylists] = useState<boolean>(false);
   const [showSelectPlaylistModal, setShowSelectPlaylistModal] = useState(false);
   const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
+  const navigate = useNavigate();
   
   // Fetch playlists with track counts from API
   const { data: playlists = [], isLoading, error } = usePlaylistsWithTrackCounts();
@@ -55,10 +58,14 @@ const PlaylistsPage: React.FC = () => {
   const { data: playlistTracks = [], isLoading: isLoadingTracks } = usePlaylistTracks(
     selectedPlaylist?.id ?? 0
   );
+
+  // Mutation for removing tracks
+  const removeTrackMutation = useRemoveTrackFromPlaylist();
+  
   // Convert playlist tracks to Track format for UI (use album cover image for each track)
   const tracks: Track[] = useMemo(() => 
-    playlistTracks.map((pt) => playlistTrackToTrack(pt)),
-    [playlistTracks]
+    playlistTracks.map((pt) => playlistTrackToTrack(pt, selectedPlaylist?.id ?? 0)),
+    [playlistTracks, selectedPlaylist?.id]
   );
   
   // Calculate total duration from playlist tracks
@@ -79,14 +86,12 @@ const PlaylistsPage: React.FC = () => {
     setSelectedPlaylist(playlist);
   };
 
-  const handleFavoriteToggle = (playlistId: number) => {
-    console.log('Toggle favorite for playlist:', playlistId);
-    // TODO: Implement favorite toggle API call
+  const handleRemoveTrackFromPlaylist = (trackId: number, playlistId: number) => {
+    removeTrackMutation.mutate({ playlistId, trackId });
   };
 
-  const handleTrackFavoriteToggle = (trackId: number) => {
-    console.log('Toggle favorite for track:', trackId);
-    // TODO: Implement track favorite toggle
+  const handlePlayTrack = (trackId: number) => {
+    navigate(`/player?trackId=${trackId}`);
   };
   
   const handleSeeAllPlaylists = () => {
@@ -147,8 +152,8 @@ const PlaylistsPage: React.FC = () => {
               author="You"
               tracks={tracks}
               onTrackClick={(track) => console.log('Play track:', track)}
-              onFavoriteToggle={handleTrackFavoriteToggle}
-              onMoreClick={(trackId) => console.log('More options for track:', trackId)}
+              onRemoveFromPlaylist={handleRemoveTrackFromPlaylist}
+              onPlayTrack={handlePlayTrack}
               onClose={handleCloseDetail}
             />
           )}
