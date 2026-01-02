@@ -1,26 +1,32 @@
 import React, { useState, useMemo } from 'react';
 import { useTrendingSongs } from '@/core/services/song.service';
-import { useCheckFavorite } from '@/core/services/favorite.service';
 import { useRecordLabel } from '@/core/services/label.service';
+import { usePlaylistsWithTrackCounts } from '@/core/services/playlist.service';
 import { useAllPlaylistSongIds } from '@/core/services/playlist.service';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
 import AddTrackItem, { AddTrack } from './AddTrackItem';
+import SelectPlaylistModal from './SelectPlaylistModal';
+import CreatePlaylistModal from './CreatePlaylistModal';
 
 interface AddTracksSectionProps {
   onSeeAll?: () => void;
   onTrackClick?: (track: AddTrack) => void;
   onFavoriteToggle?: (trackId: number) => void;
-  onMoreClick?: (trackId: number) => void;
 }
 
 const AddTracksSection: React.FC<AddTracksSectionProps> = ({
   onSeeAll,
   onTrackClick,
   onFavoriteToggle,
-  onMoreClick,
 }) => {
   const [showAll, setShowAll] = useState(false);
+  const [showSelectPlaylistModal, setShowSelectPlaylistModal] = useState(false);
+  const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
+  const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
   const { user } = useAuth();
+  
+  // Fetch playlists for modals
+  const { data: playlists = [] } = usePlaylistsWithTrackCounts();
   
   // Fetch trending songs from API
   const { data: trendingResponse, isLoading: isLoadingTrending } = useTrendingSongs();
@@ -56,12 +62,12 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
       });
   }, [trendingSongs, songsInPlaylists]);
   
-  // Show first 8 tracks or all tracks based on state
-  const displayedTracks = showAll ? allTracks : allTracks.slice(0, 8);
+  // Show first 6 tracks or all tracks based on state
+  const displayedTracks = showAll ? allTracks : allTracks.slice(0, 6);
   
   const handleSeeAll = () => {
-    setShowAll(true);
-    if (onSeeAll) {
+    setShowAll(!showAll);
+    if (!showAll && onSeeAll) {
       onSeeAll();
     }
   };
@@ -83,9 +89,9 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
     <div className="add-tracks-section">
       <div className="add-tracks-section__header">
         <h3 className="add-tracks-section__title">Add Tracks To Your Playlists</h3>
-        {!showAll && allTracks.length > 8 && (
+        {allTracks.length > 8 && (
           <button className="add-tracks-section__see-all" onClick={handleSeeAll}>
-            See All
+            {showAll ? 'Show Less' : 'See All'}
           </button>
         )}
       </div>
@@ -104,11 +110,41 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
               userId={user?.id}
               onClick={onTrackClick}
               onFavoriteToggle={onFavoriteToggle}
-              onMoreClick={onMoreClick}
+              onAddToExisting={() => {
+                setSelectedTrackId(track.id);
+                setShowSelectPlaylistModal(true);
+              }}
+              onAddToNew={() => {
+                setSelectedTrackId(track.id);
+                setShowCreatePlaylistModal(true);
+              }}
             />
           );
         })}
       </div>
+
+      {/* Select Existing Playlist Modal */}
+      <SelectPlaylistModal
+        isOpen={showSelectPlaylistModal}
+        playlists={playlists}
+        trackId={selectedTrackId ?? undefined}
+        onClose={() => setShowSelectPlaylistModal(false)}
+        onConfirm={(playlistId) => {
+          console.log('Added track', selectedTrackId, 'to playlist:', playlistId);
+          setShowSelectPlaylistModal(false);
+        }}
+      />
+
+      {/* Create New Playlist Modal */}
+      <CreatePlaylistModal
+        isOpen={showCreatePlaylistModal}
+        trackId={selectedTrackId ?? undefined}
+        onClose={() => setShowCreatePlaylistModal(false)}
+        onPlaylistCreated={(playlistId) => {
+          console.log('Created playlist:', playlistId, 'with track:', selectedTrackId);
+          setShowCreatePlaylistModal(false);
+        }}
+      />
     </div>
   );
 };

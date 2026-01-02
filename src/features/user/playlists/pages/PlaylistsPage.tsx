@@ -1,29 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { usePlaylistsWithTrackCounts, usePlaylistTracks } from '@/core/services/playlist.service';
+import { useNavigate } from 'react-router-dom';
+import { usePlaylistsWithTrackCounts, usePlaylistTracks, useRemoveTrackFromPlaylist } from '@/core/services/playlist.service';
 import { Playlist, PlaylistTrack as PlaylistTrackType } from '@/types/playlist.types';
 import {
-  CategoryTabs,
   PlaylistSection,
   PlaylistDetail,
   Track,
   AddTracksSection,
+  SelectPlaylistModal,
+  CreatePlaylistModal,
 } from '../components';
 import '@/styles/playlists.css';
 
-// Import category images
-// import categoryRecent from '@/assets/category-recent.jpg';
-// import categoryMost from '@/assets/category-most.jpg';
-// import categoryLiked from '@/assets/category-liked.jpg';
-
-// Default categories
-// const defaultCategories = [
-//   { id: 'recent', label: 'Recently Listened', image: categoryRecent },
-//   { id: 'most', label: 'Most Listened', image: categoryMost },
-//   { id: 'liked', label: 'Liked Tracks', image: categoryLiked },
-// ];
-
-// Helper function to convert PlaylistTrack to Track for UI
-const playlistTrackToTrack = (playlistTrack: PlaylistTrackType, playlistCoverImage: string): Track => {
+const playlistTrackToTrack = (playlistTrack: PlaylistTrackType, playlistId: number): Track => {
   const artistNames = (playlistTrack.song.songArtists || [])
     .map((sa) => sa.artist.artistName)
     .join(', ');
@@ -32,10 +21,12 @@ const playlistTrackToTrack = (playlistTrack: PlaylistTrackType, playlistCoverIma
     id: playlistTrack.song.id,
     title: playlistTrack.song.title,
     artist: artistNames || 'Unknown Artist',
-    coverImage: playlistCoverImage || '/default-track.jpg',
+    coverImage: playlistTrack.song.album?.coverImage,
+    albumId: playlistTrack.song.album?.id,
     album: playlistTrack.song.album?.albumTitle,
     duration: playlistTrack.song.duration,
     isFavorite: false,
+    playlistId: playlistId,
   };
 };
 
@@ -56,6 +47,9 @@ const PlaylistsPage: React.FC = () => {
   // const [activeCategory, setActiveCategory] = useState<string>('recent');
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
   const [showAllPlaylists, setShowAllPlaylists] = useState<boolean>(false);
+  const [showSelectPlaylistModal, setShowSelectPlaylistModal] = useState(false);
+  const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
+  const navigate = useNavigate();
   
   // Fetch playlists with track counts from API
   const { data: playlists = [], isLoading, error } = usePlaylistsWithTrackCounts();
@@ -64,10 +58,14 @@ const PlaylistsPage: React.FC = () => {
   const { data: playlistTracks = [], isLoading: isLoadingTracks } = usePlaylistTracks(
     selectedPlaylist?.id ?? 0
   );
-  // Convert playlist tracks to Track format for UI (use playlist cover image for all tracks)
+
+  // Mutation for removing tracks
+  const removeTrackMutation = useRemoveTrackFromPlaylist();
+  
+  // Convert playlist tracks to Track format for UI (use album cover image for each track)
   const tracks: Track[] = useMemo(() => 
-    playlistTracks.map((pt) => playlistTrackToTrack(pt, selectedPlaylist?.coverImageUrl || '')),
-    [playlistTracks, selectedPlaylist?.coverImageUrl]
+    playlistTracks.map((pt) => playlistTrackToTrack(pt, selectedPlaylist?.id ?? 0)),
+    [playlistTracks, selectedPlaylist?.id]
   );
   
   // Calculate total duration from playlist tracks
@@ -88,14 +86,12 @@ const PlaylistsPage: React.FC = () => {
     setSelectedPlaylist(playlist);
   };
 
-  const handleFavoriteToggle = (playlistId: number) => {
-    console.log('Toggle favorite for playlist:', playlistId);
-    // TODO: Implement favorite toggle API call
+  const handleRemoveTrackFromPlaylist = (trackId: number, playlistId: number) => {
+    removeTrackMutation.mutate({ playlistId, trackId });
   };
 
-  const handleTrackFavoriteToggle = (trackId: number) => {
-    console.log('Toggle favorite for track:', trackId);
-    // TODO: Implement track favorite toggle
+  const handlePlayTrack = (trackId: number) => {
+    navigate(`/player?trackId=${trackId}`);
   };
   
   const handleSeeAllPlaylists = () => {
@@ -124,12 +120,6 @@ const PlaylistsPage: React.FC = () => {
     <div className="playlists-page">
       {/* Main Content */}
       <div className="playlists-page__main">
-        {/* Category Tabs */}
-        {/* <CategoryTabs
-          categories={defaultCategories}
-          activeCategory={activeCategory}
-          onCategoryClick={setActiveCategory}
-        /> */}
 
         {/* Your Playlists Section */}
         <PlaylistSection
@@ -137,7 +127,8 @@ const PlaylistsPage: React.FC = () => {
           playlists={displayedPlaylists}
           onSeeAll={!showAllPlaylists && playlists.length > 6 ? handleSeeAllPlaylists : undefined}
           onPlaylistClick={handlePlaylistClick}
-          onFavoriteToggle={handleFavoriteToggle}
+          onAddToExisting={() => setShowSelectPlaylistModal(true)}
+          onAddToNew={() => setShowCreatePlaylistModal(true)}
         />
 
         {/* Add Tracks To Your Playlists Section */}
@@ -161,13 +152,34 @@ const PlaylistsPage: React.FC = () => {
               author="You"
               tracks={tracks}
               onTrackClick={(track) => console.log('Play track:', track)}
-              onFavoriteToggle={handleTrackFavoriteToggle}
-              onMoreClick={(trackId) => console.log('More options for track:', trackId)}
+              onRemoveFromPlaylist={handleRemoveTrackFromPlaylist}
+              onPlayTrack={handlePlayTrack}
               onClose={handleCloseDetail}
             />
           )}
         </aside>
       )}
+
+      {/* Select Existing Playlist Modal */}
+      <SelectPlaylistModal
+        isOpen={showSelectPlaylistModal}
+        playlists={playlists}
+        onClose={() => setShowSelectPlaylistModal(false)}
+        onConfirm={(playlistId) => {
+          console.log('Add to playlist:', playlistId);
+          setShowSelectPlaylistModal(false);
+        }}
+      />
+
+      {/* Create New Playlist Modal */}
+      <CreatePlaylistModal
+        isOpen={showCreatePlaylistModal}
+        onClose={() => setShowCreatePlaylistModal(false)}
+        onPlaylistCreated={(playlistId) => {
+          console.log('Playlist created:', playlistId);
+          setShowCreatePlaylistModal(false);
+        }}
+      />
     </div>
   );
 };

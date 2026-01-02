@@ -139,7 +139,7 @@
   position: relative;
   aspect-ratio: 1;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .playlist-card__image {
@@ -147,6 +147,7 @@
   height: 100%;
   object-fit: cover;
   background: rgba(78, 108, 150, 0.4);
+  border-radius: 8px;
 }
 
 .playlist-card__favorite {

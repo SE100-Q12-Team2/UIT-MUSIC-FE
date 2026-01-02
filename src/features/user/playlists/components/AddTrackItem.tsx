@@ -1,6 +1,7 @@
 import React from 'react';
-import { Heart, MoreHorizontal } from 'lucide-react';
-import { useCheckFavorite } from '@/core/services/favorite.service';
+import { Heart } from 'lucide-react';
+import { useCheckFavorite, useToggleFavorite } from '@/core/services/favorite.service';
+import TrackMenu from './TrackMenu';
 
 export interface AddTrack {
   id: number;
@@ -24,7 +25,8 @@ interface AddTrackItemProps {
   track: AddTrack;
   userId?: number;
   onFavoriteToggle?: (trackId: number) => void;
-  onMoreClick?: (trackId: number) => void;
+  onAddToExisting?: (trackId: number) => void;
+  onAddToNew?: (trackId: number) => void;
   onClick?: (track: AddTrack) => void;
 }
 
@@ -32,21 +34,33 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
   track,
   userId,
   onFavoriteToggle,
-  onMoreClick,
+  onAddToExisting,
+  onAddToNew,
   onClick,
 }) => {
   // Check favorite status from API
   const { data: favoriteStatus } = useCheckFavorite(userId, track.id);
+  const toggleFavorite = useToggleFavorite();
   const isFavorited = favoriteStatus?.isFavorite || false;
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    onFavoriteToggle?.(track.id);
-  };
+    
+    if (!userId) {
+      console.warn('User not logged in');
+      return;
+    }
 
-  const handleMoreClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onMoreClick?.(track.id);
+    try {
+      await toggleFavorite.mutateAsync({
+        userId,
+        songId: track.id,
+        isFavorited,
+      });
+      onFavoriteToggle?.(track.id);
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+    }
   };
 
   return (
@@ -66,6 +80,11 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
         <button
           className={`add-track-item__favorite ${isFavorited ? 'add-track-item__favorite--active' : ''}`}
           onClick={handleFavoriteClick}
+          disabled={toggleFavorite.isPending}
+          style={{
+            cursor: toggleFavorite.isPending ? 'wait' : 'pointer',
+            opacity: toggleFavorite.isPending ? 0.6 : 1,
+          }}
         >
           <Heart 
             size={18} 
@@ -73,9 +92,11 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
             stroke="#fff"
           />
         </button>
-        <button className="add-track-item__more" onClick={handleMoreClick}>
-          <MoreHorizontal size={18} stroke="#fff" />
-        </button>
+        <TrackMenu
+          trackId={track.id}
+          onAddToExisting={() => onAddToExisting?.(track.id)}
+          onAddToNew={() => onAddToNew?.(track.id)}
+        />
       </div>
     </div>
   );

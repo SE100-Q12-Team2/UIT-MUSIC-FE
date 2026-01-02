@@ -5,5 +5,8 @@ export { default as PlaylistDetail } from './PlaylistDetail';
 export { default as TrackItem } from './TrackItem';
 export { default as AddTrackItem } from './AddTrackItem';
 export { default as AddTracksSection } from './AddTracksSection';
+export { default as PlaylistMenu } from './PlaylistMenu';
+export { default as SelectPlaylistModal } from './SelectPlaylistModal';
+export { default as CreatePlaylistModal } from './CreatePlaylistModal';
 export type { Track } from './TrackItem';
 export type { AddTrack } from './AddTrackItem';

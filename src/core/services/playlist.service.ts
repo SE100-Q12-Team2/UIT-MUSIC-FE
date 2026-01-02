@@ -1,5 +1,5 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import api from '@/config/api.config';
 import { Playlist, PlaylistTrack } from '@/types/playlist.types';
 import { useProfileStore } from '@/store/profileStore';
@@ -98,6 +98,28 @@ export const playlistService = {
     );
     
     return allSongIds;
+  },
+
+  // Create a new playlist
+  createPlaylist: async (data: {
+    userId: number;
+    playlistName: string;
+    description?: string;
+    coverImageUrl?: string;
+    isPublic?: boolean;
+    tags?: string[];
+  }): Promise<Playlist> => {
+    return api.post<Playlist>('/playlists', data);
+  },
+
+  // Add a track to a playlist
+  addTrackToPlaylist: async (playlistId: number, trackId: number): Promise<void> => {
+    return api.post<void>(`/playlists/${playlistId}/tracks`, { trackId });
+  },
+
+  // Remove a track from a playlist
+  removeTrackFromPlaylist: async (playlistId: number, trackId: number): Promise<void> => {
+    return api.delete<void>(`/playlists/${playlistId}/tracks/${trackId}`);
   },
 };
 
@@ -232,5 +254,51 @@ export const useAllPlaylistSongIds = () => {
       return playlistService.getAllPlaylistSongIds(profileId);
     },
     enabled: !!profileId,
+  });
+};
+
+// Mutation hook to create a new playlist
+export const useCreatePlaylist = () => {
+  const queryClient = useQueryClient();
+  const profileId = useProfileStore((state) => state.profile?.id);
+
+  return useMutation({
+    mutationFn: (data: Parameters<typeof playlistService.createPlaylist>[0]) =>
+      playlistService.createPlaylist(data),
+    onSuccess: () => {
+      // Invalidate playlists queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['playlists-with-counts', profileId] });
+      queryClient.invalidateQueries({ queryKey: ['all-playlist-song-ids', profileId] });
+    },
+  });
+};
+
+// Mutation hook to add a track to a playlist
+export const useAddTrackToPlaylist = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ playlistId, trackId }: { playlistId: number; trackId: number }) =>
+      playlistService.addTrackToPlaylist(playlistId, trackId),
+    onSuccess: (_, variables) => {
+      // Invalidate specific playlist tracks query
+      queryClient.invalidateQueries({ queryKey: ['playlist-tracks', variables.playlistId] });
+      queryClient.invalidateQueries({ queryKey: ['all-playlist-song-ids'] });
+    },
+  });
+};
+
+// Mutation hook to remove a track from a playlist
+export const useRemoveTrackFromPlaylist = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ playlistId, trackId }: { playlistId: number; trackId: number }) =>
+      playlistService.removeTrackFromPlaylist(playlistId, trackId),
+    onSuccess: (_, variables) => {
+      // Invalidate specific playlist tracks query
+      queryClient.invalidateQueries({ queryKey: ['playlist-tracks', variables.playlistId] });
+      queryClient.invalidateQueries({ queryKey: ['all-playlist-song-ids'] });
+    },
   });
 };
