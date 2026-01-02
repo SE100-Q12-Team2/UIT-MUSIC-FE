@@ -1,7 +1,7 @@
 import React from 'react';
 import { Heart } from 'lucide-react';
 import { useCheckFavorite, useToggleFavorite } from '@/core/services/favorite.service';
-import menuIcon from '@/assets/Menu.svg';
+import TrackMenu from './TrackMenu';
 
 export interface AddTrack {
   id: number;
@@ -25,7 +25,8 @@ interface AddTrackItemProps {
   track: AddTrack;
   userId?: number;
   onFavoriteToggle?: (trackId: number) => void;
-  onMoreClick?: (trackId: number) => void;
+  onAddToExisting?: (trackId: number) => void;
+  onAddToNew?: (trackId: number) => void;
   onClick?: (track: AddTrack) => void;
 }
 
@@ -33,7 +34,8 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
   track,
   userId,
   onFavoriteToggle,
-  onMoreClick,
+  onAddToExisting,
+  onAddToNew,
   onClick,
 }) => {
   // Check favorite status from API
@@ -59,11 +61,6 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
     } catch (error) {
       console.error('Failed to toggle favorite:', error);
     }
-  };
-
-  const handleMoreClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onMoreClick?.(track.id);
   };
 
   return (
@@ -95,9 +92,11 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
             stroke="#fff"
           />
         </button>
-        <button className="add-track-item__more" onClick={handleMoreClick}>
-          <img src={menuIcon} alt="More options" style={{ width: '18px', height: '18px' }} />
-        </button>
+        <TrackMenu
+          trackId={track.id}
+          onAddToExisting={() => onAddToExisting?.(track.id)}
+          onAddToNew={() => onAddToNew?.(track.id)}
+        />
       </div>
     </div>
   );

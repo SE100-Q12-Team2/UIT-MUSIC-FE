@@ -1,25 +1,32 @@
 import React, { useState, useMemo } from 'react';
 import { useTrendingSongs } from '@/core/services/song.service';
 import { useRecordLabel } from '@/core/services/label.service';
+import { usePlaylistsWithTrackCounts } from '@/core/services/playlist.service';
 import { useAllPlaylistSongIds } from '@/core/services/playlist.service';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
 import AddTrackItem, { AddTrack } from './AddTrackItem';
+import SelectPlaylistModal from './SelectPlaylistModal';
+import CreatePlaylistModal from './CreatePlaylistModal';
 
 interface AddTracksSectionProps {
   onSeeAll?: () => void;
   onTrackClick?: (track: AddTrack) => void;
   onFavoriteToggle?: (trackId: number) => void;
-  onMoreClick?: (trackId: number) => void;
 }
 
 const AddTracksSection: React.FC<AddTracksSectionProps> = ({
   onSeeAll,
   onTrackClick,
   onFavoriteToggle,
-  onMoreClick,
 }) => {
   const [showAll, setShowAll] = useState(false);
+  const [showSelectPlaylistModal, setShowSelectPlaylistModal] = useState(false);
+  const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
+  const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
   const { user } = useAuth();
+  
+  // Fetch playlists for modals
+  const { data: playlists = [] } = usePlaylistsWithTrackCounts();
   
   // Fetch trending songs from API
   const { data: trendingResponse, isLoading: isLoadingTrending } = useTrendingSongs();
@@ -103,11 +110,39 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
               userId={user?.id}
               onClick={onTrackClick}
               onFavoriteToggle={onFavoriteToggle}
-              onMoreClick={onMoreClick}
+              onAddToExisting={() => {
+                setSelectedTrackId(track.id);
+                setShowSelectPlaylistModal(true);
+              }}
+              onAddToNew={() => {
+                setSelectedTrackId(track.id);
+                setShowCreatePlaylistModal(true);
+              }}
             />
           );
         })}
       </div>
+
+      {/* Select Existing Playlist Modal */}
+      <SelectPlaylistModal
+        isOpen={showSelectPlaylistModal}
+        playlists={playlists}
+        onClose={() => setShowSelectPlaylistModal(false)}
+        onConfirm={(playlistId) => {
+          console.log('Add track', selectedTrackId, 'to playlist:', playlistId);
+          setShowSelectPlaylistModal(false);
+        }}
+      />
+
+      {/* Create New Playlist Modal */}
+      <CreatePlaylistModal
+        isOpen={showCreatePlaylistModal}
+        onClose={() => setShowCreatePlaylistModal(false)}
+        onPlaylistCreated={(playlistId) => {
+          console.log('Created playlist:', playlistId, 'for track:', selectedTrackId);
+          setShowCreatePlaylistModal(false);
+        }}
+      />
     </div>
   );
 };
