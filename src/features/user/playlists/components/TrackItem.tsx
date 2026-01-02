@@ -1,6 +1,6 @@
 import React from 'react';
-import { Heart, MoreHorizontal } from 'lucide-react';
-
+import { Heart } from 'lucide-react';
+import menuIcon from '@/assets/Menu.svg';
 export interface Track {
   id: number;
   title: string;
@@ -65,7 +65,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
           />
         </button>
         <button className="track-item__more" onClick={handleMoreClick}>
-          <MoreHorizontal size={16} stroke="#fff" />
+          <img src={menuIcon} alt="More options" style={{ width: '18px', height: '18px' }} />
         </button>
       </div>
     </div>

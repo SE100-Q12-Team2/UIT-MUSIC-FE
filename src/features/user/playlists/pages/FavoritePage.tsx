@@ -3,7 +3,7 @@ import "@/styles/favorite.css";
 
 import { usePageBackground } from "@/shared/hooks/usePageBackground";
 import { useAuth } from "@/shared/hooks/auth/useAuth";
-import { useFavoriteSongs, useCheckFavorite } from "@/core/services/favorite.service";
+import { useFavoriteSongs, useCheckFavorite, useToggleFavorite } from "@/core/services/favorite.service";
 import { useSongsByIds } from "@/core/services/song.service";
 import { useRecordLabel } from "@/core/services/label.service";
 import { useDiscoverWeekly } from "@/core/services/recommendation.service";
@@ -17,107 +17,11 @@ import favoriteBanner from "@/assets/background_fv.png";
 import heartWhiteIcon from "@/assets/heart_icon.svg"; // tim trắng ở list
 import heartIcon from "@/assets/heart-icon.svg"; // tim khác (ở YMAL)
 import menuIcon from "@/assets/Menu.svg";
-import musicalNoteIcon from "@/assets/musical_note.svg";
-import shareIcon from "@/assets/share.svg";
 
 // About singer image (đúng: singer.png)
 import singerImage from "@/assets/singer.png";
 
 import trackCover6 from "@/assets/Track Cover_6.png";
-
-// CDs (YMAL)
-import cd1 from "@/assets/CD_1.png";
-import cd2 from "@/assets/CD_2.png";
-import cd3 from "@/assets/CD_3.png";
-import cd4 from "@/assets/CD_4.png";
-import cd5 from "@/assets/CD_5.png";
-
-// Artist images (YMAL)
-import albumCover1 from "@/assets/Album Cover_1.png";
-import albumCover2 from "@/assets/Album Cover_2.png";
-import albumCover3 from "@/assets/Album Cover_3.png";
-import albumCover4 from "@/assets/Album Cover_4.png";
-import albumCover5 from "@/assets/Album Cover_5.png";
-
-
-
-interface YMALItem {
-  id: number;
-  title: string;
-  artist: string;
-  tracks: number;
-  artistImage: string;
-  cdImage: string;
-}
-
-
-
-const ymal: YMALItem[] = [
-  {
-    id: 1,
-    title: "RUNAWAY",
-    artist: "One Republic",
-    tracks: 7,
-    artistImage: albumCover1,
-    cdImage: cd1,
-  },
-  {
-    id: 2,
-    title: "album Name",
-    artist: "Singer",
-    tracks: 7,
-    artistImage: albumCover2,
-    cdImage: cd2,
-  },
-  {
-    id: 3,
-    title: "Single Ladies",
-    artist: "Beyonce",
-    tracks: 7,
-    artistImage: albumCover3,
-    cdImage: cd3,
-  },
-  {
-    id: 4,
-    title: "album N",
-    artist: "Singer",
-    tracks: 7,
-    artistImage: albumCover5,
-    cdImage: cd5,
-  },
-  {
-    id: 5,
-    title: "Wolf",
-    artist: "Selena Gomes",
-    tracks: 7,
-    artistImage: albumCover4,
-    cdImage: cd4,
-  },
-  {
-    id: 6,
-    title: "El Que Espera",
-    artist: "Billie",
-    tracks: 7,
-    artistImage: albumCover2,
-    cdImage: cd2,
-  },
-  {
-    id: 7,
-    title: "On The Floor",
-    artist: "Jennifer Lopez",
-    tracks: 7,
-    artistImage: albumCover3,
-    cdImage: cd3,
-  },
-  {
-    id: 8,
-    title: "album N",
-    artist: "Singer",
-    tracks: 7,
-    artistImage: albumCover1,
-    cdImage: cd1,
-  },
-];
 
 const FavoritePage: React.FC = () => {
   usePageBackground(favoriteBg);
@@ -126,6 +30,7 @@ const FavoritePage: React.FC = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [showAllSuggestions, setShowAllSuggestions] = useState(false);
 
   const handleToggleFollow = () => {
     setIsFollowing((prev) => !prev);
@@ -145,10 +50,10 @@ const FavoritePage: React.FC = () => {
   // Fetch recommendations for suggestions
   const { data: recommendations, isLoading: loadingRecommendations } = useDiscoverWeekly();
   
-  // Get only first 8 recommendations for display
+  // Get only first 8 recommendations for display (or all if showAllSuggestions is true)
   const displayedSuggestions = useMemo(() => {
-    return recommendations?.slice(0, 8) || [];
-  }, [recommendations]);
+    return showAllSuggestions ? recommendations || [] : (recommendations?.slice(0, 8) || []);
+  }, [recommendations, showAllSuggestions]);
   
   // Fetch record label info for selected song
   const { data: recordLabel, isLoading: loadingLabel } = useRecordLabel(
@@ -165,34 +70,42 @@ const FavoritePage: React.FC = () => {
     setSelectedSong(null);
   };
 
-  const [favYmalIds, setFavYmalIds] = useState<Set<number>>(new Set());
-
-  const toggleYmal = (id: number) => {
-    setFavYmalIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
   // Component to render favorite button with check status
   const FavoriteButton: React.FC<{ songId: number }> = ({ songId }) => {
     const { data: favoriteStatus } = useCheckFavorite(user?.id, songId);
-    console.log('Favorite status for song', songId, ':', favoriteStatus);
+    const toggleFavorite = useToggleFavorite();
     const isFavorited = favoriteStatus?.isFavorite || false;
+
+    const handleToggle = async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      
+      if (!user?.id) {
+        console.warn('User not logged in');
+        return;
+      }
+
+      try {
+        await toggleFavorite.mutateAsync({
+          userId: user.id,
+          songId,
+          isFavorited,
+        });
+      } catch (error) {
+        console.error('Failed to toggle favorite:', error);
+      }
+    };
 
     return (
       <button
         className={`favorite-icon-button ${isFavorited ? 'is-favorited' : ''}`}
         type="button"
         aria-label="Favorite"
+        onClick={handleToggle}
+        disabled={toggleFavorite.isPending}
         style={{
           opacity: isFavorited ? 1 : 0.5,
           filter: isFavorited ? 'none' : 'grayscale(100%)',
+          cursor: toggleFavorite.isPending ? 'wait' : 'pointer',
         }}
       >
         <img src={isFavorited ? heartWhiteIcon : heartIcon} alt="" />
@@ -248,7 +161,7 @@ const FavoritePage: React.FC = () => {
                   Loading your favorite songs...
                 </div>
               ) : songs && songs.length > 0 ? (
-                songs.map((song) => {
+                songs.map((song, index) => {
                   // Format duration from seconds to mm:ss
                   const minutes = Math.floor(song.duration / 60);
                   const seconds = song.duration % 60;
@@ -262,7 +175,10 @@ const FavoritePage: React.FC = () => {
                       key={song.id} 
                       className="favorite-track"
                       onClick={() => handleSongClick(song)}
-                      style={{ cursor: 'pointer' }}
+                      style={{ 
+                        cursor: 'pointer',
+                        animationDelay: `${index * 0.05}s`
+                      }}
                     >
                       <div className="favorite-track__name">
                         <div className="favorite-track__cover">
@@ -427,9 +343,15 @@ const FavoritePage: React.FC = () => {
       <section className="favorite-section">
         <div className="favorite-section__header">
           <h2 className="favorite-section__title">Suggestions For You</h2>
-          <button className="favorite-section__see-all" type="button">
-            See All
-          </button>
+          {recommendations && recommendations.length > 8 && (
+            <button 
+              className="favorite-section__see-all" 
+              type="button"
+              onClick={() => setShowAllSuggestions(!showAllSuggestions)}
+            >
+              {showAllSuggestions ? 'Show Less' : 'See All'}
+            </button>
+          )}
         </div>
 
         <div className="favorite-suggestions">
@@ -438,11 +360,15 @@ const FavoritePage: React.FC = () => {
               Loading suggestions...
             </div>
           ) : displayedSuggestions.length > 0 ? (
-            displayedSuggestions.map((song) => {
+            displayedSuggestions.map((song, index) => {
               const coverImage = song.album?.coverImage || trackCover6;
               
               return (
-                <article key={song.id} className="favorite-suggestion-card">
+                <article 
+                  key={song.id} 
+                  className="favorite-suggestion-card"
+                  style={{ animationDelay: `${index * 0.08}s` }}
+                >
                   <div className="favorite-suggestion-card__cover">
                     <img src={coverImage} alt={song.title} />
                   </div>

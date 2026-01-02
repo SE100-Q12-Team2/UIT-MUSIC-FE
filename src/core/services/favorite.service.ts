@@ -58,12 +58,12 @@ export const favoriteService = {
     });
   },
 
-  addToFavorites: async (songId: string): Promise<void> => {
-    return api.post<void>('/favorites', { songId });
+  addToFavorites: async (userId: number, songId: number): Promise<void> => {
+    return api.post<void>('/favorites', { userId, songId });
   },
 
-  removeFromFavorites: async (songId: string): Promise<void> => {
-    return api.delete<void>(`/favorites/${songId}`);
+  removeFromFavorites: async (userId: number, songId: number): Promise<void> => {
+    return api.delete<void>(`/favorites/${userId}/${songId}`);
   },
 
   isFavorite: async (songId: string): Promise<boolean> => {
@@ -88,9 +88,11 @@ export const useAddToFavorites = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (songId: string) => favoriteService.addToFavorites(songId),
+    mutationFn: ({ userId, songId }: { userId: number; songId: number }) => 
+      favoriteService.addToFavorites(userId, songId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user.favorites });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
     },
   });
 };
@@ -99,9 +101,48 @@ export const useRemoveFromFavorites = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (songId: string) => favoriteService.removeFromFavorites(songId),
+    mutationFn: ({ userId, songId }: { userId: number; songId: number }) => 
+      favoriteService.removeFromFavorites(userId, songId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user.favorites });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+    },
+  });
+};
+
+// Hook to toggle favorite status
+export const useToggleFavorite = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      userId, 
+      songId, 
+      isFavorited 
+    }: { 
+      userId: number; 
+      songId: number; 
+      isFavorited: boolean;
+    }) => {
+      if (isFavorited) {
+        await favoriteService.removeFromFavorites(userId, songId);
+        return { action: 'remove' };
+      } else {
+        await favoriteService.addToFavorites(userId, songId);
+        return { action: 'add' };
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Always invalidate the check query for this specific song
+      queryClient.invalidateQueries({ 
+        queryKey: ['favorites', 'check', variables.userId, variables.songId] 
+      });
+      
+      // Only refetch the full list when ADDING a favorite (not when removing)
+      if (data.action === 'add') {
+        queryClient.invalidateQueries({ queryKey: ['favorites', 'songs', variables.userId] });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user.favorites });
+      }
     },
   });
 };

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Heart, MoreHorizontal } from 'lucide-react';
-import { useCheckFavorite } from '@/core/services/favorite.service';
+import { Heart } from 'lucide-react';
+import { useCheckFavorite, useToggleFavorite } from '@/core/services/favorite.service';
+import menuIcon from '@/assets/Menu.svg';
 
 export interface AddTrack {
   id: number;
@@ -37,11 +38,27 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
 }) => {
   // Check favorite status from API
   const { data: favoriteStatus } = useCheckFavorite(userId, track.id);
+  const toggleFavorite = useToggleFavorite();
   const isFavorited = favoriteStatus?.isFavorite || false;
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    onFavoriteToggle?.(track.id);
+    
+    if (!userId) {
+      console.warn('User not logged in');
+      return;
+    }
+
+    try {
+      await toggleFavorite.mutateAsync({
+        userId,
+        songId: track.id,
+        isFavorited,
+      });
+      onFavoriteToggle?.(track.id);
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+    }
   };
 
   const handleMoreClick = (e: React.MouseEvent) => {
@@ -66,6 +83,11 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
         <button
           className={`add-track-item__favorite ${isFavorited ? 'add-track-item__favorite--active' : ''}`}
           onClick={handleFavoriteClick}
+          disabled={toggleFavorite.isPending}
+          style={{
+            cursor: toggleFavorite.isPending ? 'wait' : 'pointer',
+            opacity: toggleFavorite.isPending ? 0.6 : 1,
+          }}
         >
           <Heart 
             size={18} 
@@ -74,7 +96,7 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
           />
         </button>
         <button className="add-track-item__more" onClick={handleMoreClick}>
-          <MoreHorizontal size={18} stroke="#fff" />
+          <img src={menuIcon} alt="More options" style={{ width: '18px', height: '18px' }} />
         </button>
       </div>
     </div>

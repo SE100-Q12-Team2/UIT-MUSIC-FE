@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { useTrendingSongs } from '@/core/services/song.service';
-import { useCheckFavorite } from '@/core/services/favorite.service';
 import { useRecordLabel } from '@/core/services/label.service';
 import { useAllPlaylistSongIds } from '@/core/services/playlist.service';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
@@ -56,12 +55,12 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
       });
   }, [trendingSongs, songsInPlaylists]);
   
-  // Show first 8 tracks or all tracks based on state
-  const displayedTracks = showAll ? allTracks : allTracks.slice(0, 8);
+  // Show first 6 tracks or all tracks based on state
+  const displayedTracks = showAll ? allTracks : allTracks.slice(0, 6);
   
   const handleSeeAll = () => {
-    setShowAll(true);
-    if (onSeeAll) {
+    setShowAll(!showAll);
+    if (!showAll && onSeeAll) {
       onSeeAll();
     }
   };
@@ -83,9 +82,9 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
     <div className="add-tracks-section">
       <div className="add-tracks-section__header">
         <h3 className="add-tracks-section__title">Add Tracks To Your Playlists</h3>
-        {!showAll && allTracks.length > 8 && (
+        {allTracks.length > 8 && (
           <button className="add-tracks-section__see-all" onClick={handleSeeAll}>
-            See All
+            {showAll ? 'Show Less' : 'See All'}
           </button>
         )}
       </div>
