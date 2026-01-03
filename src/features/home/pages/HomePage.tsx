@@ -18,6 +18,11 @@ import { SectionProps } from '@/features/user/home/types/home.types';
 import HomePlayerSidebar from '@/features/home/components/HomePlayerSidebar';
 import HomeFloatingButtonToggle from '@/features/home/components/FloatingToggleButton';
 import HomeMiniPlayer from '@/features/home/components/HomeMiniPlayer';
+import { useRecentlyPlayed } from '@/core/services/listening-history.service';
+import { usePersonalizedRecommendations, useDailyMix, useDiscoverWeekly } from '@/core/services/recommendation.service';
+import { RecommendationSong, RecommendationMix } from '@/types/recommendation.types';
+import { RecentlyPlayedSong } from '@/types/listening-history.api';
+import LoadingSpinner from '@/shared/components/common/LoadingSpinner';
 
 /* ---------------- Section ---------------- */
 
@@ -38,11 +43,81 @@ const Section = ({ title, actionText = 'See All', children }: SectionProps) => (
   </div>
 );
 
+/* ---------------- Helper Functions ---------------- */
+
+// Transform API song to UI song format
+const transformSongToUI = (song: RecommendationSong): { id: string; title: string; artist: string; album?: string; duration: string; coverUrl: string; isLiked?: boolean } => {
+  const artists = song.songArtists?.map(sa => sa.artist.artistName).join(', ') || 'Unknown Artist';
+  const durationInSeconds = song.duration || 0;
+  const minutes = Math.floor(durationInSeconds / 60);
+  const seconds = durationInSeconds % 60;
+  const duration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  
+  return {
+    id: song.id.toString(),
+    title: song.title,
+    artist: artists,
+    album: song.album?.albumTitle,
+    duration,
+    coverUrl: song.album?.coverImage || `https://picsum.photos/id/${song.id}/300/300`,
+    isLiked: song.isFavorite || false,
+  };
+};
+
+// Transform API playlist/mix to UI playlist format
+const transformMixToPlaylist = (mix: RecommendationMix): { id: string; title: string; subtitle?: string; coverUrl: string } => {
+  const firstSong = mix.songs[0];
+  return {
+    id: mix.id,
+    title: mix.title,
+    subtitle: `${mix.songs.length} Tracks`,
+    coverUrl: firstSong?.album?.coverImage || `https://picsum.photos/id/${mix.id}/300/300`,
+  };
+};
+
+// Transform recently played to banner format
+const transformRecentlyPlayedToBanner = (song: RecentlyPlayedSong, index: number) => {
+  const accents = ['from-blue-900 to-black', 'from-purple-900 to-black', 'from-orange-900 to-black'];
+  return {
+    id: song.songId.toString(),
+    title: index === 0 ? 'Recently Listened' : index === 1 ? 'Most Listened' : 'Liked Tracks',
+    coverUrl: song.coverImageUrl || `https://picsum.photos/id/${song.songId}/600/300`,
+    accent: accents[index % accents.length],
+  };
+};
+
 /* ---------------- Home ---------------- */
 
 const Home = () => {
   const [isPlayerVisible, setIsPlayerVisible] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
+
+  // API calls with fallback to mock data
+  const { data: recentlyPlayedData, isLoading: recentlyPlayedLoading } = useRecentlyPlayed(3);
+  const { data: personalizedData, isLoading: personalizedLoading } = usePersonalizedRecommendations(30); // limit is required, default 30
+  const { data: dailyMixData, isLoading: dailyMixLoading } = useDailyMix();
+  const { data: discoverWeeklyData, isLoading: discoverWeeklyLoading } = useDiscoverWeekly();
+
+  // Transform API data with fallback to mock data
+  const recentlyPlayedBanners = recentlyPlayedData?.data?.data?.slice(0, 3).map((song, idx) => transformRecentlyPlayedToBanner(song, idx)) || RECENTLY_PLAYED_BANNERS;
+  const tailoredPlaylists = dailyMixData?.mixes?.slice(0, 5).map(transformMixToPlaylist) || TAILORED_PLAYLISTS;
+  const personalSpace = personalizedData?.slice(0, 5).map(song => ({
+    id: song.id.toString(),
+    title: song.title,
+    subtitle: `${song.playCount || 0} Plays`,
+    coverUrl: song.album?.coverImage || `https://picsum.photos/id/${song.id}/300/300`,
+  })) || PERSONAL_SPACE;
+  const dailyPickSongs = discoverWeeklyData?.slice(0, 5).map(transformSongToUI) || DAILY_PICK_SONGS;
+
+  const isLoading = recentlyPlayedLoading || personalizedLoading || dailyMixLoading || discoverWeeklyLoading;
+
+  if (isLoading) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center bg-linear-to-b from-vio-900 via-[#0a0a16] to-[#05050a]">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen flex bg-linear-to-b from-vio-900 via-[#0a0a16] to-[#05050a] overflow-x-hidden">

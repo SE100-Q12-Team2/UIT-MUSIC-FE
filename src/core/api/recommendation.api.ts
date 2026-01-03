@@ -5,7 +5,8 @@ import { RecommendationMix, RecommendationSong } from '@/types/recommendation.ty
 
 export const recommendationApi = {
   // GET /recommendations/personalized
-  getPersonalized: async (limit?: number): Promise<RecommendationSong[]> => {
+  // Note: limit is required according to api-json.json, but we'll make it optional with default for backward compatibility
+  getPersonalized: async (limit: number = 30): Promise<RecommendationSong[]> => {
     return api.get<RecommendationSong[]>('/recommendations/personalized', { params: { limit } });
   },
 

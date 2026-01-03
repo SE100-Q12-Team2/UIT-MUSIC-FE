@@ -14,6 +14,9 @@ import detailsUsageGraph from "@/assets/details-usage-graph.png";
 import detailsDataDonut from "@/assets/details-data-donut.png";
 
 import menuIcon from "@/assets/menu.svg";
+import { useListeningStats } from '@/core/services/listening-history.service';
+import { useAuth } from '@/shared/hooks/auth/useAuth';
+import LoadingSpinner from '@/shared/components/common/LoadingSpinner';
 
 interface SongItem {
   id: number;
@@ -100,6 +103,51 @@ const singers: SingerItem[] = [
 ];
 
 const DetailSection: React.FC = () => {
+  const { user } = useAuth();
+  const { data: statsData, isLoading: statsLoading } = useListeningStats({ period: 'monthly' });
+
+  // Transform API top songs to UI format
+  const apiTopSongs = statsData?.data?.topSongs?.slice(0, 6) || [];
+  const transformedTopSongs = apiTopSongs.map((song, idx) => ({
+    id: song.songId,
+    index: idx + 1,
+    title: song.songTitle,
+    artist: 'Unknown Artist', // API doesn't return artist name in topSongs
+    album: 'Unknown Album',
+    duration: `${Math.floor(song.totalDuration / 60)}:${(song.totalDuration % 60).toString().padStart(2, '0')}`,
+    thumbnail: `https://picsum.photos/id/${song.songId}/300/300`,
+  }));
+
+  // Transform API top artists to UI format
+  const apiTopArtists = statsData?.data?.topArtists?.slice(0, 5) || [];
+  const transformedTopArtists = apiTopArtists.map((artist, idx) => ({
+    id: artist.artistId,
+    name: artist.artistName,
+    avatar: `https://picsum.photos/id/${artist.artistId}/300/300`,
+  }));
+
+  // Use API data if available, otherwise fallback to mock data
+  const displaySongs = transformedTopSongs.length > 0 ? transformedTopSongs : [...leftSongs, ...rightSongs];
+  const displayArtists = transformedTopArtists.length > 0 ? transformedTopArtists : singers;
+
+  // Split songs into two columns
+  const leftColumnSongs = displaySongs.slice(0, Math.ceil(displaySongs.length / 2));
+  const rightColumnSongs = displaySongs.slice(Math.ceil(displaySongs.length / 2));
+
+  const displayName = user?.fullName || 'User';
+  const username = user?.email?.split('@')[0] || 'user';
+  const avatarUrl = user?.profileImage || detailsProfileAvatar;
+
+  if (statsLoading) {
+    return (
+      <section className="details-page">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <LoadingSpinner />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="details-page">
       {/* HERO: banner + avatar + tên */}
@@ -114,16 +162,16 @@ const DetailSection: React.FC = () => {
           {/* Avatar: chỉ giữ hình tròn, bỏ khung trắng bên ngoài */}
           <div className="details-hero__avatar-wrapper">
             <img
-              src={detailsProfileAvatar}
-              alt="Olivia Rhye"
+              src={avatarUrl}
+              alt={displayName}
               className="details-hero__avatar"
             />
           </div>
         </div>
 
         <div className="details-hero__text">
-          <h1 className="details-hero__name">Olivia Rhye</h1>
-          <p className="details-hero__handle">@olivia</p>
+          <h1 className="details-hero__name">{displayName}</h1>
+          <p className="details-hero__handle">@{username}</p>
         </div>
       </header>
 
@@ -144,7 +192,7 @@ const DetailSection: React.FC = () => {
         <div className="details-song-grid">
           {/* Cột trái */}
           <div className="details-song-column">
-            {leftSongs.map((song) => (
+            {leftColumnSongs.map((song) => (
               <article key={song.id} className="details-song-card">
                 <div className="details-song-card__left">
                   <span className="details-song-card__index">{song.index}</span>
@@ -185,7 +233,7 @@ const DetailSection: React.FC = () => {
 
           {/* Cột phải */}
           <div className="details-song-column">
-            {rightSongs.map((song) => (
+            {rightColumnSongs.map((song) => (
               <article key={song.id} className="details-song-card">
                 <div className="details-song-card__left">
                   <span className="details-song-card__index">{song.index}</span>
@@ -231,7 +279,7 @@ const DetailSection: React.FC = () => {
         </h2>
 
         <div className="details-singers-grid">
-          {singers.map((singer) => (
+          {displayArtists.map((singer) => (
             <article key={singer.id} className="details-singer-card">
               <div className="details-singer-card__avatar">
                 <img src={singer.avatar} alt={singer.name} />

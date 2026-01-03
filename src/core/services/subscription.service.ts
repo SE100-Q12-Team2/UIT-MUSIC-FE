@@ -17,8 +17,8 @@ export const subscriptionService = {
   },
 
   // Subscribe to a plan
-  subscribe: async (planId: number): Promise<void> => {
-    return api.post<void>('/subscriptions', { planId });
+  subscribe: async (planId: number, autoRenew: boolean = false): Promise<void> => {
+    return api.post<void>('/user-subscriptions', { planId, autoRenew });
   },
 };
 

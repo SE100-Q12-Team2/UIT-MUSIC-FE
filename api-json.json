@@ -1,1 +1,2070 @@
-{"openapi":"3.0.0","paths":{"/":{"get":{"operationId":"AppController_getHello","parameters":[],"responses":{"200":{"description":""}},"tags":["App"]}},"/health":{"get":{"operationId":"AppController_healthCheck","parameters":[],"responses":{"200":{"description":""}},"tags":["App"]}},"/auth/otp":{"post":{"description":"Send a one-time password to the user email for registration or password reset verification","operationId":"AuthController_sendOTP","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SendOTPBodyDTO"}}}},"responses":{"200":{"description":"OTP sent successfully"},"400":{"description":"Invalid email or request"},"429":{"description":"Too many requests"}},"summary":"Send OTP code","tags":["Authentication"]}},"/auth/register":{"post":{"description":"Create a new user account with email verification using OTP code","operationId":"AuthController_register","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/RegisterBodyDTO"}}}},"responses":{"201":{"description":"User registered successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/RegisterResDTO"}}}},"400":{"description":"Invalid registration data or OTP"},"409":{"description":"Email already exists"}},"summary":"Register new user","tags":["Authentication"]}},"/auth/login":{"post":{"description":"Authenticate user with email and password, returns access and refresh tokens","operationId":"AuthController_login","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/LoginBodyDTO"}}}},"responses":{"200":{"description":"Login successful","content":{"application/json":{"schema":{"$ref":"#/components/schemas/LoginResDTO"}}}},"401":{"description":"Invalid credentials"},"403":{"description":"Account is locked or inactive"}},"summary":"User login","tags":["Authentication"]}},"/auth/logout":{"post":{"description":"Invalidate refresh token and log out user from current device","operationId":"AuthController_logout","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/LogoutBodyDTO"}}}},"responses":{"200":{"description":"Logout successful"},"401":{"description":"Invalid or expired token"}},"summary":"User logout","tags":["Authentication"]}},"/auth/forgot-password":{"post":{"description":"Send password reset OTP code to user email","operationId":"AuthController_forgotPassword","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ForgotPasswordBodyDTO"}}}},"responses":{"200":{"description":"Password reset OTP sent"},"404":{"description":"Email not found"}},"summary":"Request password reset","tags":["Authentication"]}},"/auth/reset-password":{"post":{"description":"Reset user password using OTP code verification","operationId":"AuthController_resetPassword","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ResetPasswordBodyDTO"}}}},"responses":{"200":{"description":"Password reset successful"},"400":{"description":"Invalid OTP or password"},"404":{"description":"User not found"}},"summary":"Reset password","tags":["Authentication"]}},"/media/master/presign":{"post":{"operationId":"AssetController_presignMaster","parameters":[],"responses":{"201":{"description":""}},"tags":["Asset"]}},"/internal/ingest/complete":{"post":{"operationId":"IngestController_complete","parameters":[{"name":"x-ingest-token","required":true,"in":"header","schema":{"type":"string"}}],"responses":{"201":{"description":""}},"tags":["Ingest"]}},"/playback/track/{songId}":{"get":{"operationId":"PlaybackController_getPlayback","parameters":[{"name":"songId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Playback"]}},"/playlists":{"get":{"description":"Retrieve paginated list of playlists with optional filtering by owner, privacy, and tags","operationId":"PlaylistController_getPlaylists","parameters":[{"name":"q","required":false,"in":"query","description":"Search by playlist name","schema":{"type":"string"}},{"name":"ownerId","required":false,"in":"query","description":"Filter by playlist owner user ID","schema":{"type":"string"}},{"name":"isPublic","required":false,"in":"query","description":"Filter by public/private playlists","schema":{"type":"boolean"}},{"name":"tags","required":false,"in":"query","schema":{"type":"array","items":{"type":"string"}}},{"name":"limit","required":false,"in":"query","description":"Items per page (default: 20, max: 100)","schema":{"minimum":1,"maximum":100,"default":20,"type":"number"}},{"name":"page","required":false,"in":"query","description":"Page number (default: 1)","schema":{"minimum":1,"maximum":9007199254740991,"default":1,"type":"number"}},{"name":"sort","required":false,"in":"query","description":"Sort field","schema":{"enum":["createdAt","playlistName","updatedAt"],"type":"string"}},{"name":"order","required":false,"in":"query","description":"Sort order","schema":{"enum":["asc","desc"],"type":"string"}}],"responses":{"200":{"description":"Playlists retrieved successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/GetAllPlaylistsDTO"}}}}},"summary":"Get all playlists","tags":["Playlists"]},"post":{"description":"Create a new playlist with name, description, and privacy settings","operationId":"PlaylistController_createPlaylist","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreatePlaylistBodyDTO"}}}},"responses":{"201":{"description":"Playlist created successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreatePlaylistResDTO"}}}},"400":{"description":"Invalid playlist data"},"401":{"description":"Unauthorized"}},"security":[{"JWT-auth":[]}],"summary":"Create new playlist","tags":["Playlists"]}},"/playlists/{id}":{"get":{"description":"Retrieve detailed information about a specific playlist including all tracks","operationId":"PlaylistController_getPlayListById","parameters":[{"name":"id","required":true,"in":"path","description":"Playlist ID","schema":{"type":"string"}}],"responses":{"200":{"description":"Playlist found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/GetPlaylistQueryDTO"}}}},"404":{"description":"Playlist not found"}},"summary":"Get playlist by ID","tags":["Playlists"]},"put":{"description":"Update playlist information including name, description, cover image, and privacy settings","operationId":"PlaylistController_updatePlaylist","parameters":[{"name":"id","required":true,"in":"path","description":"Playlist ID","schema":{"type":"string"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdatePlaylistBodyDTO"}}}},"responses":{"200":{"description":"Playlist updated successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdatePlaylistResDTO"}}}},"400":{"description":"Invalid playlist data"},"401":{"description":"Unauthorized"},"404":{"description":"Playlist not found"}},"security":[{"JWT-auth":[]}],"summary":"Update playlist","tags":["Playlists"]},"delete":{"description":"Delete a playlist and all its tracks","operationId":"PlaylistController_deletePlaylist","parameters":[{"name":"id","required":true,"in":"path","description":"Playlist ID","schema":{"type":"string"}}],"responses":{"200":{"description":"Playlist deleted successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/MessageResDTO"}}}},"401":{"description":"Unauthorized"},"404":{"description":"Playlist not found"}},"security":[{"JWT-auth":[]}],"summary":"Delete playlist","tags":["Playlists"]}},"/profile":{"get":{"operationId":"ProfileController_getProfile","parameters":[],"responses":{"200":{"description":""}},"tags":["Profile"]},"patch":{"operationId":"ProfileController_updateProfile","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateProfileBodyDTO"}}}},"responses":{"200":{"description":""}},"tags":["Profile"]}},"/profile/change-password":{"patch":{"operationId":"ProfileController_changePassword","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ChangePasswordBodyDTO"}}}},"responses":{"200":{"description":""}},"tags":["Profile"]}},"/playlists/{playlistId}/tracks":{"get":{"operationId":"PlaylistTracksController_list","parameters":[{"name":"playlistId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["PlaylistTracks"]},"post":{"operationId":"PlaylistTracksController_addOne","parameters":[{"name":"playlistId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"201":{"description":""}},"tags":["PlaylistTracks"]}},"/playlists/{playlistId}/tracks/{bulk}":{"post":{"operationId":"PlaylistTracksController_addBulk","parameters":[{"name":"playlistId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"201":{"description":""}},"tags":["PlaylistTracks"]}},"/playlists/{playlistId}/tracks/{trackId}/reorder":{"patch":{"operationId":"PlaylistTracksController_reorder","parameters":[{"name":"playlistId","required":true,"in":"path","schema":{"type":"string"}},{"name":"trackId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["PlaylistTracks"]}},"/playlists/{playlistId}/tracks/{trackId}":{"delete":{"operationId":"PlaylistTracksController_remove","parameters":[{"name":"playlistId","required":true,"in":"path","schema":{"type":"string"}},{"name":"trackId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["PlaylistTracks"]}},"/artists":{"get":{"description":"Retrieve paginated list of artists with optional filtering and search capabilities","operationId":"ArtistController_list","parameters":[{"name":"q","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"description":"Search query for artist name","schema":{"type":"string"}},{"name":"hasPublicProfile","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"description":"Filter by public profile status","schema":{"type":"boolean"}},{"name":"createdFrom","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}},{"name":"createdTo","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}},{"name":"updatedFrom","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}},{"name":"updatedTo","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}},{"name":"page","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"description":"Page number (default: 1)","schema":{"minimum":1,"maximum":9007199254740991,"default":1,"type":"number"}},{"name":"limit","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"description":"Items per page (default: 20, max: 100)","schema":{"minimum":1,"maximum":100,"default":20,"type":"number"}},{"name":"sort","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"description":"Sort field","schema":{"enum":["createdAt","updatedAt","artistName"],"type":"string"}},{"name":"order","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"description":"Sort order","schema":{"enum":["asc","desc"],"type":"string"}}],"responses":{"200":{"description":"Artists retrieved successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/GetArtistsResponseDto"}}}},"401":{"description":"Unauthorized"}},"security":[{"JWT-auth":[]}],"summary":"Get all artists","tags":["Artists"]},"post":{"description":"Create a new artist profile with name, biography, and profile image","operationId":"ArtistController_create","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateArtistBodyDto"}}}},"responses":{"201":{"description":"Artist created successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateArtistResDto"}}}},"400":{"description":"Invalid artist data"},"401":{"description":"Unauthorized"}},"security":[{"JWT-auth":[]}],"summary":"Create new artist","tags":["Artists"]}},"/artists/{id}":{"get":{"description":"Retrieve detailed information about a specific artist","operationId":"ArtistController_get","parameters":[{"name":"id","required":true,"in":"path","description":"Artist ID","schema":{"type":"number"}}],"responses":{"200":{"description":"Artist found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ArtistResponseDto"}}}},"401":{"description":"Unauthorized"},"404":{"description":"Artist not found"}},"security":[{"JWT-auth":[]}],"summary":"Get artist by ID","tags":["Artists"]},"patch":{"description":"Update artist profile information","operationId":"ArtistController_update","parameters":[{"name":"id","required":true,"in":"path","description":"Artist ID","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateArtistBodyDto"}}}},"responses":{"200":{"description":"Artist updated successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateArtistResDto"}}}},"400":{"description":"Invalid artist data"},"401":{"description":"Unauthorized"},"404":{"description":"Artist not found"}},"security":[{"JWT-auth":[]}],"summary":"Update artist","tags":["Artists"]},"delete":{"description":"Delete an artist profile from the platform","operationId":"ArtistController_remove","parameters":[{"name":"id","required":true,"in":"path","description":"Artist ID","schema":{"type":"number"}}],"responses":{"200":{"description":"Artist deleted successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/MessageResDTO"}}}},"401":{"description":"Unauthorized"},"404":{"description":"Artist not found"}},"security":[{"JWT-auth":[]}],"summary":"Delete artist","tags":["Artists"]}},"/genres":{"get":{"operationId":"GenreController_list","parameters":[],"responses":{"200":{"description":""}},"tags":["Genre"]},"post":{"operationId":"GenreController_create","parameters":[],"responses":{"201":{"description":""}},"tags":["Genre"]}},"/genres/{id}":{"get":{"operationId":"GenreController_get","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Genre"]},"patch":{"operationId":"GenreController_update","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Genre"]},"delete":{"operationId":"GenreController_remove","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Genre"]}},"/songs":{"get":{"description":"Retrieve paginated list of songs with optional filtering by genre, artist, album, label, and language","operationId":"SongController_getSongs","parameters":[{"name":"page","required":false,"in":"query","description":"Page number (default: 1)","schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"default":1,"type":"number"}},{"name":"limit","required":false,"in":"query","description":"Items per page (default: 20, max: 100)","schema":{"maximum":100,"exclusiveMinimum":0,"default":20,"type":"number"}},{"name":"genreId","required":false,"in":"query","description":"Filter by genre ID","schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"type":"number"}},{"name":"artistId","required":false,"in":"query","description":"Filter by artist ID","schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"type":"number"}},{"name":"albumId","required":false,"in":"query","description":"Filter by album ID","schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"type":"number"}},{"name":"labelId","required":false,"in":"query","description":"Filter by record label ID","schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"type":"number"}},{"name":"language","required":false,"in":"query","description":"Filter by language","schema":{"maxLength":50,"type":"string"}},{"name":"order","required":false,"in":"query","description":"Sort order","schema":{"enum":["latest","popular","title"],"type":"string"}}],"responses":{"200":{"description":"Songs retrieved successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/PaginatedSongsDto"}}}}},"summary":"Get all songs","tags":["Songs"]},"post":{"description":"Upload a new song with metadata including title, duration, artists, album, and genre","operationId":"SongController_createSong","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateSongDto"}}}},"responses":{"201":{"description":"Song created successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SongCreatedDto"}}}},"400":{"description":"Invalid song data"},"401":{"description":"Unauthorized"}},"security":[{"JWT-auth":[]}],"summary":"Create new song","tags":["Songs"]}},"/songs/trending":{"get":{"description":"Retrieve currently trending songs based on play count and recent popularity","operationId":"SongController_getTrendingSongs","parameters":[{"name":"limit","required":false,"in":"query","description":"Number of songs (default: 10, max: 50)","schema":{"maximum":50,"exclusiveMinimum":0,"default":10,"type":"number"}},{"name":"genreId","required":false,"in":"query","description":"Filter by genre ID","schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"type":"number"}}],"responses":{"200":{"description":"Trending songs retrieved successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/TrendingSongsDto"}}}}},"summary":"Get trending songs","tags":["Songs"]}},"/songs/{id}":{"get":{"description":"Retrieve detailed information about a specific song including artists, album, and genre","operationId":"SongController_getSongById","parameters":[{"name":"id","required":true,"in":"path","description":"Song ID","schema":{"type":"number"}}],"responses":{"200":{"description":"Song found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SongDto"}}}},"404":{"description":"Song not found"}},"summary":"Get song by ID","tags":["Songs"]},"put":{"description":"Update song metadata and information","operationId":"SongController_updateSong","parameters":[{"name":"id","required":true,"in":"path","description":"Song ID","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateSongDto"}}}},"responses":{"200":{"description":"Song updated successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SongUpdatedDto"}}}},"400":{"description":"Invalid song data"},"401":{"description":"Unauthorized"},"404":{"description":"Song not found"}},"security":[{"JWT-auth":[]}],"summary":"Update song","tags":["Songs"]},"delete":{"description":"Delete a song from the platform","operationId":"SongController_deleteSong","parameters":[{"name":"id","required":true,"in":"path","description":"Song ID","schema":{"type":"number"}}],"responses":{"200":{"description":"Song deleted successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SongUpdatedDto"}}}},"401":{"description":"Unauthorized"},"404":{"description":"Song not found"}},"security":[{"JWT-auth":[]}],"summary":"Delete song","tags":["Songs"]}},"/songs/{id}/artists":{"put":{"description":"Update the list of artists associated with a song and their roles","operationId":"SongController_updateSongArtists","parameters":[{"name":"id","required":true,"in":"path","description":"Song ID","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateSongArtistsDto"}}}},"responses":{"200":{"description":"Song artists updated successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SongUpdatedDto"}}}},"401":{"description":"Unauthorized"},"404":{"description":"Song not found"}},"security":[{"JWT-auth":[]}],"summary":"Update song artists","tags":["Songs"]}},"/songs/{id}/play":{"post":{"description":"Track song play and increment the play counter for analytics","operationId":"SongController_incrementPlayCount","parameters":[{"name":"id","required":true,"in":"path","description":"Song ID","schema":{"type":"number"}}],"responses":{"200":{"description":"Play count incremented","content":{"application/json":{"schema":{"$ref":"#/components/schemas/PlayCountIncrementedDto"}}}},"404":{"description":"Song not found"}},"summary":"Increment play count","tags":["Songs"]}},"/albums":{"get":{"description":"Retrieve a paginated list of albums with optional filtering by label, search query, and sorting options","operationId":"AlbumController_getAlbums","parameters":[{"name":"page","required":false,"in":"query","description":"Page number (default: 1)","schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"default":1,"type":"number"}},{"name":"limit","required":false,"in":"query","description":"Items per page (default: 20, max: 100)","schema":{"maximum":100,"exclusiveMinimum":0,"default":20,"type":"number"}},{"name":"labelId","required":false,"in":"query","description":"Filter by record label ID","schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"type":"number"}},{"name":"order","required":false,"in":"query","description":"Sort order","schema":{"enum":["latest","oldest","title","releaseDate"],"type":"string"}},{"name":"search","required":false,"in":"query","description":"Search by album title","schema":{"type":"string"}}],"responses":{"200":{"description":"Albums retrieved successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/PaginatedAlbumsResponseDto"}}}}},"summary":"Get all albums","tags":["Albums"]},"post":{"description":"Create a new album (requires authentication)","operationId":"AlbumController_createAlbum","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateAlbumDto"}}}},"responses":{"201":{"description":"Album created successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AlbumResponseDto"}}}},"400":{"description":"Invalid album data"},"401":{"description":"Unauthorized"}},"security":[{"JWT-auth":[]}],"summary":"Create new album","tags":["Albums"]}},"/albums/{id}":{"get":{"description":"Retrieve detailed information about a specific album, optionally including all songs","operationId":"AlbumController_getAlbumById","parameters":[{"name":"id","required":true,"in":"path","description":"Album ID","schema":{"type":"number"}},{"name":"includeSongs","required":false,"in":"query","description":"Include songs list (true/false)","schema":{"type":"string"}}],"responses":{"200":{"description":"Album found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AlbumResponseDto"}}}},"404":{"description":"Album not found"}},"summary":"Get album by ID","tags":["Albums"]},"put":{"description":"Update album information (requires authentication)","operationId":"AlbumController_updateAlbum","parameters":[{"name":"id","required":true,"in":"path","description":"Album ID","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateAlbumDto"}}}},"responses":{"200":{"description":"Album updated successfully","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AlbumResponseDto"}}}},"400":{"description":"Invalid album data"},"401":{"description":"Unauthorized"},"404":{"description":"Album not found"}},"security":[{"JWT-auth":[]}],"summary":"Update album","tags":["Albums"]},"delete":{"description":"Delete an album (requires authentication)","operationId":"AlbumController_deleteAlbum","parameters":[{"name":"id","required":true,"in":"path","description":"Album ID","schema":{"type":"number"}}],"responses":{"200":{"description":"Album deleted successfully"},"401":{"description":"Unauthorized"},"404":{"description":"Album not found"}},"security":[{"JWT-auth":[]}],"summary":"Delete album","tags":["Albums"]}},"/albums/label/{labelId}":{"get":{"description":"Retrieve all albums from a specific record label","operationId":"AlbumController_getAlbumsByLabel","parameters":[{"name":"labelId","required":true,"in":"path","description":"Record label ID","schema":{"type":"number"}}],"responses":{"200":{"description":"Albums retrieved successfully"},"404":{"description":"Label not found"}},"summary":"Get albums by label","tags":["Albums"]}},"/record-labels":{"get":{"operationId":"RecordLabelController_getRecordLabels","parameters":[{"name":"page","required":false,"in":"query","schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"default":1,"type":"integer"}},{"name":"limit","required":false,"in":"query","schema":{"maximum":100,"exclusiveMinimum":0,"default":20,"type":"integer"}},{"name":"search","required":false,"in":"query","schema":{"type":"string"}},{"name":"hasPublicProfile","required":false,"in":"query","schema":{"type":"string"}},{"name":"userId","required":false,"in":"query","schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"type":"integer"}}],"responses":{"200":{"description":""}},"tags":["RecordLabel"]},"post":{"operationId":"RecordLabelController_createRecordLabel","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateRecordLabelDto"}}}},"responses":{"201":{"description":""}},"tags":["RecordLabel"]}},"/record-labels/{id}":{"get":{"operationId":"RecordLabelController_getRecordLabelById","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["RecordLabel"]},"put":{"operationId":"RecordLabelController_updateRecordLabel","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateRecordLabelDto"}}}},"responses":{"200":{"description":""}},"tags":["RecordLabel"]},"delete":{"operationId":"RecordLabelController_deleteRecordLabel","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["RecordLabel"]}},"/record-labels/user/{userId}":{"get":{"operationId":"RecordLabelController_getRecordLabelByUserId","parameters":[{"name":"userId","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["RecordLabel"]}},"/favorites":{"get":{"operationId":"FavoriteController_getUserFavorites","parameters":[{"name":"userId","required":false,"in":"query","schema":{"type":"string"}},{"name":"limit","required":true,"in":"query","schema":{"type":"string"}},{"name":"page","required":true,"in":"query","schema":{"type":"string"}},{"name":"sort","required":false,"in":"query","schema":{"default":"likedAt","type":"string","enum":["likedAt","title","playCount"]}},{"name":"order","required":false,"in":"query","schema":{"default":"desc","type":"string","enum":["asc","desc"]}},{"name":"genreId","required":false,"in":"query","schema":{"type":"string"}},{"name":"language","required":false,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Favorite"]},"post":{"operationId":"FavoriteController_addFavorite","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AddFavoriteBodyDTO"}}}},"responses":{"201":{"description":""}},"tags":["Favorite"]}},"/favorites/check":{"get":{"operationId":"FavoriteController_checkFavorite","parameters":[{"name":"userId","required":true,"in":"query","schema":{"type":"string"}},{"name":"songId","required":true,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Favorite"]}},"/favorites/count/{userId}":{"get":{"operationId":"FavoriteController_getUserFavoriteCount","parameters":[{"name":"userId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Favorite"]}},"/favorites/songs/{userId}":{"get":{"operationId":"FavoriteController_getUserFavoriteSongIds","parameters":[{"name":"userId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Favorite"]}},"/favorites/{userId}/{songId}":{"delete":{"operationId":"FavoriteController_removeFavorite","parameters":[{"name":"userId","required":true,"in":"path","schema":{"type":"string"}},{"name":"songId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Favorite"]}},"/follows":{"get":{"operationId":"FollowController_getUserFollows","parameters":[{"name":"userId","required":false,"in":"query","schema":{"type":"string"}},{"name":"targetType","required":false,"in":"query","schema":{"type":"string","enum":["Artist","Label"]}},{"name":"limit","required":false,"in":"query","schema":{"minimum":1,"maximum":100,"default":20,"type":"integer"}},{"name":"page","required":false,"in":"query","schema":{"minimum":1,"maximum":9007199254740991,"default":1,"type":"integer"}},{"name":"sort","required":false,"in":"query","schema":{"default":"followedAt","type":"string","enum":["followedAt","name"]}},{"name":"order","required":false,"in":"query","schema":{"default":"desc","type":"string","enum":["asc","desc"]}}],"responses":{"200":{"description":""}},"tags":["Follow"]},"post":{"operationId":"FollowController_addFollow","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AddFollowBodyDTO"}}}},"responses":{"201":{"description":""}},"tags":["Follow"]}},"/follows/check":{"get":{"operationId":"FollowController_checkFollow","parameters":[{"name":"userId","required":true,"in":"query","schema":{"type":"string"}},{"name":"targetType","required":true,"in":"query","schema":{"type":"string","enum":["Artist","Label"]}},{"name":"targetId","required":true,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Follow"]}},"/follows/count/{targetType}/{targetId}":{"get":{"operationId":"FollowController_getFollowersCount","parameters":[{"name":"targetType","required":true,"in":"path","schema":{"type":"string"}},{"name":"targetId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Follow"]}},"/follows/user/{userId}/count":{"get":{"operationId":"FollowController_getUserFollowingCount","parameters":[{"name":"userId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Follow"]}},"/follows/user/{userId}/ids":{"get":{"operationId":"FollowController_getUserFollowingIds","parameters":[{"name":"userId","required":true,"in":"path","schema":{"type":"string"}},{"name":"targetType","required":true,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Follow"]}},"/follows/{userId}/{targetType}/{targetId}":{"delete":{"operationId":"FollowController_removeFollow","parameters":[{"name":"userId","required":true,"in":"path","schema":{"type":"string"}},{"name":"targetType","required":true,"in":"path","schema":{"type":"string"}},{"name":"targetId","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Follow"]}},"/search":{"get":{"operationId":"SearchController_search","parameters":[{"name":"query","required":true,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"minLength":1,"maxLength":255,"type":"string"}},{"name":"type","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"default":"all","type":"string","enum":["all","songs","albums","artists","playlists","users"]}},{"name":"page","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"minimum":1,"maximum":9007199254740991,"default":1,"type":"integer"}},{"name":"limit","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"minimum":1,"maximum":100,"default":20,"type":"integer"}}],"responses":{"200":{"description":""}},"tags":["Search"]}},"/search/suggestions":{"get":{"operationId":"SearchController_getSuggestions","parameters":[{"name":"query","required":true,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"minLength":1,"maxLength":255,"type":"string"}},{"name":"limit","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"minimum":1,"maximum":20,"default":10,"type":"integer"}}],"responses":{"200":{"description":""}},"tags":["Search"]}},"/search/trending":{"get":{"operationId":"SearchController_getTrendingSearches","parameters":[{"name":"limit","required":true,"in":"query","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["Search"]}},"/users":{"post":{"operationId":"UserController_createUser","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateUserDto"}}}},"responses":{"201":{"description":""}},"tags":["User"]},"get":{"operationId":"UserController_getUsers","parameters":[{"name":"page","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"default":1,"type":"integer"}},{"name":"limit","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"default":10,"type":"integer"}},{"name":"role","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string","enum":["Admin","Listener","Label"]}},{"name":"status","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string","enum":["Active","Inactive","Banned","Suspended"]}},{"name":"search","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["User"]}},"/users/{id}":{"get":{"operationId":"UserController_getUserById","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["User"]},"patch":{"operationId":"UserController_updateUser","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateUserDto"}}}},"responses":{"200":{"description":""}},"tags":["User"]},"delete":{"operationId":"UserController_deleteUser","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["User"]}},"/users/{id}/detail":{"get":{"operationId":"UserController_getUserDetailById","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["User"]}},"/users/{id}/status":{"patch":{"operationId":"UserController_updateUserStatus","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateUserStatusDto"}}}},"responses":{"200":{"description":""}},"tags":["User"]}},"/users/{id}/role":{"patch":{"operationId":"UserController_updateUserRole","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateUserRoleDto"}}}},"responses":{"200":{"description":""}},"tags":["User"]}},"/users/{id}/statistics":{"get":{"operationId":"UserController_getUserStatistics","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["User"]}},"/listening-history/track":{"post":{"operationId":"ListeningHistoryController_trackSong","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateListeningHistoryDto"}}}},"responses":{"201":{"description":""}},"tags":["ListeningHistory"]}},"/listening-history/my-history":{"get":{"operationId":"ListeningHistoryController_getMyHistory","parameters":[{"name":"page","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"default":1,"type":"integer"}},{"name":"limit","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":100,"exclusiveMinimum":0,"default":20,"type":"integer"}},{"name":"startDate","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}},{"name":"endDate","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}},{"name":"songId","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"type":"integer"}}],"responses":{"200":{"description":""}},"tags":["ListeningHistory"]}},"/listening-history/recently-played":{"get":{"operationId":"ListeningHistoryController_getRecentlyPlayed","parameters":[{"name":"limit","required":true,"in":"query","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["ListeningHistory"]}},"/listening-history/stats":{"get":{"operationId":"ListeningHistoryController_getUserStats","parameters":[{"name":"period","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"default":"monthly","type":"string","enum":["daily","weekly","monthly","yearly"]}},{"name":"startDate","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}},{"name":"endDate","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["ListeningHistory"]}},"/listening-history/clear":{"delete":{"operationId":"ListeningHistoryController_clearHistory","parameters":[],"responses":{"200":{"description":""}},"tags":["ListeningHistory"]}},"/listening-history/{id}":{"delete":{"operationId":"ListeningHistoryController_deleteHistoryItem","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["ListeningHistory"]}},"/subscription-plans":{"post":{"operationId":"SubscriptionPlanController_createPlan","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateSubscriptionPlanDto"}}}},"responses":{"201":{"description":""}},"tags":["SubscriptionPlan"]},"get":{"operationId":"SubscriptionPlanController_getPlans","parameters":[{"name":"page","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"default":1,"type":"integer"}},{"name":"limit","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":100,"exclusiveMinimum":0,"default":20,"type":"integer"}},{"name":"isActive","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}},{"name":"search","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["SubscriptionPlan"]}},"/subscription-plans/stats":{"get":{"operationId":"SubscriptionPlanController_getStats","parameters":[],"responses":{"200":{"description":""}},"tags":["SubscriptionPlan"]}},"/subscription-plans/{id}":{"get":{"operationId":"SubscriptionPlanController_getPlanById","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["SubscriptionPlan"]},"patch":{"operationId":"SubscriptionPlanController_updatePlan","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateSubscriptionPlanDto"}}}},"responses":{"200":{"description":""}},"tags":["SubscriptionPlan"]},"delete":{"operationId":"SubscriptionPlanController_deletePlan","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["SubscriptionPlan"]}},"/user-subscriptions":{"post":{"operationId":"UserSubscriptionController_subscribe","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateUserSubscriptionDto"}}}},"responses":{"201":{"description":""}},"tags":["UserSubscription"]},"get":{"operationId":"UserSubscriptionController_getUserSubscriptions","parameters":[{"name":"page","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"default":1,"type":"integer"}},{"name":"limit","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":100,"exclusiveMinimum":0,"default":20,"type":"integer"}},{"name":"isActive","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"type":"string"}},{"name":"planId","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"type":"integer"}}],"responses":{"200":{"description":""}},"tags":["UserSubscription"]}},"/user-subscriptions/status":{"get":{"operationId":"UserSubscriptionController_checkStatus","parameters":[],"responses":{"200":{"description":""}},"tags":["UserSubscription"]}},"/user-subscriptions/active":{"get":{"operationId":"UserSubscriptionController_getActiveSubscription","parameters":[],"responses":{"200":{"description":""}},"tags":["UserSubscription"]}},"/user-subscriptions/{id}":{"get":{"operationId":"UserSubscriptionController_getSubscriptionById","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["UserSubscription"]},"patch":{"operationId":"UserSubscriptionController_updateSubscription","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateUserSubscriptionDto"}}}},"responses":{"200":{"description":""}},"tags":["UserSubscription"]}},"/user-subscriptions/{id}/cancel":{"post":{"operationId":"UserSubscriptionController_cancelSubscription","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["UserSubscription"]}},"/user-subscriptions/{id}/renew":{"post":{"operationId":"UserSubscriptionController_renewSubscription","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["UserSubscription"]}},"/payment-methods":{"post":{"operationId":"PaymentMethodController_create","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreatePaymentMethodDto"}}}},"responses":{"201":{"description":""}},"tags":["PaymentMethod"]},"get":{"operationId":"PaymentMethodController_findAll","parameters":[{"name":"page","required":false,"in":"query","schema":{"default":"1","type":"string"}},{"name":"limit","required":false,"in":"query","schema":{"default":"10","type":"string"}},{"name":"isActive","required":false,"in":"query","schema":{"type":"string"}},{"name":"search","required":false,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["PaymentMethod"]}},"/payment-methods/stats":{"get":{"operationId":"PaymentMethodController_getStats","parameters":[],"responses":{"200":{"description":""}},"tags":["PaymentMethod"]}},"/payment-methods/{id}":{"get":{"operationId":"PaymentMethodController_findById","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["PaymentMethod"]},"put":{"operationId":"PaymentMethodController_update","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdatePaymentMethodDto"}}}},"responses":{"200":{"description":""}},"tags":["PaymentMethod"]},"delete":{"operationId":"PaymentMethodController_delete","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["PaymentMethod"]}},"/role":{"post":{"operationId":"RoleController_create","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateRoleBodyDTO"}}}},"responses":{"201":{"description":""}},"tags":["Role"]},"get":{"operationId":"RoleController_findAll","parameters":[{"name":"page","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"default":1,"type":"integer"}},{"name":"limit","required":false,"in":"query","x-nestjs_zod-parent-additional-properties":false,"schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"default":10,"type":"integer"}}],"responses":{"200":{"description":""}},"tags":["Role"]}},"/role/{id}":{"get":{"operationId":"RoleController_findOne","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Role"]},"patch":{"operationId":"RoleController_update","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"string"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateRoleBodyDTO"}}}},"responses":{"200":{"description":""}},"tags":["Role"]},"delete":{"operationId":"RoleController_remove","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Role"]}},"/transactions":{"post":{"operationId":"TransactionController_create","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateTransactionDto"}}}},"responses":{"201":{"description":""}},"tags":["Transaction"]},"get":{"operationId":"TransactionController_findAll","parameters":[{"name":"page","required":false,"in":"query","schema":{"default":"1","type":"string"}},{"name":"limit","required":false,"in":"query","schema":{"default":"10","type":"string"}},{"name":"status","required":false,"in":"query","schema":{"type":"string","enum":["Pending","Completed","Failed","Refunded"]}},{"name":"userId","required":false,"in":"query","schema":{"type":"string"}},{"name":"subscriptionId","required":false,"in":"query","schema":{"type":"string"}},{"name":"fromDate","required":false,"in":"query","schema":{"type":"string"}},{"name":"toDate","required":false,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Transaction"]}},"/transactions/stats":{"get":{"operationId":"TransactionController_getStats","parameters":[],"responses":{"200":{"description":""}},"tags":["Transaction"]}},"/transactions/my-transactions":{"get":{"operationId":"TransactionController_getMyTransactions","parameters":[{"name":"page","required":true,"in":"query","schema":{"type":"number"}},{"name":"limit","required":true,"in":"query","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["Transaction"]}},"/transactions/{id}":{"get":{"operationId":"TransactionController_findById","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["Transaction"]}},"/transactions/{id}/refund":{"post":{"operationId":"TransactionController_refund","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/RefundTransactionDto"}}}},"responses":{"201":{"description":""}},"tags":["Transaction"]}},"/transactions/webhook":{"post":{"operationId":"TransactionController_handleSepayWebhook","parameters":[{"name":"x-sepay-signature","required":true,"in":"header","schema":{"type":"string"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/SepayWebhookDto"}}}},"responses":{"200":{"description":""}},"tags":["Transaction"]}},"/statistics/dashboard":{"get":{"operationId":"StatisticsController_getDashboardOverview","parameters":[],"responses":{"200":{"description":""}},"tags":["Statistics"]}},"/statistics/daily":{"get":{"operationId":"StatisticsController_getDailyStats","parameters":[{"name":"startDate","required":true,"in":"query","schema":{"pattern":"^\\d{4}-\\d{2}-\\d{2}$","type":"string"}},{"name":"endDate","required":true,"in":"query","schema":{"pattern":"^\\d{4}-\\d{2}-\\d{2}$","type":"string"}}],"responses":{"200":{"description":""}},"tags":["Statistics"]}},"/statistics/trending":{"get":{"operationId":"StatisticsController_getTrendingSongs","parameters":[{"name":"periodType","required":false,"in":"query","schema":{"default":"Weekly","type":"string","enum":["Daily","Weekly","Monthly"]}},{"name":"limit","required":false,"in":"query","schema":{"default":"10","type":"string"}}],"responses":{"200":{"description":""}},"tags":["Statistics"]}},"/statistics/revenue":{"get":{"operationId":"StatisticsController_getRevenueStats","parameters":[{"name":"startDate","required":true,"in":"query","schema":{"pattern":"^\\d{4}-\\d{2}-\\d{2}$","type":"string"}},{"name":"endDate","required":true,"in":"query","schema":{"pattern":"^\\d{4}-\\d{2}-\\d{2}$","type":"string"}},{"name":"groupBy","required":false,"in":"query","schema":{"default":"day","type":"string","enum":["day","week","month"]}}],"responses":{"200":{"description":""}},"tags":["Statistics"]}},"/statistics/engagement":{"get":{"operationId":"StatisticsController_getUserEngagementStats","parameters":[{"name":"startDate","required":true,"in":"query","schema":{"pattern":"^\\d{4}-\\d{2}-\\d{2}$","type":"string"}},{"name":"endDate","required":true,"in":"query","schema":{"pattern":"^\\d{4}-\\d{2}-\\d{2}$","type":"string"}}],"responses":{"200":{"description":""}},"tags":["Statistics"]}},"/statistics/update-daily":{"post":{"operationId":"StatisticsController_updateDailyStatistics","parameters":[],"responses":{"201":{"description":""}},"tags":["Statistics"]}},"/notifications":{"post":{"operationId":"NotificationController_create","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateNotificationDto"}}}},"responses":{"201":{"description":""}},"tags":["Notification"]},"get":{"operationId":"NotificationController_findAll","parameters":[{"name":"page","required":false,"in":"query","schema":{"default":"1","type":"string"}},{"name":"limit","required":false,"in":"query","schema":{"default":"20","type":"string"}},{"name":"type","required":false,"in":"query","schema":{"type":"string","enum":["Subscription Expiry","New Release","System Update","Copyright Notice"]}},{"name":"isRead","required":false,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Notification"]}},"/notifications/bulk":{"post":{"operationId":"NotificationController_createBulk","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateBulkNotificationDto"}}}},"responses":{"201":{"description":""}},"tags":["Notification"]}},"/notifications/stats":{"get":{"operationId":"NotificationController_getStats","parameters":[],"responses":{"200":{"description":""}},"tags":["Notification"]}},"/notifications/unread-count":{"get":{"operationId":"NotificationController_getUnreadCount","parameters":[],"responses":{"200":{"description":""}},"tags":["Notification"]}},"/notifications/{id}":{"get":{"operationId":"NotificationController_findById","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["Notification"]},"delete":{"operationId":"NotificationController_delete","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["Notification"]}},"/notifications/{id}/read":{"post":{"operationId":"NotificationController_markAsRead","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"201":{"description":""}},"tags":["Notification"]}},"/notifications/mark-all-read":{"post":{"operationId":"NotificationController_markAllAsRead","parameters":[],"responses":{"201":{"description":""}},"tags":["Notification"]}},"/notifications/mark-multiple-read":{"post":{"operationId":"NotificationController_markMultipleAsRead","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/MarkMultipleAsReadDto"}}}},"responses":{"201":{"description":""}},"tags":["Notification"]}},"/notifications/read":{"delete":{"operationId":"NotificationController_deleteAllRead","parameters":[],"responses":{"200":{"description":""}},"tags":["Notification"]}},"/notifications/multiple":{"delete":{"operationId":"NotificationController_deleteMultiple","parameters":[],"responses":{"200":{"description":""}},"tags":["Notification"]}},"/advertisements":{"post":{"operationId":"AdvertisementController_create","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateAdvertisementDto"}}}},"responses":{"201":{"description":""}},"tags":["Advertisement"]},"get":{"operationId":"AdvertisementController_findAll","parameters":[{"name":"page","required":false,"in":"query","schema":{"default":"1","type":"string"}},{"name":"limit","required":false,"in":"query","schema":{"default":"20","type":"string"}},{"name":"adType","required":false,"in":"query","schema":{"type":"string","enum":["Audio","Banner","Video"]}},{"name":"isActive","required":false,"in":"query","schema":{"type":"string"}},{"name":"search","required":false,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Advertisement"]}},"/advertisements/stats":{"get":{"operationId":"AdvertisementController_getOverallStats","parameters":[{"name":"startDate","required":true,"in":"query","schema":{"type":"string"}},{"name":"endDate","required":true,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Advertisement"]}},"/advertisements/{id}":{"get":{"operationId":"AdvertisementController_findById","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["Advertisement"]},"put":{"operationId":"AdvertisementController_update","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateAdvertisementDto"}}}},"responses":{"200":{"description":""}},"tags":["Advertisement"]},"delete":{"operationId":"AdvertisementController_delete","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["Advertisement"]}},"/advertisements/{id}/stats":{"get":{"operationId":"AdvertisementController_getAdStats","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}},{"name":"startDate","required":true,"in":"query","schema":{"type":"string"}},{"name":"endDate","required":true,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Advertisement"]}},"/advertisements/{id}/toggle":{"patch":{"operationId":"AdvertisementController_toggleActive","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["Advertisement"]}},"/advertisements/active/list":{"get":{"operationId":"AdvertisementController_getActiveAds","parameters":[{"name":"limit","required":false,"in":"query","schema":{"default":"5","type":"string"}},{"name":"adType","required":false,"in":"query","schema":{"type":"string","enum":["Audio","Banner","Video"]}}],"responses":{"200":{"description":""}},"tags":["Advertisement"]}},"/advertisements/impressions":{"post":{"operationId":"AdvertisementController_recordImpression","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateAdImpressionDto"}}}},"responses":{"201":{"description":""}},"tags":["Advertisement"]}},"/advertisements/impressions/click":{"post":{"operationId":"AdvertisementController_trackClick","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/TrackAdClickDto"}}}},"responses":{"201":{"description":""}},"tags":["Advertisement"]}},"/copyright-reports":{"post":{"operationId":"CopyrightReportController_create","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateCopyrightReportDto"}}}},"responses":{"201":{"description":""}},"tags":["CopyrightReport"]},"get":{"operationId":"CopyrightReportController_findAll","parameters":[{"name":"page","required":false,"in":"query","schema":{"default":"1","type":"string"}},{"name":"limit","required":false,"in":"query","schema":{"default":"20","type":"string"}},{"name":"status","required":false,"in":"query","schema":{"type":"string","enum":["Pending","Under Review","Resolved","Dismissed"]}},{"name":"reporterType","required":false,"in":"query","schema":{"type":"string","enum":["System","Listener","Label","External"]}},{"name":"songId","required":false,"in":"query","schema":{"type":"string"}},{"name":"reporterId","required":false,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["CopyrightReport"]}},"/copyright-reports/my-reports":{"get":{"operationId":"CopyrightReportController_getMyReports","parameters":[{"name":"page","required":true,"in":"query","schema":{"type":"string"}},{"name":"limit","required":true,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["CopyrightReport"]}},"/copyright-reports/my-reports/{id}":{"get":{"operationId":"CopyrightReportController_getMyReport","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["CopyrightReport"]}},"/copyright-reports/stats":{"get":{"operationId":"CopyrightReportController_getStats","parameters":[],"responses":{"200":{"description":""}},"tags":["CopyrightReport"]}},"/copyright-reports/{id}":{"get":{"operationId":"CopyrightReportController_findById","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["CopyrightReport"]},"delete":{"operationId":"CopyrightReportController_delete","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["CopyrightReport"]}},"/copyright-reports/{id}/status":{"patch":{"operationId":"CopyrightReportController_updateStatus","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateReportStatusDto"}}}},"responses":{"200":{"description":""}},"tags":["CopyrightReport"]}},"/ratings/songs/{songId}":{"post":{"operationId":"UserSongRatingController_createOrUpdateRating","parameters":[{"name":"songId","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateRatingDto"}}}},"responses":{"201":{"description":""}},"tags":["UserSongRating"]},"delete":{"operationId":"UserSongRatingController_deleteRating","parameters":[{"name":"songId","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["UserSongRating"]}},"/ratings/songs/{songId}/update":{"post":{"operationId":"UserSongRatingController_updateRating","parameters":[{"name":"songId","required":true,"in":"path","schema":{"type":"number"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateRatingDto"}}}},"responses":{"201":{"description":""}},"tags":["UserSongRating"]}},"/ratings/songs/{songId}/me":{"get":{"operationId":"UserSongRatingController_getUserRating","parameters":[{"name":"songId","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["UserSongRating"]}},"/ratings/me":{"get":{"operationId":"UserSongRatingController_getUserRatings","parameters":[{"name":"page","required":false,"in":"query","schema":{"default":"1","type":"string"}},{"name":"limit","required":false,"in":"query","schema":{"default":"20","type":"string"}},{"name":"rating","required":false,"in":"query","schema":{"type":"string","enum":["Like","Dislike"]}},{"name":"sortBy","required":false,"in":"query","schema":{"default":"ratedAt","type":"string","enum":["ratedAt","songTitle"]}},{"name":"sortOrder","required":false,"in":"query","schema":{"default":"desc","type":"string","enum":["asc","desc"]}}],"responses":{"200":{"description":""}},"tags":["UserSongRating"]}},"/ratings/me/liked-songs":{"get":{"operationId":"UserSongRatingController_getLikedSongs","parameters":[{"name":"page","required":true,"in":"query","schema":{"type":"number"}},{"name":"limit","required":true,"in":"query","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["UserSongRating"]}},"/ratings/songs/{songId}/stats":{"get":{"operationId":"UserSongRatingController_getSongRatingStats","parameters":[{"name":"songId","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["UserSongRating"]}},"/ratings/me/stats":{"get":{"operationId":"UserSongRatingController_getUserRatingStats","parameters":[],"responses":{"200":{"description":""}},"tags":["UserSongRating"]}},"/devices":{"get":{"operationId":"DeviceController_getUserDevices","parameters":[{"name":"page","required":false,"in":"query","schema":{"maximum":9007199254740991,"exclusiveMinimum":0,"default":1,"type":"integer"}},{"name":"limit","required":false,"in":"query","schema":{"maximum":100,"exclusiveMinimum":0,"default":20,"type":"integer"}},{"name":"isActive","required":false,"in":"query","schema":{"type":"string"}},{"name":"sortBy","required":false,"in":"query","schema":{"default":"lastActive","type":"string","enum":["lastActive","createdAt"]}},{"name":"sortOrder","required":false,"in":"query","schema":{"default":"desc","type":"string","enum":["asc","desc"]}}],"responses":{"200":{"description":""}},"tags":["Device"]}},"/devices/stats":{"get":{"operationId":"DeviceController_getDeviceStats","parameters":[],"responses":{"200":{"description":""}},"tags":["Device"]}},"/devices/{id}":{"get":{"operationId":"DeviceController_getDeviceById","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["Device"]},"delete":{"operationId":"DeviceController_deleteDevice","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["Device"]}},"/devices/{id}/revoke":{"delete":{"operationId":"DeviceController_revokeDevice","parameters":[{"name":"id","required":true,"in":"path","schema":{"type":"number"}}],"responses":{"200":{"description":""}},"tags":["Device"]}},"/devices/revoke-all":{"post":{"operationId":"DeviceController_revokeAllDevices","parameters":[],"responses":{"201":{"description":""}},"tags":["Device"]}},"/user-preferences":{"get":{"operationId":"UserPreferenceController_getUserPreference","parameters":[],"responses":{"200":{"description":""}},"tags":["UserPreference"]},"post":{"operationId":"UserPreferenceController_createUserPreference","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateUserPreferenceDto"}}}},"responses":{"201":{"description":""}},"tags":["UserPreference"]},"put":{"operationId":"UserPreferenceController_updateUserPreference","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateUserPreferenceDto"}}}},"responses":{"200":{"description":""}},"tags":["UserPreference"]},"delete":{"operationId":"UserPreferenceController_deleteUserPreference","parameters":[],"responses":{"200":{"description":""}},"tags":["UserPreference"]}},"/user-preferences/upsert":{"put":{"operationId":"UserPreferenceController_upsertUserPreference","parameters":[],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateUserPreferenceDto"}}}},"responses":{"200":{"description":""}},"tags":["UserPreference"]}},"/recommendations/personalized":{"get":{"operationId":"RecommendationController_getPersonalizedRecommendations","parameters":[{"name":"limit","required":true,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Recommendation"]}},"/recommendations/similar/{songId}":{"get":{"operationId":"RecommendationController_getSimilarSongs","parameters":[{"name":"songId","required":true,"in":"path","schema":{"type":"number"}},{"name":"limit","required":true,"in":"query","schema":{"type":"string"}}],"responses":{"200":{"description":""}},"tags":["Recommendation"]}},"/recommendations/for-you":{"get":{"operationId":"RecommendationController_getDiscoverWeekly","parameters":[],"responses":{"200":{"description":""}},"tags":["Recommendation"]}},"/recommendations/daily-mix":{"get":{"operationId":"RecommendationController_getDailyMix","parameters":[],"responses":{"200":{"description":""}},"tags":["Recommendation"]}}},"info":{"title":"UIT-Music API","description":"Music streaming platform API with features including user authentication, music playback, playlists, favorites, subscriptions, and recommendations.","version":"1.0.0","contact":{"name":"UIT-Music Team","url":"https://uit-music.com","email":"ntuanloc205@gmail.com"}},"tags":[{"name":"Authentication","description":"User authentication and authorization endpoints"},{"name":"Albums","description":"Album management and browsing"},{"name":"Artists","description":"Artist management and discovery"},{"name":"Songs","description":"Song management, playback, and streaming"},{"name":"Playlists","description":"User playlist creation and management"},{"name":"Favorites","description":"User favorite songs and collections"},{"name":"Follow","description":"Follow artists and record labels"},{"name":"Genres","description":"Music genre management"},{"name":"Users","description":"User account management"},{"name":"Profile","description":"User profile settings"},{"name":"Subscriptions","description":"Premium subscription plans and management"},{"name":"Payments","description":"Payment processing and transactions"},{"name":"Media","description":"Media upload, processing, and playback"},{"name":"Search","description":"Search songs, albums, artists, and playlists"},{"name":"Recommendations","description":"Personalized music recommendations"},{"name":"Statistics","description":"Platform analytics and user statistics"},{"name":"Listening History","description":"User listening history tracking"},{"name":"Ratings","description":"Song rating system"},{"name":"Notifications","description":"User notification management"},{"name":"Copyright","description":"Copyright reporting and management"},{"name":"Advertisements","description":"Advertisement management"},{"name":"Roles & Permissions","description":"Access control and permissions"}],"servers":[],"components":{"securitySchemes":{"JWT-auth":{"scheme":"bearer","bearerFormat":"JWT","type":"http","name":"JWT","description":"Enter JWT token","in":"header"}},"schemas":{"SendOTPBodyDTO":{"type":"object","properties":{"email":{"type":"string","format":"email","pattern":"^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"},"type":{"type":"string","enum":["FORGOT_PASSWORD","REGISTER","LOGIN","DISABLED_2FA"]}},"required":["email","type"]},"RegisterBodyDTO":{"type":"object","properties":{"email":{"type":"string","format":"email","pattern":"^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"},"password":{"type":"string","minLength":6,"maxLength":100},"fullName":{"type":"string","minLength":1},"confirmPassword":{"type":"string","minLength":6,"maxLength":100},"code":{"type":"string","minLength":6,"maxLength":6}},"required":["email","password","fullName","confirmPassword","code"],"additionalProperties":false},"RegisterResDTO":{"type":"object","properties":{"id":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"email":{"type":"string","format":"email","pattern":"^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"},"fullName":{"type":"string","minLength":1},"dateOfBirth":{"type":"string","nullable":true},"gender":{"type":"string","enum":["Male","Female","Other"],"nullable":true},"roleId":{"type":"number","exclusiveMinimum":0},"profileImage":{"type":"string","nullable":true},"accountStatus":{"default":"Active","type":"string","enum":["Active","Inactive","Banned","Suspended"]},"createdAt":{"type":"string"},"updatedAt":{"type":"string"},"createdById":{"type":"number","nullable":true},"updatedById":{"type":"number","nullable":true}},"required":["id","email","fullName","dateOfBirth","gender","roleId","profileImage","createdAt","updatedAt","createdById","updatedById"]},"LoginBodyDTO":{"type":"object","properties":{"email":{"type":"string","format":"email","pattern":"^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"},"password":{"type":"string"}},"required":["email","password"],"additionalProperties":false},"LoginResDTO":{"type":"object","properties":{"accessToken":{"type":"string"},"refreshToken":{"type":"string"}},"required":["accessToken","refreshToken"]},"LogoutBodyDTO":{"type":"object","properties":{"refreshToken":{"type":"string"}},"required":["refreshToken"],"additionalProperties":false},"ForgotPasswordBodyDTO":{"type":"object","properties":{"email":{"type":"string","format":"email","pattern":"^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"}},"required":["email"]},"ResetPasswordBodyDTO":{"type":"object","properties":{"resetToken":{"type":"string"},"newPassword":{"type":"string","minLength":6,"maxLength":100},"confirmNewPassword":{"type":"string","minLength":6,"maxLength":100}},"required":["resetToken","newPassword","confirmNewPassword"],"additionalProperties":false},"GetAllPlaylistsDTO":{"type":"object","properties":{"data":{"type":"array","items":{"type":"object","properties":{"id":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"userId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"playlistName":{"type":"string","minLength":1,"maxLength":255},"description":{"type":"string","nullable":true},"tags":{"default":[],"type":"array","items":{"type":"string"}},"coverImageUrl":{"type":"string","nullable":true},"isFavorite":{"default":false,"type":"boolean"},"isPublic":{"default":false,"type":"boolean"},"createdAt":{"type":"string"},"updatedAt":{"type":"string"}},"required":["id","userId","playlistName","description","coverImageUrl","createdAt","updatedAt"]}},"page":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"totalPages":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"totalItems":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"limit":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991}},"required":["data","page","totalPages","totalItems","limit"]},"GetPlaylistQueryDTO":{"type":"object","properties":{"q":{"type":"string"},"ownerId":{"type":"string"},"isPublic":{"type":"boolean"},"tags":{"type":"array","items":{"type":"string"}},"limit":{"default":20,"type":"integer","minimum":1,"maximum":100},"page":{"default":1,"type":"integer","minimum":1,"maximum":9007199254740991},"sort":{"default":"createdAt","type":"string","enum":["createdAt","playlistName","updatedAt"]},"order":{"default":"desc","type":"string","enum":["asc","desc"]}}},"CreatePlaylistBodyDTO":{"type":"object","properties":{"userId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"coverImageUrl":{"type":"string","nullable":true},"tags":{"default":[],"type":"array","items":{"type":"string"}},"description":{"type":"string","nullable":true},"isPublic":{"default":false,"type":"boolean"},"playlistName":{"type":"string","minLength":1,"maxLength":255}},"required":["userId","coverImageUrl","description","playlistName"]},"CreatePlaylistResDTO":{"type":"object","properties":{"id":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"userId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"playlistName":{"type":"string","minLength":1,"maxLength":255},"description":{"type":"string","nullable":true},"tags":{"default":[],"type":"array","items":{"type":"string"}},"coverImageUrl":{"type":"string","nullable":true},"isFavorite":{"default":false,"type":"boolean"},"isPublic":{"default":false,"type":"boolean"},"createdAt":{"type":"string"},"updatedAt":{"type":"string"}},"required":["id","userId","playlistName","description","coverImageUrl","createdAt","updatedAt"]},"UpdatePlaylistBodyDTO":{"type":"object","properties":{"userId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"coverImageUrl":{"type":"string","nullable":true},"tags":{"default":[],"type":"array","items":{"type":"string"}},"description":{"type":"string","nullable":true},"isPublic":{"default":false,"type":"boolean"},"playlistName":{"type":"string","minLength":1,"maxLength":255}}},"UpdatePlaylistResDTO":{"type":"object","properties":{"id":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"userId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"playlistName":{"type":"string","minLength":1,"maxLength":255},"description":{"type":"string","nullable":true},"tags":{"default":[],"type":"array","items":{"type":"string"}},"coverImageUrl":{"type":"string","nullable":true},"isFavorite":{"default":false,"type":"boolean"},"isPublic":{"default":false,"type":"boolean"},"createdAt":{"type":"string"},"updatedAt":{"type":"string"}},"required":["id","userId","playlistName","description","coverImageUrl","createdAt","updatedAt"]},"MessageResDTO":{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]},"UpdateProfileBodyDTO":{"type":"object","properties":{"email":{"type":"string","format":"email","pattern":"^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"},"fullName":{"type":"string","minLength":1},"gender":{"type":"string","enum":["Male","Female","Other"],"nullable":true},"profileImage":{"type":"string","nullable":true},"dateOfBirth":{"type":"string"}}},"ChangePasswordBodyDTO":{"type":"object","properties":{"password":{"type":"string","minLength":6,"maxLength":100},"newPassword":{"type":"string","minLength":6,"maxLength":100},"confirmPassword":{"type":"string","minLength":6,"maxLength":100}},"required":["password","newPassword","confirmPassword"],"additionalProperties":false},"GetArtistsResponseDto":{"type":"object","properties":{"data":{"type":"array","items":{"type":"object","properties":{"id":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"artistName":{"type":"string","minLength":1,"maxLength":255},"biography":{"type":"string","nullable":true},"profileImage":{"type":"string","format":"uri","nullable":true},"hasPublicProfile":{"type":"boolean"},"createdAt":{"type":"string"},"updatedAt":{"type":"string"}},"required":["id","artistName","biography","profileImage","hasPublicProfile","createdAt","updatedAt"]}},"page":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"totalPages":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"totalItems":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991},"limit":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991}},"required":["data","page","totalPages","totalItems","limit"]},"ArtistResponseDto":{"type":"object","properties":{"id":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"artistName":{"type":"string","minLength":1,"maxLength":255},"biography":{"type":"string","nullable":true},"profileImage":{"type":"string","format":"uri","nullable":true},"hasPublicProfile":{"type":"boolean"},"createdAt":{"type":"string"},"updatedAt":{"type":"string"}},"required":["id","artistName","biography","profileImage","hasPublicProfile","createdAt","updatedAt"]},"CreateArtistBodyDto":{"type":"object","properties":{"artistName":{"type":"string","minLength":1,"maxLength":255},"biography":{"type":"string","nullable":true},"profileImage":{"type":"string","format":"uri","nullable":true},"hasPublicProfile":{"default":true,"type":"boolean"}},"required":["artistName"],"additionalProperties":false},"CreateArtistResDto":{"type":"object","properties":{"id":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"artistName":{"type":"string","minLength":1,"maxLength":255},"biography":{"type":"string","nullable":true},"profileImage":{"type":"string","format":"uri","nullable":true},"hasPublicProfile":{"type":"boolean"},"createdAt":{"type":"string"},"updatedAt":{"type":"string"}},"required":["id","artistName","biography","profileImage","hasPublicProfile","createdAt","updatedAt"]},"UpdateArtistBodyDto":{"type":"object","properties":{"artistName":{"type":"string","minLength":1,"maxLength":255},"biography":{"type":"string","nullable":true},"profileImage":{"type":"string","format":"uri","nullable":true},"hasPublicProfile":{"type":"boolean"}},"additionalProperties":false},"UpdateArtistResDto":{"type":"object","properties":{"id":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"artistName":{"type":"string","minLength":1,"maxLength":255},"biography":{"type":"string","nullable":true},"profileImage":{"type":"string","format":"uri","nullable":true},"hasPublicProfile":{"type":"boolean"},"createdAt":{"type":"string"},"updatedAt":{"type":"string"}},"required":["id","artistName","biography","profileImage","hasPublicProfile","createdAt","updatedAt"]},"PaginatedSongsDto":{"type":"object","properties":{"items":{"type":"array","items":{"type":"object","properties":{"id":{"type":"number"},"title":{"type":"string"},"description":{"type":"string","nullable":true},"duration":{"type":"number"},"language":{"type":"string","nullable":true},"lyrics":{"type":"string","nullable":true},"albumId":{"type":"number","nullable":true},"genreId":{"type":"number","nullable":true},"labelId":{"type":"number"},"uploadDate":{"type":"string"},"isActive":{"type":"boolean"},"copyrightStatus":{"type":"string","enum":["Clear","Disputed","Violation"]},"playCount":{"type":"number"},"isFavorite":{"type":"boolean"},"songArtists":{"type":"array","items":{"type":"object","properties":{"artistId":{"type":"number"},"songId":{"type":"number"},"role":{"type":"string","enum":["MainArtist","FeaturedArtist","Composer","Producer"]},"artist":{"type":"object","properties":{"id":{"type":"number"},"artistName":{"type":"string"},"profileImage":{"type":"string","nullable":true}},"required":["id","artistName","profileImage"]}},"required":["artistId","songId","role","artist"]}},"album":{"type":"object","properties":{"id":{"type":"number"},"albumTitle":{"type":"string"},"coverImage":{"type":"string","nullable":true}},"required":["id","albumTitle","coverImage"],"nullable":true},"genre":{"type":"object","properties":{"id":{"type":"number"},"genreName":{"type":"string"}},"required":["id","genreName"],"nullable":true},"label":{"type":"object","properties":{"id":{"type":"number"},"labelName":{"type":"string"}},"required":["id","labelName"]},"asset":{"type":"object","properties":{"id":{"type":"number"},"bucket":{"type":"string"},"keyMaster":{"type":"string"}},"required":["id","bucket","keyMaster"],"nullable":true}},"required":["id","title","description","duration","language","lyrics","albumId","genreId","labelId","uploadDate","isActive","copyrightStatus","playCount"]}},"total":{"type":"number"},"page":{"type":"number"},"limit":{"type":"number"},"totalPages":{"type":"number"}},"required":["items","total","page","limit","totalPages"]},"TrendingSongsDto":{"type":"object","properties":{"trending":{"type":"array","items":{"type":"object","properties":{"id":{"type":"number"},"title":{"type":"string"},"description":{"type":"string","nullable":true},"duration":{"type":"number"},"language":{"type":"string","nullable":true},"lyrics":{"type":"string","nullable":true},"albumId":{"type":"number","nullable":true},"genreId":{"type":"number","nullable":true},"labelId":{"type":"number"},"uploadDate":{"type":"string"},"isActive":{"type":"boolean"},"copyrightStatus":{"type":"string","enum":["Clear","Disputed","Violation"]},"playCount":{"type":"number"},"isFavorite":{"type":"boolean"},"songArtists":{"type":"array","items":{"type":"object","properties":{"artistId":{"type":"number"},"songId":{"type":"number"},"role":{"type":"string","enum":["MainArtist","FeaturedArtist","Composer","Producer"]},"artist":{"type":"object","properties":{"id":{"type":"number"},"artistName":{"type":"string"},"profileImage":{"type":"string","nullable":true}},"required":["id","artistName","profileImage"]}},"required":["artistId","songId","role","artist"]}},"album":{"type":"object","properties":{"id":{"type":"number"},"albumTitle":{"type":"string"},"coverImage":{"type":"string","nullable":true}},"required":["id","albumTitle","coverImage"],"nullable":true},"genre":{"type":"object","properties":{"id":{"type":"number"},"genreName":{"type":"string"}},"required":["id","genreName"],"nullable":true},"label":{"type":"object","properties":{"id":{"type":"number"},"labelName":{"type":"string"}},"required":["id","labelName"]},"asset":{"type":"object","properties":{"id":{"type":"number"},"bucket":{"type":"string"},"keyMaster":{"type":"string"}},"required":["id","bucket","keyMaster"],"nullable":true}},"required":["id","title","description","duration","language","lyrics","albumId","genreId","labelId","uploadDate","isActive","copyrightStatus","playCount"]}}},"required":["trending"]},"SongDto":{"type":"object","properties":{"id":{"type":"number"},"title":{"type":"string"},"description":{"type":"string","nullable":true},"duration":{"type":"number"},"language":{"type":"string","nullable":true},"lyrics":{"type":"string","nullable":true},"albumId":{"type":"number","nullable":true},"genreId":{"type":"number","nullable":true},"labelId":{"type":"number"},"uploadDate":{"type":"string"},"isActive":{"type":"boolean"},"copyrightStatus":{"type":"string","enum":["Clear","Disputed","Violation"]},"playCount":{"type":"number"},"isFavorite":{"type":"boolean"},"songArtists":{"type":"array","items":{"type":"object","properties":{"artistId":{"type":"number"},"songId":{"type":"number"},"role":{"type":"string","enum":["MainArtist","FeaturedArtist","Composer","Producer"]},"artist":{"type":"object","properties":{"id":{"type":"number"},"artistName":{"type":"string"},"profileImage":{"type":"string","nullable":true}},"required":["id","artistName","profileImage"]}},"required":["artistId","songId","role","artist"]}},"album":{"type":"object","properties":{"id":{"type":"number"},"albumTitle":{"type":"string"},"coverImage":{"type":"string","nullable":true}},"required":["id","albumTitle","coverImage"],"nullable":true},"genre":{"type":"object","properties":{"id":{"type":"number"},"genreName":{"type":"string"}},"required":["id","genreName"],"nullable":true},"label":{"type":"object","properties":{"id":{"type":"number"},"labelName":{"type":"string"}},"required":["id","labelName"]},"asset":{"type":"object","properties":{"id":{"type":"number"},"bucket":{"type":"string"},"keyMaster":{"type":"string"}},"required":["id","bucket","keyMaster"],"nullable":true}},"required":["id","title","description","duration","language","lyrics","albumId","genreId","labelId","uploadDate","isActive","copyrightStatus","playCount"]},"CreateSongDto":{"type":"object","properties":{"title":{"type":"string","minLength":1,"maxLength":255},"description":{"type":"string"},"duration":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"language":{"type":"string","maxLength":50},"lyrics":{"type":"string"},"albumId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"genreId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"artists":{"minItems":1,"type":"array","items":{"type":"object","properties":{"artistId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"role":{"default":"MainArtist","type":"string","enum":["MainArtist","FeaturedArtist","Composer","Producer"]}},"required":["artistId"]}}},"required":["title","duration","artists"]},"SongCreatedDto":{"type":"object","properties":{"id":{"type":"number"},"title":{"type":"string"},"message":{"type":"string"}},"required":["id","title","message"]},"UpdateSongDto":{"type":"object","properties":{"title":{"type":"string","minLength":1,"maxLength":255},"description":{"type":"string"},"duration":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"language":{"type":"string","maxLength":50},"lyrics":{"type":"string"},"albumId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991,"nullable":true},"genreId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991,"nullable":true},"isActive":{"type":"boolean"}}},"SongUpdatedDto":{"type":"object","properties":{"id":{"type":"number"},"message":{"type":"string"}},"required":["id","message"]},"UpdateSongArtistsDto":{"type":"object","properties":{"artists":{"minItems":1,"type":"array","items":{"type":"object","properties":{"artistId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"role":{"default":"MainArtist","type":"string","enum":["MainArtist","FeaturedArtist","Composer","Producer"]}},"required":["artistId"]}}},"required":["artists"]},"PlayCountIncrementedDto":{"type":"object","properties":{"songId":{"type":"number"},"playCount":{"type":"number"},"message":{"type":"string"}},"required":["songId","playCount","message"]},"PaginatedAlbumsResponseDto":{"type":"object","properties":{"items":{"type":"array","items":{"type":"object","properties":{"id":{"type":"number"},"albumTitle":{"type":"string"},"albumDescription":{"type":"string","nullable":true},"coverImage":{"type":"string","nullable":true},"releaseDate":{"type":"string","nullable":true},"labelId":{"type":"number","nullable":true},"totalTracks":{"type":"number"},"createdAt":{"type":"string"},"updatedAt":{"type":"string"},"label":{"type":"object","properties":{"id":{"type":"number"},"labelName":{"type":"string"},"hasPublicProfile":{"type":"boolean"}},"required":["id","labelName","hasPublicProfile"],"nullable":true},"songs":{"type":"array","items":{"type":"object","properties":{"id":{"type":"number"},"title":{"type":"string"},"duration":{"type":"number"},"playCount":{"type":"number"},"uploadDate":{"type":"string"},"songArtists":{"type":"array","items":{"type":"object","properties":{"role":{"type":"string"},"artist":{"type":"object","properties":{"id":{"type":"number"},"artistName":{"type":"string"},"profileImage":{"type":"string","nullable":true}},"required":["id","artistName","profileImage"]}},"required":["role","artist"]}}},"required":["id","title","duration","playCount","uploadDate"]}},"_count":{"type":"object","properties":{"songs":{"type":"number"}},"required":["songs"]}},"required":["id","albumTitle","albumDescription","coverImage","releaseDate","labelId","totalTracks","createdAt","updatedAt"]}},"total":{"type":"number"},"page":{"type":"number"},"limit":{"type":"number"},"totalPages":{"type":"number"}},"required":["items","total","page","limit","totalPages"]},"AlbumResponseDto":{"type":"object","properties":{"id":{"type":"number"},"albumTitle":{"type":"string"},"albumDescription":{"type":"string","nullable":true},"coverImage":{"type":"string","nullable":true},"releaseDate":{"type":"string","nullable":true},"labelId":{"type":"number","nullable":true},"totalTracks":{"type":"number"},"createdAt":{"type":"string"},"updatedAt":{"type":"string"},"label":{"type":"object","properties":{"id":{"type":"number"},"labelName":{"type":"string"},"hasPublicProfile":{"type":"boolean"}},"required":["id","labelName","hasPublicProfile"],"nullable":true},"songs":{"type":"array","items":{"type":"object","properties":{"id":{"type":"number"},"title":{"type":"string"},"duration":{"type":"number"},"playCount":{"type":"number"},"uploadDate":{"type":"string"},"songArtists":{"type":"array","items":{"type":"object","properties":{"role":{"type":"string"},"artist":{"type":"object","properties":{"id":{"type":"number"},"artistName":{"type":"string"},"profileImage":{"type":"string","nullable":true}},"required":["id","artistName","profileImage"]}},"required":["role","artist"]}}},"required":["id","title","duration","playCount","uploadDate"]}},"_count":{"type":"object","properties":{"songs":{"type":"number"}},"required":["songs"]}},"required":["id","albumTitle","albumDescription","coverImage","releaseDate","labelId","totalTracks","createdAt","updatedAt"]},"CreateAlbumDto":{"type":"object","properties":{"albumTitle":{"type":"string","minLength":1,"maxLength":255},"albumDescription":{"type":"string"},"coverImage":{"type":"string","maxLength":500},"releaseDate":{"type":"string"},"totalTracks":{"default":0,"type":"integer","minimum":0,"maximum":9007199254740991}},"required":["albumTitle"]},"UpdateAlbumDto":{"type":"object","properties":{"albumTitle":{"type":"string","minLength":1,"maxLength":255},"albumDescription":{"type":"string","nullable":true},"coverImage":{"type":"string","maxLength":500,"nullable":true},"releaseDate":{"type":"string","nullable":true},"totalTracks":{"type":"integer","minimum":0,"maximum":9007199254740991}}},"CreateRecordLabelDto":{"type":"object","properties":{"labelName":{"type":"string","minLength":1,"maxLength":255},"description":{"type":"string"},"website":{"type":"string","format":"uri"},"contactEmail":{"type":"string","format":"email","pattern":"^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"},"hasPublicProfile":{"default":false,"type":"boolean"}},"required":["labelName"]},"UpdateRecordLabelDto":{"type":"object","properties":{"labelName":{"type":"string","minLength":1,"maxLength":255},"description":{"type":"string","nullable":true},"website":{"type":"string","format":"uri","nullable":true},"contactEmail":{"type":"string","format":"email","pattern":"^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$","nullable":true},"hasPublicProfile":{"type":"boolean"}}},"AddFavoriteBodyDTO":{"type":"object","properties":{"userId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"songId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991}},"required":["userId","songId"]},"AddFollowBodyDTO":{"type":"object","properties":{"userId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"targetType":{"type":"string","enum":["Artist","Label"]},"targetId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991}},"required":["userId","targetType","targetId"]},"CreateUserDto":{"type":"object","properties":{"email":{"type":"string","format":"email","pattern":"^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"},"fullName":{"type":"string","minLength":1,"maxLength":255},"password":{"type":"string","minLength":8,"maxLength":255},"roleId":{"default":6,"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"dateOfBirth":{"type":"string"},"gender":{"type":"string","enum":["Male","Female","Other"]}},"required":["email","fullName","password"],"additionalProperties":false},"UpdateUserDto":{"type":"object","properties":{"fullName":{"type":"string","minLength":1,"maxLength":255},"dateOfBirth":{"type":"string"},"gender":{"type":"string","enum":["Male","Female","Other"]}},"additionalProperties":false},"UpdateUserStatusDto":{"type":"object","properties":{"accountStatus":{"type":"string","enum":["Active","Inactive","Banned","Suspended"]}},"required":["accountStatus"],"additionalProperties":false},"UpdateUserRoleDto":{"type":"object","properties":{"roleId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991}},"required":["roleId"],"additionalProperties":false},"CreateListeningHistoryDto":{"type":"object","properties":{"songId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"durationListened":{"type":"integer","minimum":0,"maximum":9007199254740991},"audioQuality":{"type":"string","enum":["128kbps","320kbps","FLAC","Master"]},"deviceInfo":{"type":"string","maxLength":255}},"required":["songId"],"additionalProperties":false},"CreateSubscriptionPlanDto":{"type":"object","properties":{"planName":{"type":"string","minLength":1,"maxLength":100},"durationMonths":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"price":{"type":"number","minimum":0},"features":{"type":"object","propertyNames":{"type":"string"},"additionalProperties":{}},"isActive":{"default":true,"type":"boolean"}},"required":["planName","durationMonths","price"],"additionalProperties":false},"UpdateSubscriptionPlanDto":{"type":"object","properties":{"planName":{"type":"string","minLength":1,"maxLength":100},"durationMonths":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"price":{"type":"number","minimum":0},"features":{"type":"object","propertyNames":{"type":"string"},"additionalProperties":{}},"isActive":{"type":"boolean"}},"additionalProperties":false},"CreateUserSubscriptionDto":{"type":"object","properties":{"planId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"autoRenew":{"default":false,"type":"boolean"}},"required":["planId"],"additionalProperties":false},"UpdateUserSubscriptionDto":{"type":"object","properties":{"autoRenew":{"type":"boolean"}},"additionalProperties":false},"CreatePaymentMethodDto":{"type":"object","properties":{"methodName":{"type":"string","minLength":1,"maxLength":100},"isActive":{"default":true,"type":"boolean"}},"required":["methodName"]},"UpdatePaymentMethodDto":{"type":"object","properties":{"methodName":{"type":"string","minLength":1,"maxLength":100},"isActive":{"type":"boolean"}},"additionalProperties":false},"CreateRoleBodyDTO":{"type":"object","properties":{"name":{"type":"string"},"description":{"type":"string"},"isActive":{"type":"boolean"}},"required":["name","description","isActive"],"additionalProperties":false},"UpdateRoleBodyDTO":{"type":"object","properties":{"name":{"type":"string"},"description":{"type":"string"},"isActive":{"type":"boolean"},"permissionIds":{"type":"array","items":{"type":"number"}}},"required":["name","description","isActive","permissionIds"],"additionalProperties":false},"CreateTransactionDto":{"type":"object","properties":{"subscriptionId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"amount":{"type":"number","exclusiveMinimum":0},"paymentMethodId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"returnUrl":{"type":"string","format":"uri"},"metadata":{"type":"object","propertyNames":{"type":"string"},"additionalProperties":{}}},"required":["amount","paymentMethodId"]},"RefundTransactionDto":{"type":"object","properties":{"amount":{"type":"number","exclusiveMinimum":0},"reason":{"type":"string","minLength":10,"maxLength":500}},"required":["reason"]},"SepayWebhookDto":{"type":"object","properties":{"id":{"type":"string"},"transactionId":{"type":"string"},"transferAmount":{"anyOf":[{"type":"string"},{"type":"number"}]},"amount":{"anyOf":[{"type":"string"},{"type":"number"}]},"transferContent":{"type":"string"},"description":{"type":"string"},"transferDate":{"type":"string"},"when":{"type":"string"},"accountNumber":{"type":"string"},"referenceNumber":{"type":"string"},"subAccount":{"type":"string"}}},"CreateNotificationDto":{"type":"object","properties":{"userId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"notificationType":{"type":"string","enum":["Subscription Expiry","New Release","System Update","Copyright Notice"]},"title":{"type":"string","minLength":1,"maxLength":255},"message":{"type":"string","minLength":1}},"required":["userId","notificationType","title","message"]},"CreateBulkNotificationDto":{"type":"object","properties":{"userIds":{"minItems":1,"type":"array","items":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991}},"notificationType":{"type":"string","enum":["Subscription Expiry","New Release","System Update","Copyright Notice"]},"title":{"type":"string","minLength":1,"maxLength":255},"message":{"type":"string","minLength":1}},"required":["userIds","notificationType","title","message"]},"MarkMultipleAsReadDto":{"type":"object","properties":{"notificationIds":{"minItems":1,"type":"array","items":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991}}},"required":["notificationIds"]},"CreateAdvertisementDto":{"type":"object","properties":{"adName":{"type":"string","minLength":1,"maxLength":255},"adType":{"type":"string","enum":["Audio","Banner","Video"]},"filePath":{"type":"string","maxLength":500},"duration":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"targetAudience":{"type":"object","properties":{"ageRange":{"type":"object","properties":{"min":{"type":"integer","minimum":13,"maximum":9007199254740991},"max":{"type":"integer","minimum":-9007199254740991,"maximum":100}}},"gender":{"type":"string","enum":["Male","Female","Other","All"]},"subscriptionType":{"default":"Free","type":"string","enum":["Free","Premium","All"]},"genres":{"type":"array","items":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991}},"countries":{"type":"array","items":{"type":"string"}}}},"startDate":{"type":"string"},"endDate":{"type":"string"},"isActive":{"default":true,"type":"boolean"}},"required":["adName","adType","startDate","endDate"]},"UpdateAdvertisementDto":{"type":"object","properties":{"adName":{"type":"string","minLength":1,"maxLength":255},"adType":{"type":"string","enum":["Audio","Banner","Video"]},"filePath":{"type":"string","maxLength":500},"duration":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"targetAudience":{"type":"object","properties":{"ageRange":{"type":"object","properties":{"min":{"type":"integer","minimum":13,"maximum":9007199254740991},"max":{"type":"integer","minimum":-9007199254740991,"maximum":100}}},"gender":{"type":"string","enum":["Male","Female","Other","All"]},"subscriptionType":{"default":"Free","type":"string","enum":["Free","Premium","All"]},"genres":{"type":"array","items":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991}},"countries":{"type":"array","items":{"type":"string"}}}},"startDate":{"type":"string"},"endDate":{"type":"string"},"isActive":{"type":"boolean"}}},"CreateAdImpressionDto":{"type":"object","properties":{"adId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"userId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"clicked":{"default":false,"type":"boolean"}},"required":["adId"]},"TrackAdClickDto":{"type":"object","properties":{"impressionId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991}},"required":["impressionId"]},"CreateCopyrightReportDto":{"type":"object","properties":{"songId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"reportReason":{"type":"string","minLength":10,"maxLength":2000}},"required":["songId","reportReason"]},"UpdateReportStatusDto":{"type":"object","properties":{"status":{"type":"string","enum":["Pending","Under Review","Resolved","Dismissed"]},"adminNotes":{"type":"string","minLength":1,"maxLength":5000}},"required":["status"]},"CreateRatingDto":{"type":"object","properties":{"songId":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991},"rating":{"type":"string","enum":["Like","Dislike"]}},"required":["songId","rating"]},"UpdateRatingDto":{"type":"object","properties":{"rating":{"type":"string","enum":["Like","Dislike"]}},"required":["rating"]},"CreateUserPreferenceDto":{"type":"object","properties":{"preferredGenres":{"type":"array","items":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991}},"preferredLanguages":{"type":"array","items":{"type":"string","enum":["Vietnamese","English"]}},"explicitContent":{"default":false,"type":"boolean"},"autoPlay":{"default":true,"type":"boolean"},"highQualityStreaming":{"default":false,"type":"boolean"}},"additionalProperties":false},"UpdateUserPreferenceDto":{"type":"object","properties":{"preferredGenres":{"type":"array","items":{"type":"integer","exclusiveMinimum":0,"maximum":9007199254740991}},"preferredLanguages":{"type":"array","items":{"type":"string","enum":["Vietnamese","English"]}},"explicitContent":{"type":"boolean"},"autoPlay":{"type":"boolean"},"highQualityStreaming":{"type":"boolean"}},"additionalProperties":false}}}}
+{
+  "baseURL": "http://localhost:3000",
+  "description": "UIT-MUSIC API Endpoints - Complete API Reference for Frontend Integration",
+  "version": "2.0.0",
+  "lastUpdated": "2024-12-21",
+  "endpoints": {
+    "home": {
+      "description": "APIs for Home Page - Trending, Recommendations, Discovery",
+      "endpoints": [
+        {
+          "name": "Get Trending Songs",
+          "method": "GET",
+          "path": "/songs/trending",
+          "auth": false,
+          "description": "Get trending songs for home page",
+          "queryParams": {
+            "limit": "number (optional, default: 10, max: 50)",
+            "genreId": "number (optional)"
+          },
+          "example": "/songs/trending?limit=20"
+        },
+        {
+          "name": "Get All Songs",
+          "method": "GET",
+          "path": "/songs",
+          "auth": false,
+          "description": "Get paginated list of songs with filters",
+          "queryParams": {
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 20, max: 100)",
+            "genreId": "number (optional)",
+            "artistId": "number (optional)",
+            "albumId": "number (optional)",
+            "labelId": "number (optional)",
+            "language": "string (optional)",
+            "order": "string (optional, values: 'latest', 'popular', 'title')"
+          },
+          "example": "/songs?page=1&limit=20&order=popular"
+        },
+        {
+          "name": "Get Song by ID",
+          "method": "GET",
+          "path": "/songs/:id",
+          "auth": false,
+          "description": "Get song details",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/songs/123"
+        },
+        {
+          "name": "Increment Play Count",
+          "method": "POST",
+          "path": "/songs/:id/play",
+          "auth": false,
+          "description": "Track song play and increment play counter",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/songs/123/play"
+        },
+        {
+          "name": "Get Personalized Recommendations",
+          "method": "GET",
+          "path": "/recommendations/personalized",
+          "auth": true,
+          "description": "Get personalized song recommendations",
+          "queryParams": {
+            "limit": "number (required)"
+          },
+          "example": "/recommendations/personalized?limit=30"
+        },
+        {
+          "name": "Get Discover Weekly",
+          "method": "GET",
+          "path": "/recommendations/for-you",
+          "auth": true,
+          "description": "Get discover weekly playlist (50 songs)",
+          "queryParams": {},
+          "example": "/recommendations/for-you"
+        },
+        {
+          "name": "Get Daily Mixes",
+          "method": "GET",
+          "path": "/recommendations/daily-mix",
+          "auth": true,
+          "description": "Get daily mix playlists (favorites, trending, discovery)",
+          "queryParams": {},
+          "example": "/recommendations/daily-mix"
+        },
+        {
+          "name": "Get Similar Songs",
+          "method": "GET",
+          "path": "/recommendations/similar/:songId",
+          "auth": false,
+          "description": "Get songs similar to a specific song",
+          "pathParams": {
+            "songId": "number (required)"
+          },
+          "queryParams": {
+            "limit": "number (required)"
+          },
+          "example": "/recommendations/similar/123?limit=15"
+        },
+        {
+          "name": "Get All Albums",
+          "method": "GET",
+          "path": "/albums",
+          "auth": false,
+          "description": "Get paginated list of albums",
+          "queryParams": {
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 20, max: 100)",
+            "labelId": "number (optional)",
+            "search": "string (optional)",
+            "order": "string (optional, values: 'latest', 'oldest', 'title', 'releaseDate')"
+          },
+          "example": "/albums?page=1&limit=20&order=latest"
+        },
+        {
+          "name": "Get Album by ID",
+          "method": "GET",
+          "path": "/albums/:id",
+          "auth": false,
+          "description": "Get album details with optional songs",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "queryParams": {
+            "includeSongs": "string (optional, 'true' or 'false')"
+          },
+          "example": "/albums/123?includeSongs=true"
+        },
+        {
+          "name": "Get Albums by Label",
+          "method": "GET",
+          "path": "/albums/label/:labelId",
+          "auth": false,
+          "description": "Get all albums from a specific record label",
+          "pathParams": {
+            "labelId": "number (required)"
+          },
+          "example": "/albums/label/1"
+        },
+        {
+          "name": "Get All Genres",
+          "method": "GET",
+          "path": "/genres",
+          "auth": false,
+          "description": "Get paginated list of music genres",
+          "queryParams": {
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 20)",
+            "q": "string (optional, search query)"
+          },
+          "example": "/genres?page=1&limit=20"
+        },
+        {
+          "name": "Get Genre by ID",
+          "method": "GET",
+          "path": "/genres/:id",
+          "auth": false,
+          "description": "Get genre details",
+          "pathParams": {
+            "id": "string (required)"
+          },
+          "example": "/genres/1"
+        },
+        {
+          "name": "Search",
+          "method": "GET",
+          "path": "/search",
+          "auth": false,
+          "description": "Global search across songs, albums, artists, and playlists",
+          "queryParams": {
+            "query": "string (required, min: 1, max: 255)",
+            "type": "string (optional, default: 'all', values: 'all', 'songs', 'albums', 'artists', 'playlists', 'users')",
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 20, max: 100)"
+          },
+          "example": "/search?query=pop&type=songs&limit=20"
+        },
+        {
+          "name": "Get Search Suggestions",
+          "method": "GET",
+          "path": "/search/suggestions",
+          "auth": false,
+          "description": "Get autocomplete search suggestions",
+          "queryParams": {
+            "query": "string (required, min: 1, max: 255)",
+            "limit": "number (optional, default: 10, max: 20)"
+          },
+          "example": "/search/suggestions?query=pop&limit=10"
+        },
+        {
+          "name": "Get Trending Searches",
+          "method": "GET",
+          "path": "/search/trending",
+          "auth": false,
+          "description": "Get trending search queries",
+          "queryParams": {
+            "limit": "number (required)"
+          },
+          "example": "/search/trending?limit=15"
+        },
+        {
+          "name": "Get All Playlists",
+          "method": "GET",
+          "path": "/playlists",
+          "auth": false,
+          "description": "Get paginated list of playlists",
+          "queryParams": {
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 20, max: 100)",
+            "ownerId": "string (optional)",
+            "isPublic": "boolean (optional)",
+            "q": "string (optional, search query)",
+            "tags": "array (optional)",
+            "sort": "string (optional, values: 'createdAt', 'playlistName', 'updatedAt')",
+            "order": "string (optional, values: 'asc', 'desc')"
+          },
+          "example": "/playlists?page=1&limit=20&isPublic=true"
+        },
+        {
+          "name": "Get Playlist by ID",
+          "method": "GET",
+          "path": "/playlists/:id",
+          "auth": false,
+          "description": "Get playlist details with tracks",
+          "pathParams": {
+            "id": "string (required)"
+          },
+          "example": "/playlists/123"
+        },
+        {
+          "name": "Get User Favorites",
+          "method": "GET",
+          "path": "/favorites",
+          "auth": false,
+          "description": "Get user's favorite songs",
+          "queryParams": {
+            "userId": "string (optional)",
+            "page": "string (required)",
+            "limit": "string (required)",
+            "sort": "string (optional, default: 'likedAt', values: 'likedAt', 'title', 'playCount')",
+            "order": "string (optional, default: 'desc', values: 'asc', 'desc')",
+            "genreId": "string (optional)",
+            "language": "string (optional)"
+          },
+          "example": "/favorites?userId=1&page=1&limit=20"
+        },
+        {
+          "name": "Get Home Summary",
+          "method": "GET",
+          "path": "/favorites/home-summary",
+          "auth": false,
+          "description": "Get home page summary (recently played, top songs, favorites)",
+          "queryParams": {
+            "userId": "number (required)"
+          },
+          "example": "/favorites/home-summary?userId=1"
+        },
+        {
+          "name": "Check Favorite",
+          "method": "GET",
+          "path": "/favorites/check",
+          "auth": false,
+          "description": "Check if song is favorited",
+          "queryParams": {
+            "userId": "string (required)",
+            "songId": "string (required)"
+          },
+          "example": "/favorites/check?userId=1&songId=123"
+        },
+        {
+          "name": "Get Favorite Count",
+          "method": "GET",
+          "path": "/favorites/count/:userId",
+          "auth": false,
+          "description": "Get total count of favorite songs",
+          "pathParams": {
+            "userId": "string (required)"
+          },
+          "example": "/favorites/count/1"
+        },
+        {
+          "name": "Get Favorite Song IDs",
+          "method": "GET",
+          "path": "/favorites/songs/:userId",
+          "auth": false,
+          "description": "Get array of favorite song IDs",
+          "pathParams": {
+            "userId": "string (required)"
+          },
+          "example": "/favorites/songs/1"
+        },
+        {
+          "name": "Add to Favorites",
+          "method": "POST",
+          "path": "/favorites",
+          "auth": true,
+          "description": "Add song to favorites",
+          "bodyParams": {
+            "userId": "number (required)",
+            "songId": "number (required)"
+          },
+          "example": {
+            "userId": 1,
+            "songId": 123
+          }
+        },
+        {
+          "name": "Remove from Favorites",
+          "method": "DELETE",
+          "path": "/favorites/:userId/:songId",
+          "auth": true,
+          "description": "Remove song from favorites",
+          "pathParams": {
+            "userId": "string (required)",
+            "songId": "string (required)"
+          },
+          "example": "/favorites/1/123"
+        },
+        {
+          "name": "Get Recently Played",
+          "method": "GET",
+          "path": "/listening-history/recently-played",
+          "auth": true,
+          "description": "Get recently played songs",
+          "queryParams": {
+            "limit": "number (optional, default: 20)"
+          },
+          "example": "/listening-history/recently-played?limit=20"
+        },
+        {
+          "name": "Get Listening History",
+          "method": "GET",
+          "path": "/listening-history/my-history",
+          "auth": true,
+          "description": "Get paginated listening history",
+          "queryParams": {
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 20)",
+            "startDate": "string (optional, ISO format)",
+            "endDate": "string (optional, ISO format)",
+            "songId": "number (optional)"
+          },
+          "example": "/listening-history/my-history?page=1&limit=20"
+        },
+        {
+          "name": "Get Listening Stats",
+          "method": "GET",
+          "path": "/listening-history/stats",
+          "auth": true,
+          "description": "Get listening statistics",
+          "queryParams": {
+            "period": "string (optional, default: 'monthly', values: 'daily', 'weekly', 'monthly', 'yearly')",
+            "startDate": "string (optional, ISO format)",
+            "endDate": "string (optional, ISO format)"
+          },
+          "example": "/listening-history/stats?period=monthly"
+        },
+        {
+          "name": "Track Song Play",
+          "method": "POST",
+          "path": "/listening-history/track",
+          "auth": true,
+          "description": "Track song play in listening history",
+          "bodyParams": {
+            "songId": "number (required)",
+            "durationListened": "number (optional)",
+            "audioQuality": "string (optional, values: '128kbps', '320kbps', 'FLAC', 'Master')",
+            "deviceInfo": "string (optional, max: 255)"
+          },
+          "example": {
+            "songId": 123,
+            "durationListened": 180,
+            "audioQuality": "320kbps"
+          }
+        },
+        {
+          "name": "Clear Listening History",
+          "method": "DELETE",
+          "path": "/listening-history/clear",
+          "auth": true,
+          "description": "Clear all listening history",
+          "queryParams": {},
+          "example": "/listening-history/clear"
+        },
+        {
+          "name": "Delete History Item",
+          "method": "DELETE",
+          "path": "/listening-history/:id",
+          "auth": true,
+          "description": "Delete specific history item",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/listening-history/123"
+        }
+      ]
+    },
+    "subscriptions": {
+      "description": "APIs for Subscriptions Page - Plans, Payments, Transactions",
+      "endpoints": [
+        {
+          "name": "Get Subscription Plans",
+          "method": "GET",
+          "path": "/subscription-plans",
+          "auth": true,
+          "description": "Get all available subscription plans",
+          "queryParams": {
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 20, max: 100)",
+            "isActive": "string (optional)",
+            "search": "string (optional)"
+          },
+          "example": "/subscription-plans?page=1&limit=10"
+        },
+        {
+          "name": "Get Subscription Plan by ID",
+          "method": "GET",
+          "path": "/subscription-plans/:id",
+          "auth": true,
+          "description": "Get specific subscription plan details",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/subscription-plans/1"
+        },
+        {
+          "name": "Get Plan Statistics",
+          "method": "GET",
+          "path": "/subscription-plans/stats",
+          "auth": true,
+          "description": "Get subscription plan statistics (Admin only)",
+          "queryParams": {},
+          "example": "/subscription-plans/stats"
+        },
+        {
+          "name": "Subscribe to Plan",
+          "method": "POST",
+          "path": "/user-subscriptions",
+          "auth": true,
+          "description": "Subscribe to a subscription plan",
+          "bodyParams": {
+            "planId": "number (required)",
+            "autoRenew": "boolean (optional, default: false)"
+          },
+          "example": {
+            "planId": 1,
+            "autoRenew": true
+          }
+        },
+        {
+          "name": "Get My Subscriptions",
+          "method": "GET",
+          "path": "/user-subscriptions",
+          "auth": true,
+          "description": "Get subscription history for authenticated user",
+          "queryParams": {
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 20, max: 100)",
+            "isActive": "string (optional)",
+            "planId": "number (optional)"
+          },
+          "example": "/user-subscriptions?page=1&limit=20"
+        },
+        {
+          "name": "Get Active Subscription",
+          "method": "GET",
+          "path": "/user-subscriptions/active",
+          "auth": true,
+          "description": "Get currently active subscription",
+          "queryParams": {},
+          "example": "/user-subscriptions/active"
+        },
+        {
+          "name": "Check Subscription Status",
+          "method": "GET",
+          "path": "/user-subscriptions/status",
+          "auth": true,
+          "description": "Check current subscription status",
+          "queryParams": {},
+          "example": "/user-subscriptions/status"
+        },
+        {
+          "name": "Get Subscription by ID",
+          "method": "GET",
+          "path": "/user-subscriptions/:id",
+          "auth": true,
+          "description": "Get specific subscription details",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/user-subscriptions/123"
+        },
+        {
+          "name": "Update Subscription",
+          "method": "PATCH",
+          "path": "/user-subscriptions/:id",
+          "auth": true,
+          "description": "Update subscription details",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "bodyParams": {
+            "autoRenew": "boolean (optional)"
+          },
+          "example": {
+            "autoRenew": false
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "method": "POST",
+          "path": "/user-subscriptions/:id/cancel",
+          "auth": true,
+          "description": "Cancel an active subscription",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/user-subscriptions/123/cancel"
+        },
+        {
+          "name": "Renew Subscription",
+          "method": "POST",
+          "path": "/user-subscriptions/:id/renew",
+          "auth": true,
+          "description": "Renew a cancelled or expired subscription",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/user-subscriptions/123/renew"
+        },
+        {
+          "name": "Get Payment Methods",
+          "method": "GET",
+          "path": "/payment-methods",
+          "auth": true,
+          "description": "Get all available payment methods (Admin only)",
+          "queryParams": {
+            "page": "string (optional, default: '1')",
+            "limit": "string (optional, default: '10')",
+            "isActive": "string (optional)",
+            "search": "string (optional)"
+          },
+          "example": "/payment-methods?page=1&limit=20"
+        },
+        {
+          "name": "Get Payment Method by ID",
+          "method": "GET",
+          "path": "/payment-methods/:id",
+          "auth": true,
+          "description": "Get specific payment method (Admin only)",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/payment-methods/1"
+        },
+        {
+          "name": "Get Payment Method Stats",
+          "method": "GET",
+          "path": "/payment-methods/stats",
+          "auth": true,
+          "description": "Get payment method statistics (Admin only)",
+          "queryParams": {},
+          "example": "/payment-methods/stats"
+        },
+        {
+          "name": "Create Transaction",
+          "method": "POST",
+          "path": "/transactions",
+          "auth": true,
+          "description": "Create a new payment transaction and get QR code",
+          "bodyParams": {
+            "subscriptionId": "number (optional)",
+            "amount": "number (required, min: 0)",
+            "paymentMethodId": "number (required)",
+            "returnUrl": "string (optional, URI)",
+            "metadata": "object (optional)"
+          },
+          "example": {
+            "amount": 100000,
+            "paymentMethodId": 1,
+            "subscriptionId": 123
+          }
+        },
+        {
+          "name": "Get My Transactions",
+          "method": "GET",
+          "path": "/transactions/my-transactions",
+          "auth": true,
+          "description": "Get authenticated user's transaction history",
+          "queryParams": {
+            "page": "number (required)",
+            "limit": "number (required)"
+          },
+          "example": "/transactions/my-transactions?page=1&limit=10"
+        },
+        {
+          "name": "Get Transaction by ID",
+          "method": "GET",
+          "path": "/transactions/:id",
+          "auth": true,
+          "description": "Get specific transaction details",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/transactions/123"
+        },
+        {
+          "name": "Get All Transactions",
+          "method": "GET",
+          "path": "/transactions",
+          "auth": true,
+          "description": "Get paginated list of all transactions (Admin only)",
+          "queryParams": {
+            "page": "string (optional, default: '1')",
+            "limit": "string (optional, default: '10')",
+            "status": "string (optional, values: 'Pending', 'Completed', 'Failed', 'Refunded')",
+            "userId": "string (optional)",
+            "subscriptionId": "string (optional)",
+            "fromDate": "string (optional)",
+            "toDate": "string (optional)"
+          },
+          "example": "/transactions?page=1&limit=20&status=Completed"
+        },
+        {
+          "name": "Get Transaction Statistics",
+          "method": "GET",
+          "path": "/transactions/stats",
+          "auth": true,
+          "description": "Get transaction statistics (Admin only)",
+          "queryParams": {},
+          "example": "/transactions/stats"
+        },
+        {
+          "name": "Refund Transaction",
+          "method": "POST",
+          "path": "/transactions/:id/refund",
+          "auth": true,
+          "description": "Process a refund for a transaction (Admin only)",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "bodyParams": {
+            "amount": "number (optional, min: 0)",
+            "reason": "string (required, min: 10, max: 500)"
+          },
+          "example": {
+            "reason": "Customer requested refund"
+          }
+        }
+      ]
+    },
+    "settings": {
+      "description": "APIs for Settings Page - Profile, Preferences, Devices",
+      "endpoints": [
+        {
+          "name": "Get User Profile",
+          "method": "GET",
+          "path": "/profile",
+          "auth": true,
+          "description": "Get authenticated user profile information",
+          "queryParams": {},
+          "example": "/profile"
+        },
+        {
+          "name": "Update User Profile",
+          "method": "PATCH",
+          "path": "/profile",
+          "auth": true,
+          "description": "Update user profile information",
+          "bodyParams": {
+            "email": "string (optional, email format)",
+            "fullName": "string (optional, min: 1)",
+            "dateOfBirth": "string (optional)",
+            "gender": "string (optional, values: 'Male', 'Female', 'Other')",
+            "profileImage": "string (optional)"
+          },
+          "example": {
+            "fullName": "John Doe",
+            "dateOfBirth": "1990-01-01",
+            "gender": "Male"
+          }
+        },
+        {
+          "name": "Change Password",
+          "method": "PATCH",
+          "path": "/profile/change-password",
+          "auth": true,
+          "description": "Change user password",
+          "bodyParams": {
+            "password": "string (required, min: 6, max: 100)",
+            "newPassword": "string (required, min: 6, max: 100)",
+            "confirmPassword": "string (required, min: 6, max: 100)"
+          },
+          "example": {
+            "password": "oldPassword123",
+            "newPassword": "newPassword123",
+            "confirmPassword": "newPassword123"
+          }
+        },
+        {
+          "name": "Get User Preferences",
+          "method": "GET",
+          "path": "/user-preferences",
+          "auth": true,
+          "description": "Get user preferences (audio quality, playback, notifications)",
+          "queryParams": {},
+          "example": "/user-preferences"
+        },
+        {
+          "name": "Create User Preferences",
+          "method": "POST",
+          "path": "/user-preferences",
+          "auth": true,
+          "description": "Create initial user preferences",
+          "bodyParams": {
+            "preferredGenres": "array (optional, array of genre IDs)",
+            "preferredLanguages": "array (optional, values: 'Vietnamese', 'English')",
+            "explicitContent": "boolean (optional, default: false)",
+            "autoPlay": "boolean (optional, default: true)",
+            "highQualityStreaming": "boolean (optional, default: false)"
+          },
+          "example": {
+            "preferredGenres": [1, 2, 3],
+            "preferredLanguages": ["Vietnamese", "English"],
+            "autoPlay": true,
+            "highQualityStreaming": true
+          }
+        },
+        {
+          "name": "Update User Preferences",
+          "method": "PUT",
+          "path": "/user-preferences",
+          "auth": true,
+          "description": "Update user preferences",
+          "bodyParams": {
+            "preferredGenres": "array (optional)",
+            "preferredLanguages": "array (optional)",
+            "explicitContent": "boolean (optional)",
+            "autoPlay": "boolean (optional)",
+            "highQualityStreaming": "boolean (optional)"
+          },
+          "example": {
+            "autoPlay": false,
+            "highQualityStreaming": true
+          }
+        },
+        {
+          "name": "Upsert User Preferences",
+          "method": "PUT",
+          "path": "/user-preferences/upsert",
+          "auth": true,
+          "description": "Create or update user preferences in one operation",
+          "bodyParams": {
+            "preferredGenres": "array (optional)",
+            "preferredLanguages": "array (optional)",
+            "explicitContent": "boolean (optional)",
+            "autoPlay": "boolean (optional)",
+            "highQualityStreaming": "boolean (optional)"
+          },
+          "example": {
+            "preferredGenres": [1, 2],
+            "autoPlay": true
+          }
+        },
+        {
+          "name": "Delete User Preferences",
+          "method": "DELETE",
+          "path": "/user-preferences",
+          "auth": true,
+          "description": "Delete user preferences and reset to defaults",
+          "queryParams": {},
+          "example": "/user-preferences"
+        },
+        {
+          "name": "Get User Devices",
+          "method": "GET",
+          "path": "/devices",
+          "auth": true,
+          "description": "Get all devices registered to user",
+          "queryParams": {
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 20, max: 100)",
+            "isActive": "string (optional)",
+            "sortBy": "string (optional, default: 'lastActive', values: 'lastActive', 'createdAt')",
+            "sortOrder": "string (optional, default: 'desc', values: 'asc', 'desc')"
+          },
+          "example": "/devices?page=1&limit=20"
+        },
+        {
+          "name": "Get Device Statistics",
+          "method": "GET",
+          "path": "/devices/stats",
+          "auth": true,
+          "description": "Get device statistics for user",
+          "queryParams": {},
+          "example": "/devices/stats"
+        },
+        {
+          "name": "Get Device by ID",
+          "method": "GET",
+          "path": "/devices/:id",
+          "auth": true,
+          "description": "Get specific device details",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/devices/123"
+        },
+        {
+          "name": "Revoke Device",
+          "method": "DELETE",
+          "path": "/devices/:id/revoke",
+          "auth": true,
+          "description": "Revoke access for a specific device",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/devices/123/revoke"
+        },
+        {
+          "name": "Revoke All Devices",
+          "method": "POST",
+          "path": "/devices/revoke-all",
+          "auth": true,
+          "description": "Revoke all devices except current one",
+          "queryParams": {},
+          "example": "/devices/revoke-all"
+        },
+        {
+          "name": "Delete Device",
+          "method": "DELETE",
+          "path": "/devices/:id",
+          "auth": true,
+          "description": "Permanently delete a device record",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/devices/123"
+        },
+        {
+          "name": "Get User by ID",
+          "method": "GET",
+          "path": "/users/:id",
+          "auth": false,
+          "description": "Get basic user information",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/users/1"
+        },
+        {
+          "name": "Get User Statistics",
+          "method": "GET",
+          "path": "/users/:id/statistics",
+          "auth": true,
+          "description": "Get user activity statistics",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/users/1/statistics"
+        },
+        {
+          "name": "Get User Detail",
+          "method": "GET",
+          "path": "/users/:id/detail",
+          "auth": true,
+          "description": "Get detailed user information",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/users/1/detail"
+        }
+      ]
+    },
+    "auth": {
+      "description": "Authentication APIs - Login, Register, OAuth",
+      "endpoints": [
+        {
+          "name": "Send OTP",
+          "method": "POST",
+          "path": "/auth/otp",
+          "auth": false,
+          "description": "Send OTP code to email",
+          "bodyParams": {
+            "email": "string (required, email format)",
+            "type": "string (required, values: 'REGISTER', 'FORGOT_PASSWORD', 'LOGIN', 'DISABLED_2FA')"
+          },
+          "example": {
+            "email": "user@example.com",
+            "type": "REGISTER"
+          }
+        },
+        {
+          "name": "Register",
+          "method": "POST",
+          "path": "/auth/register",
+          "auth": false,
+          "description": "Register new user account",
+          "bodyParams": {
+            "email": "string (required, email format)",
+            "password": "string (required, min: 6, max: 100)",
+            "fullName": "string (required, min: 1)",
+            "confirmPassword": "string (required, min: 6, max: 100)",
+            "code": "string (required, length: 6)"
+          },
+          "example": {
+            "email": "user@example.com",
+            "password": "password123",
+            "fullName": "John Doe",
+            "confirmPassword": "password123",
+            "code": "123456"
+          }
+        },
+        {
+          "name": "Login",
+          "method": "POST",
+          "path": "/auth/login",
+          "auth": false,
+          "description": "Login and get access token",
+          "bodyParams": {
+            "email": "string (required, email format)",
+            "password": "string (required)"
+          },
+          "example": {
+            "email": "user@example.com",
+            "password": "password123"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "method": "POST",
+          "path": "/auth/refresh-token",
+          "auth": false,
+          "description": "Refresh access token",
+          "bodyParams": {
+            "refreshToken": "string (required)"
+          },
+          "example": {
+            "refreshToken": "your_refresh_token"
+          }
+        },
+        {
+          "name": "Logout",
+          "method": "POST",
+          "path": "/auth/logout",
+          "auth": true,
+          "description": "Logout and invalidate refresh token",
+          "bodyParams": {
+            "refreshToken": "string (required)"
+          },
+          "example": {
+            "refreshToken": "your_refresh_token"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "method": "POST",
+          "path": "/auth/forgot-password",
+          "auth": false,
+          "description": "Request password reset",
+          "bodyParams": {
+            "email": "string (required, email format)"
+          },
+          "example": {
+            "email": "user@example.com"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "method": "POST",
+          "path": "/auth/reset-password",
+          "auth": false,
+          "description": "Reset password with token",
+          "bodyParams": {
+            "resetToken": "string (required)",
+            "newPassword": "string (required, min: 6, max: 100)",
+            "confirmNewPassword": "string (required, min: 6, max: 100)"
+          },
+          "example": {
+            "resetToken": "reset_token",
+            "newPassword": "newPassword123",
+            "confirmNewPassword": "newPassword123"
+          }
+        },
+        {
+          "name": "Get Google OAuth Link",
+          "method": "GET",
+          "path": "/auth/google-link",
+          "auth": false,
+          "description": "Get Google OAuth authorization URL",
+          "queryParams": {},
+          "example": "/auth/google-link"
+        },
+        {
+          "name": "Google OAuth Callback",
+          "method": "GET",
+          "path": "/auth/google/callback",
+          "auth": false,
+          "description": "Handle Google OAuth callback",
+          "queryParams": {
+            "code": "string (required)",
+            "state": "string (required)"
+          },
+          "example": "/auth/google/callback?code=xxx&state=yyy"
+        },
+        {
+          "name": "Get Facebook OAuth Link",
+          "method": "GET",
+          "path": "/auth/facebook-link",
+          "auth": false,
+          "description": "Get Facebook OAuth authorization URL",
+          "queryParams": {},
+          "example": "/auth/facebook-link"
+        },
+        {
+          "name": "Facebook OAuth Callback",
+          "method": "GET",
+          "path": "/auth/facebook/callback",
+          "auth": false,
+          "description": "Handle Facebook OAuth callback",
+          "queryParams": {
+            "code": "string (optional)",
+            "state": "string (optional)",
+            "error": "string (optional)",
+            "error_description": "string (optional)"
+          },
+          "example": "/auth/facebook/callback?code=xxx&state=yyy"
+        }
+      ]
+    },
+    "playlists": {
+      "description": "Playlist Management APIs",
+      "endpoints": [
+        {
+          "name": "Create Playlist",
+          "method": "POST",
+          "path": "/playlists",
+          "auth": true,
+          "description": "Create a new playlist",
+          "bodyParams": {
+            "userId": "number (required)",
+            "playlistName": "string (required, min: 1, max: 255)",
+            "description": "string (optional)",
+            "coverImageUrl": "string (optional)",
+            "isPublic": "boolean (optional, default: false)",
+            "tags": "array (optional, default: [])"
+          },
+          "example": {
+            "userId": 1,
+            "playlistName": "My Playlist",
+            "description": "A great playlist",
+            "isPublic": true,
+            "tags": ["pop", "rock"]
+          }
+        },
+        {
+          "name": "Update Playlist",
+          "method": "PUT",
+          "path": "/playlists/:id",
+          "auth": true,
+          "description": "Update playlist information",
+          "pathParams": {
+            "id": "string (required)"
+          },
+          "bodyParams": {
+            "userId": "number (required)",
+            "playlistName": "string (optional)",
+            "description": "string (optional)",
+            "coverImageUrl": "string (optional)",
+            "isPublic": "boolean (optional)",
+            "tags": "array (optional)"
+          },
+          "example": {
+            "playlistName": "Updated Playlist Name",
+            "isPublic": false
+          }
+        },
+        {
+          "name": "Delete Playlist",
+          "method": "DELETE",
+          "path": "/playlists/:id",
+          "auth": true,
+          "description": "Delete a playlist",
+          "pathParams": {
+            "id": "string (required)"
+          },
+          "example": "/playlists/123"
+        },
+        {
+          "name": "Get Playlist Tracks",
+          "method": "GET",
+          "path": "/playlists/:playlistId/tracks",
+          "auth": false,
+          "description": "Get tracks in a playlist",
+          "pathParams": {
+            "playlistId": "string (required)"
+          },
+          "example": "/playlists/123/tracks"
+        },
+        {
+          "name": "Add Track to Playlist",
+          "method": "POST",
+          "path": "/playlists/:playlistId/tracks",
+          "auth": true,
+          "description": "Add a track to playlist",
+          "pathParams": {
+            "playlistId": "string (required)"
+          },
+          "example": "/playlists/123/tracks"
+        },
+        {
+          "name": "Add Multiple Tracks",
+          "method": "POST",
+          "path": "/playlists/:playlistId/tracks/:bulk",
+          "auth": true,
+          "description": "Add multiple tracks to playlist",
+          "pathParams": {
+            "playlistId": "string (required)"
+          },
+          "example": "/playlists/123/tracks/bulk"
+        },
+        {
+          "name": "Reorder Track",
+          "method": "PATCH",
+          "path": "/playlists/:playlistId/tracks/:trackId/reorder",
+          "auth": true,
+          "description": "Reorder track in playlist",
+          "pathParams": {
+            "playlistId": "string (required)",
+            "trackId": "string (required)"
+          },
+          "example": "/playlists/123/tracks/456/reorder"
+        },
+        {
+          "name": "Remove Track from Playlist",
+          "method": "DELETE",
+          "path": "/playlists/:playlistId/tracks/:trackId",
+          "auth": true,
+          "description": "Remove track from playlist",
+          "pathParams": {
+            "playlistId": "string (required)",
+            "trackId": "string (required)"
+          },
+          "example": "/playlists/123/tracks/456"
+        }
+      ]
+    },
+    "artists": {
+      "description": "Artist Management APIs",
+      "endpoints": [
+        {
+          "name": "Get All Artists",
+          "method": "GET",
+          "path": "/artists",
+          "auth": true,
+          "description": "Get paginated list of artists",
+          "queryParams": {
+            "q": "string (optional)",
+            "hasPublicProfile": "boolean (optional)",
+            "createdFrom": "string (optional)",
+            "createdTo": "string (optional)",
+            "updatedFrom": "string (optional)",
+            "updatedTo": "string (optional)",
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 20, max: 100)",
+            "sort": "string (optional, values: 'createdAt', 'updatedAt', 'artistName')",
+            "order": "string (optional, values: 'asc', 'desc')"
+          },
+          "example": "/artists?page=1&limit=20"
+        },
+        {
+          "name": "Get Artist by ID",
+          "method": "GET",
+          "path": "/artists/:id",
+          "auth": true,
+          "description": "Get artist details",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/artists/1"
+        },
+        {
+          "name": "Create Artist",
+          "method": "POST",
+          "path": "/artists",
+          "auth": true,
+          "description": "Create new artist profile",
+          "bodyParams": {
+            "artistName": "string (required, min: 1, max: 255)",
+            "biography": "string (optional)",
+            "profileImage": "string (optional, URI)",
+            "hasPublicProfile": "boolean (optional, default: true)"
+          },
+          "example": {
+            "artistName": "Artist Name",
+            "biography": "Artist biography",
+            "hasPublicProfile": true
+          }
+        },
+        {
+          "name": "Update Artist",
+          "method": "PATCH",
+          "path": "/artists/:id",
+          "auth": true,
+          "description": "Update artist profile",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "bodyParams": {
+            "artistName": "string (optional)",
+            "biography": "string (optional)",
+            "profileImage": "string (optional)",
+            "hasPublicProfile": "boolean (optional)"
+          },
+          "example": {
+            "biography": "Updated biography"
+          }
+        },
+        {
+          "name": "Delete Artist",
+          "method": "DELETE",
+          "path": "/artists/:id",
+          "auth": true,
+          "description": "Delete artist profile",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/artists/1"
+        }
+      ]
+    },
+    "follow": {
+      "description": "Follow Artists and Labels APIs",
+      "endpoints": [
+        {
+          "name": "Get User Follows",
+          "method": "GET",
+          "path": "/follows",
+          "auth": false,
+          "description": "Get user's follows",
+          "queryParams": {
+            "userId": "string (optional)",
+            "targetType": "string (optional, values: 'Artist', 'Label')",
+            "limit": "number (optional, default: 20, max: 100)",
+            "page": "number (optional, default: 1)",
+            "sort": "string (optional, default: 'followedAt', values: 'followedAt', 'name')",
+            "order": "string (optional, default: 'desc', values: 'asc', 'desc')"
+          },
+          "example": "/follows?userId=1&targetType=Artist"
+        },
+        {
+          "name": "Add Follow",
+          "method": "POST",
+          "path": "/follows",
+          "auth": true,
+          "description": "Follow an artist or label",
+          "bodyParams": {
+            "userId": "number (required)",
+            "targetType": "string (required, values: 'Artist', 'Label')",
+            "targetId": "number (required)"
+          },
+          "example": {
+            "userId": 1,
+            "targetType": "Artist",
+            "targetId": 123
+          }
+        },
+        {
+          "name": "Check Follow",
+          "method": "GET",
+          "path": "/follows/check",
+          "auth": false,
+          "description": "Check if user follows target",
+          "queryParams": {
+            "userId": "string (required)",
+            "targetType": "string (required, values: 'Artist', 'Label')",
+            "targetId": "string (required)"
+          },
+          "example": "/follows/check?userId=1&targetType=Artist&targetId=123"
+        },
+        {
+          "name": "Get Followers Count",
+          "method": "GET",
+          "path": "/follows/count/:targetType/:targetId",
+          "auth": false,
+          "description": "Get followers count for artist or label",
+          "pathParams": {
+            "targetType": "string (required)",
+            "targetId": "string (required)"
+          },
+          "example": "/follows/count/Artist/123"
+        },
+        {
+          "name": "Get User Following Count",
+          "method": "GET",
+          "path": "/follows/user/:userId/count",
+          "auth": false,
+          "description": "Get user's following count",
+          "pathParams": {
+            "userId": "string (required)"
+          },
+          "example": "/follows/user/1/count"
+        },
+        {
+          "name": "Get User Following IDs",
+          "method": "GET",
+          "path": "/follows/user/:userId/ids",
+          "auth": false,
+          "description": "Get user's following IDs",
+          "pathParams": {
+            "userId": "string (required)"
+          },
+          "queryParams": {
+            "targetType": "string (required)"
+          },
+          "example": "/follows/user/1/ids?targetType=Artist"
+        },
+        {
+          "name": "Remove Follow",
+          "method": "DELETE",
+          "path": "/follows/:userId/:targetType/:targetId",
+          "auth": true,
+          "description": "Unfollow an artist or label",
+          "pathParams": {
+            "userId": "string (required)",
+            "targetType": "string (required)",
+            "targetId": "string (required)"
+          },
+          "example": "/follows/1/Artist/123"
+        }
+      ]
+    },
+    "recordLabels": {
+      "description": "Record Label Management APIs",
+      "endpoints": [
+        {
+          "name": "Get Record Labels",
+          "method": "GET",
+          "path": "/record-labels",
+          "auth": false,
+          "description": "Get paginated list of record labels",
+          "queryParams": {
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 20, max: 100)",
+            "search": "string (optional)",
+            "hasPublicProfile": "string (optional)",
+            "userId": "number (optional)"
+          },
+          "example": "/record-labels?page=1&limit=20"
+        },
+        {
+          "name": "Get Record Label by ID",
+          "method": "GET",
+          "path": "/record-labels/:id",
+          "auth": false,
+          "description": "Get record label details",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/record-labels/1"
+        },
+        {
+          "name": "Get Record Label by User ID",
+          "method": "GET",
+          "path": "/record-labels/user/:userId",
+          "auth": false,
+          "description": "Get record label by user ID",
+          "pathParams": {
+            "userId": "number (required)"
+          },
+          "example": "/record-labels/user/1"
+        },
+        {
+          "name": "Create Record Label",
+          "method": "POST",
+          "path": "/record-labels",
+          "auth": true,
+          "description": "Create new record label",
+          "bodyParams": {
+            "labelName": "string (required, min: 1, max: 255)",
+            "description": "string (optional)",
+            "website": "string (optional, URI)",
+            "contactEmail": "string (optional, email format)",
+            "hasPublicProfile": "boolean (optional, default: false)"
+          },
+          "example": {
+            "labelName": "My Label",
+            "description": "Label description",
+            "hasPublicProfile": true
+          }
+        },
+        {
+          "name": "Update Record Label",
+          "method": "PUT",
+          "path": "/record-labels/:id",
+          "auth": true,
+          "description": "Update record label",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "bodyParams": {
+            "labelName": "string (optional)",
+            "description": "string (optional)",
+            "website": "string (optional)",
+            "contactEmail": "string (optional)",
+            "hasPublicProfile": "boolean (optional)"
+          },
+          "example": {
+            "description": "Updated description"
+          }
+        },
+        {
+          "name": "Delete Record Label",
+          "method": "DELETE",
+          "path": "/record-labels/:id",
+          "auth": true,
+          "description": "Delete record label",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/record-labels/1"
+        }
+      ]
+    },
+    "notifications": {
+      "description": "Notification Management APIs",
+      "endpoints": [
+        {
+          "name": "Get Notifications",
+          "method": "GET",
+          "path": "/notifications",
+          "auth": true,
+          "description": "Get paginated list of notifications",
+          "queryParams": {
+            "page": "string (optional, default: '1')",
+            "limit": "string (optional, default: '20')",
+            "type": "string (optional, values: 'Subscription Expiry', 'New Release', 'System Update', 'Copyright Notice')",
+            "isRead": "string (optional)"
+          },
+          "example": "/notifications?page=1&limit=20"
+        },
+        {
+          "name": "Get Notification by ID",
+          "method": "GET",
+          "path": "/notifications/:id",
+          "auth": true,
+          "description": "Get notification details",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/notifications/123"
+        },
+        {
+          "name": "Get Notification Statistics",
+          "method": "GET",
+          "path": "/notifications/stats",
+          "auth": true,
+          "description": "Get notification statistics",
+          "queryParams": {},
+          "example": "/notifications/stats"
+        },
+        {
+          "name": "Get Unread Count",
+          "method": "GET",
+          "path": "/notifications/unread-count",
+          "auth": true,
+          "description": "Get unread notification count",
+          "queryParams": {},
+          "example": "/notifications/unread-count"
+        },
+        {
+          "name": "Mark as Read",
+          "method": "POST",
+          "path": "/notifications/:id/read",
+          "auth": true,
+          "description": "Mark notification as read",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/notifications/123/read"
+        },
+        {
+          "name": "Mark All as Read",
+          "method": "POST",
+          "path": "/notifications/mark-all-read",
+          "auth": true,
+          "description": "Mark all notifications as read",
+          "queryParams": {},
+          "example": "/notifications/mark-all-read"
+        },
+        {
+          "name": "Mark Multiple as Read",
+          "method": "POST",
+          "path": "/notifications/mark-multiple-read",
+          "auth": true,
+          "description": "Mark multiple notifications as read",
+          "bodyParams": {
+            "notificationIds": "array (required, array of notification IDs)"
+          },
+          "example": {
+            "notificationIds": [1, 2, 3]
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "method": "DELETE",
+          "path": "/notifications/:id",
+          "auth": true,
+          "description": "Delete notification",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/notifications/123"
+        },
+        {
+          "name": "Delete All Read",
+          "method": "DELETE",
+          "path": "/notifications/read",
+          "auth": true,
+          "description": "Delete all read notifications",
+          "queryParams": {},
+          "example": "/notifications/read"
+        },
+        {
+          "name": "Delete Multiple",
+          "method": "DELETE",
+          "path": "/notifications/multiple",
+          "auth": true,
+          "description": "Delete multiple notifications",
+          "bodyParams": {
+            "notificationIds": "array (required)"
+          },
+          "example": {
+            "notificationIds": [1, 2, 3]
+          }
+        },
+        {
+          "name": "Create Notification",
+          "method": "POST",
+          "path": "/notifications",
+          "auth": true,
+          "description": "Create notification (Admin only)",
+          "bodyParams": {
+            "userId": "number (required)",
+            "notificationType": "string (required)",
+            "title": "string (required, min: 1, max: 255)",
+            "message": "string (required, min: 1)"
+          },
+          "example": {
+            "userId": 1,
+            "notificationType": "New Release",
+            "title": "New Song Released",
+            "message": "Check out the new song!"
+          }
+        },
+        {
+          "name": "Create Bulk Notifications",
+          "method": "POST",
+          "path": "/notifications/bulk",
+          "auth": true,
+          "description": "Create bulk notifications (Admin only)",
+          "bodyParams": {
+            "userIds": "array (required, min: 1)",
+            "notificationType": "string (required)",
+            "title": "string (required)",
+            "message": "string (required)"
+          },
+          "example": {
+            "userIds": [1, 2, 3],
+            "notificationType": "System Update",
+            "title": "System Update",
+            "message": "New features available!"
+          }
+        }
+      ]
+    },
+    "ratings": {
+      "description": "Song Rating APIs",
+      "endpoints": [
+        {
+          "name": "Create or Update Rating",
+          "method": "POST",
+          "path": "/ratings/songs/:songId",
+          "auth": true,
+          "description": "Create or update song rating",
+          "pathParams": {
+            "songId": "number (required)"
+          },
+          "bodyParams": {
+            "songId": "number (required)",
+            "rating": "string (required, values: 'Like', 'Dislike')"
+          },
+          "example": {
+            "songId": 123,
+            "rating": "Like"
+          }
+        },
+        {
+          "name": "Update Rating",
+          "method": "POST",
+          "path": "/ratings/songs/:songId/update",
+          "auth": true,
+          "description": "Update song rating",
+          "pathParams": {
+            "songId": "number (required)"
+          },
+          "bodyParams": {
+            "rating": "string (required, values: 'Like', 'Dislike')"
+          },
+          "example": {
+            "rating": "Dislike"
+          }
+        },
+        {
+          "name": "Delete Rating",
+          "method": "DELETE",
+          "path": "/ratings/songs/:songId",
+          "auth": true,
+          "description": "Delete song rating",
+          "pathParams": {
+            "songId": "number (required)"
+          },
+          "example": "/ratings/songs/123"
+        },
+        {
+          "name": "Get User Rating",
+          "method": "GET",
+          "path": "/ratings/songs/:songId/me",
+          "auth": true,
+          "description": "Get user's rating for a song",
+          "pathParams": {
+            "songId": "number (required)"
+          },
+          "example": "/ratings/songs/123/me"
+        },
+        {
+          "name": "Get User Ratings",
+          "method": "GET",
+          "path": "/ratings/me",
+          "auth": true,
+          "description": "Get user's ratings",
+          "queryParams": {
+            "page": "string (optional, default: '1')",
+            "limit": "string (optional, default: '20')",
+            "rating": "string (optional, values: 'Like', 'Dislike')",
+            "sortBy": "string (optional, default: 'ratedAt', values: 'ratedAt', 'songTitle')",
+            "sortOrder": "string (optional, default: 'desc', values: 'asc', 'desc')"
+          },
+          "example": "/ratings/me?page=1&limit=20"
+        },
+        {
+          "name": "Get Liked Songs",
+          "method": "GET",
+          "path": "/ratings/me/liked-songs",
+          "auth": true,
+          "description": "Get user's liked songs",
+          "queryParams": {
+            "page": "number (required)",
+            "limit": "number (required)"
+          },
+          "example": "/ratings/me/liked-songs?page=1&limit=20"
+        },
+        {
+          "name": "Get Song Rating Stats",
+          "method": "GET",
+          "path": "/ratings/songs/:songId/stats",
+          "auth": false,
+          "description": "Get song rating statistics",
+          "pathParams": {
+            "songId": "number (required)"
+          },
+          "example": "/ratings/songs/123/stats"
+        },
+        {
+          "name": "Get User Rating Stats",
+          "method": "GET",
+          "path": "/ratings/me/stats",
+          "auth": true,
+          "description": "Get user's rating statistics",
+          "queryParams": {},
+          "example": "/ratings/me/stats"
+        }
+      ]
+    },
+    "upload": {
+      "description": "File Upload APIs",
+      "endpoints": [
+        {
+          "name": "Generate Presigned URL",
+          "method": "POST",
+          "path": "/upload/presigned-url",
+          "auth": true,
+          "description": "Generate presigned URL for file upload to S3",
+          "bodyParams": {
+            "fileName": "string (required)",
+            "fileType": "string (required)",
+            "contentType": "string (optional)"
+          },
+          "example": {
+            "fileName": "song.mp3",
+            "fileType": "audio",
+            "contentType": "audio/mpeg"
+          }
+        },
+        {
+          "name": "Generate Image Upload URL",
+          "method": "POST",
+          "path": "/upload/image/presigned-url",
+          "auth": true,
+          "description": "Generate presigned URL for image upload",
+          "bodyParams": {
+            "fileName": "string (required)"
+          },
+          "example": {
+            "fileName": "avatar.jpg"
+          }
+        }
+      ]
+    },
+    "statistics": {
+      "description": "Statistics APIs (Admin)",
+      "endpoints": [
+        {
+          "name": "Get Dashboard Overview",
+          "method": "GET",
+          "path": "/statistics/dashboard",
+          "auth": true,
+          "description": "Get dashboard overview statistics",
+          "queryParams": {},
+          "example": "/statistics/dashboard"
+        },
+        {
+          "name": "Get Daily Statistics",
+          "method": "GET",
+          "path": "/statistics/daily",
+          "auth": true,
+          "description": "Get daily statistics",
+          "queryParams": {
+            "startDate": "string (required, format: YYYY-MM-DD)",
+            "endDate": "string (required, format: YYYY-MM-DD)"
+          },
+          "example": "/statistics/daily?startDate=2024-01-01&endDate=2024-12-31"
+        },
+        {
+          "name": "Get Trending Songs",
+          "method": "GET",
+          "path": "/statistics/trending",
+          "auth": true,
+          "description": "Get trending songs statistics",
+          "queryParams": {
+            "periodType": "string (optional, default: 'Weekly', values: 'Daily', 'Weekly', 'Monthly')",
+            "limit": "string (optional, default: '10')"
+          },
+          "example": "/statistics/trending?periodType=Weekly&limit=20"
+        },
+        {
+          "name": "Get Revenue Statistics",
+          "method": "GET",
+          "path": "/statistics/revenue",
+          "auth": true,
+          "description": "Get revenue statistics",
+          "queryParams": {
+            "startDate": "string (required, format: YYYY-MM-DD)",
+            "endDate": "string (required, format: YYYY-MM-DD)",
+            "groupBy": "string (optional, default: 'day', values: 'day', 'week', 'month')"
+          },
+          "example": "/statistics/revenue?startDate=2024-01-01&endDate=2024-12-31&groupBy=month"
+        },
+        {
+          "name": "Get User Engagement Statistics",
+          "method": "GET",
+          "path": "/statistics/engagement",
+          "auth": true,
+          "description": "Get user engagement statistics",
+          "queryParams": {
+            "startDate": "string (required, format: YYYY-MM-DD)",
+            "endDate": "string (required, format: YYYY-MM-DD)"
+          },
+          "example": "/statistics/engagement?startDate=2024-01-01&endDate=2024-12-31"
+        },
+        {
+          "name": "Update Daily Statistics",
+          "method": "POST",
+          "path": "/statistics/update-daily",
+          "auth": true,
+          "description": "Update daily statistics (Admin only)",
+          "queryParams": {},
+          "example": "/statistics/update-daily"
+        }
+      ]
+    },
+    "users": {
+      "description": "User Management APIs",
+      "endpoints": [
+        {
+          "name": "Get All Users",
+          "method": "GET",
+          "path": "/users",
+          "auth": false,
+          "description": "Get paginated list of users",
+          "queryParams": {
+            "page": "number (optional, default: 1)",
+            "limit": "number (optional, default: 10)",
+            "role": "string (optional, values: 'Admin', 'Listener', 'Label')",
+            "status": "string (optional, values: 'Active', 'Inactive', 'Banned', 'Suspended')",
+            "search": "string (optional)"
+          },
+          "example": "/users?page=1&limit=20&role=Listener"
+        },
+        {
+          "name": "Create User",
+          "method": "POST",
+          "path": "/users",
+          "auth": true,
+          "description": "Create new user (Admin only)",
+          "bodyParams": {
+            "email": "string (required, email format)",
+            "fullName": "string (required, min: 1, max: 255)",
+            "password": "string (required, min: 8, max: 255)",
+            "roleId": "number (optional, default: 6)",
+            "dateOfBirth": "string (optional)",
+            "gender": "string (optional, values: 'Male', 'Female', 'Other')"
+          },
+          "example": {
+            "email": "user@example.com",
+            "fullName": "John Doe",
+            "password": "password123"
+          }
+        },
+        {
+          "name": "Update User",
+          "method": "PATCH",
+          "path": "/users/:id",
+          "auth": true,
+          "description": "Update user information (Admin only)",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "bodyParams": {
+            "fullName": "string (optional)",
+            "dateOfBirth": "string (optional)",
+            "gender": "string (optional)"
+          },
+          "example": {
+            "fullName": "Updated Name"
+          }
+        },
+        {
+          "name": "Update User Status",
+          "method": "PATCH",
+          "path": "/users/:id/status",
+          "auth": true,
+          "description": "Update user account status (Admin only)",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "bodyParams": {
+            "accountStatus": "string (required, values: 'Active', 'Inactive', 'Banned', 'Suspended')"
+          },
+          "example": {
+            "accountStatus": "Active"
+          }
+        },
+        {
+          "name": "Update User Role",
+          "method": "PATCH",
+          "path": "/users/:id/role",
+          "auth": true,
+          "description": "Update user role (Admin only)",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "bodyParams": {
+            "roleId": "number (required)"
+          },
+          "example": {
+            "roleId": 6
+          }
+        },
+        {
+          "name": "Delete User",
+          "method": "DELETE",
+          "path": "/users/:id",
+          "auth": true,
+          "description": "Delete user (Admin only)",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/users/123"
+        }
+      ]
+    },
+    "media": {
+      "description": "Media Playback APIs",
+      "endpoints": [
+        {
+          "name": "Get Playback Track",
+          "method": "GET",
+          "path": "/playback/track/:songId",
+          "auth": false,
+          "description": "Get playback URL for song",
+          "pathParams": {
+            "songId": "string (required)"
+          },
+          "example": "/playback/track/123"
+        },
+        {
+          "name": "Presign Master Asset",
+          "method": "POST",
+          "path": "/media/master/presign",
+          "auth": false,
+          "description": "Generate presigned URL for master asset",
+          "queryParams": {},
+          "example": "/media/master/presign"
+        },
+        {
+          "name": "Complete Ingest",
+          "method": "POST",
+          "path": "/internal/ingest/complete",
+          "auth": false,
+          "description": "Complete media ingest (Internal use)",
+          "headers": {
+            "x-ingest-token": "string (required)"
+          },
+          "example": "/internal/ingest/complete"
+        }
+      ]
+    },
+    "songs": {
+      "description": "Song Management APIs",
+      "endpoints": [
+        {
+          "name": "Create Song",
+          "method": "POST",
+          "path": "/songs",
+          "auth": true,
+          "description": "Create new song",
+          "bodyParams": {
+            "title": "string (required, min: 1, max: 255)",
+            "description": "string (optional)",
+            "duration": "number (required, min: 0)",
+            "language": "string (optional, max: 50)",
+            "lyrics": "string (optional)",
+            "albumId": "number (optional)",
+            "genreId": "number (optional)",
+            "artists": "array (required, min: 1)",
+            "artists[].artistId": "number (required)",
+            "artists[].role": "string (optional, default: 'MainArtist', values: 'MainArtist', 'FeaturedArtist', 'Composer', 'Producer')"
+          },
+          "example": {
+            "title": "New Song",
+            "duration": 180,
+            "artists": [
+              {
+                "artistId": 1,
+                "role": "MainArtist"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Update Song",
+          "method": "PUT",
+          "path": "/songs/:id",
+          "auth": true,
+          "description": "Update song metadata",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "bodyParams": {
+            "title": "string (optional)",
+            "description": "string (optional)",
+            "duration": "number (optional)",
+            "language": "string (optional)",
+            "lyrics": "string (optional)",
+            "albumId": "number (optional)",
+            "genreId": "number (optional)",
+            "isActive": "boolean (optional)"
+          },
+          "example": {
+            "title": "Updated Title"
+          }
+        },
+        {
+          "name": "Update Song Artists",
+          "method": "PUT",
+          "path": "/songs/:id/artists",
+          "auth": true,
+          "description": "Update song artists",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "bodyParams": {
+            "artists": "array (required, min: 1)"
+          },
+          "example": {
+            "artists": [
+              {
+                "artistId": 1,
+                "role": "MainArtist"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Delete Song",
+          "method": "DELETE",
+          "path": "/songs/:id",
+          "auth": true,
+          "description": "Delete song",
+          "pathParams": {
+            "id": "number (required)"
+          },
+          "example": "/songs/123"
+        }
+      ]
+    },
+    "genres": {
+      "description": "Genre Management APIs",
+      "endpoints": [
+        {
+          "name": "Create Genre",
+          "method": "POST",
+          "path": "/genres",
+          "auth": true,
+          "description": "Create new genre",
+          "example": "/genres"
+        },
+        {
+          "name": "Update Genre",
+          "method": "PATCH",
+          "path": "/genres/:id",
+          "auth": true,
+          "description": "Update genre",
+          "pathParams": {
+            "id": "string (required)"
+          },
+          "example": "/genres/1"
+        },
+        {
+          "name": "Delete Genre",
+          "method": "DELETE",
+          "path": "/genres/:id",
+          "auth": true,
+          "description": "Delete genre",
+          "pathParams": {
+            "id": "string (required)"
+          },
+          "example": "/genres/1"
+        }
+      ]
+    }
+  },
+  "notes": {
+    "authentication": "Most endpoints require Bearer token in Authorization header: 'Authorization: Bearer <token>'",
+    "baseURL": "Change baseURL in this file to match your API server URL",
+    "pathParams": "Replace :paramName with actual values in the path (e.g., /songs/123)",
+    "queryParams": "Append query parameters to URL with ?key=value&key2=value2",
+    "bodyParams": "Send in request body as JSON for POST/PUT/PATCH requests",
+    "responseFormat": "All responses follow standard format with data/error structure",
+    "pagination": "Most list endpoints support pagination with 'page' and 'limit' query parameters",
+    "filtering": "Many endpoints support filtering via query parameters",
+    "sorting": "List endpoints often support 'sort' and 'order' query parameters"
+  }
+}

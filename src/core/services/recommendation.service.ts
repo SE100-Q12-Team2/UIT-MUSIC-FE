@@ -2,7 +2,7 @@ import { recommendationApi } from '@/core/api/recommendation.api';
 import { RecommendationMix, RecommendationSong } from '@/types/recommendation.types';
 import { useQuery } from '@tanstack/react-query';
 
-export function usePersonalizedRecommendations(limit?: number) {
+export function usePersonalizedRecommendations(limit: number = 30) {
   return useQuery<RecommendationSong[]>({
     queryKey: ['recommendations', 'personalized', limit],
     queryFn: () => recommendationApi.getPersonalized(limit),

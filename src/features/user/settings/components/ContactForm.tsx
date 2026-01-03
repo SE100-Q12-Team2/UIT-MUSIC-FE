@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import emailIcon from '@/assets/email.svg';
+import { useSubmitContactForm } from '@/core/services/contact.service';
+import { useAuth } from '@/shared/hooks/auth/useAuth';
 
 interface ContactFormData {
   firstName: string;
@@ -11,10 +13,13 @@ interface ContactFormData {
 }
 
 const ContactForm: React.FC = () => {
+  const { user } = useAuth();
+  const submitContactMutation = useSubmitContactForm();
+  
   const [formData, setFormData] = useState<ContactFormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
+    firstName: user?.fullName?.split(' ')[0] || '',
+    lastName: user?.fullName?.split(' ').slice(1).join(' ') || '',
+    email: user?.email || '',
     phoneNumber: '',
     message: '',
     agreePolicy: false,
@@ -29,9 +34,36 @@ const ContactForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Contact form submitted:', formData);
+    
+    if (!formData.agreePolicy) {
+      alert('Please agree to the privacy policy to continue.');
+      return;
+    }
+
+    try {
+      await submitContactMutation.mutateAsync({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        message: formData.message,
+        agreePolicy: formData.agreePolicy,
+      });
+      
+      // Reset form on success
+      setFormData({
+        firstName: user?.fullName?.split(' ')[0] || '',
+        lastName: user?.fullName?.split(' ').slice(1).join(' ') || '',
+        email: user?.email || '',
+        phoneNumber: '',
+        message: '',
+        agreePolicy: false,
+      });
+    } catch (error) {
+      // Error handling is done in the mutation
+    }
   };
 
   return (
@@ -118,8 +150,12 @@ const ContactForm: React.FC = () => {
           <label htmlFor="agreePolicy">You agree to our friendly privacy policy.</label>
         </div>
 
-        <button type="submit" className="contact-submit-btn">
-          Ok
+        <button 
+          type="submit" 
+          className="contact-submit-btn"
+          disabled={submitContactMutation.isPending}
+        >
+          {submitContactMutation.isPending ? 'Sending...' : 'Ok'}
         </button>
       </form>
     </section>
