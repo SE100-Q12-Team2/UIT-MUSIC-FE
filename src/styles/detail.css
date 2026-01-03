@@ -91,7 +91,24 @@
 .details-section--songs {
   margin-top: 56px;
 }
+.details-song-list {
+  margin-top: 32px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
+/* Add border to track items in detail section */
+.details-section--songs .track-item {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.details-section--songs .track-item:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
 .details-song-grid {
   margin-top: 32px;
   display: flex;
@@ -190,6 +207,46 @@
 .details-song-card__duration {
   font-size: 14px;
   color: var(--color-white-60);
+}
+
+.details-song-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.details-song-card__favorite {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.details-song-card__favorite:hover {
+  transform: scale(1.1);
+}
+
+.details-song-card__favorite--active {
+  color: #ff4444;
+}
+
+.details-song-card__play {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.details-song-card__play:hover {
+  transform: scale(1.1);
 }
 
 .details-song-card__more-icon {
