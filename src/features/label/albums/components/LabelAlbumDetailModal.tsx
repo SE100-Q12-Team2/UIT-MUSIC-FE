@@ -6,8 +6,9 @@ import "@/styles/label-album-detail.css";
 
 import calendarIcon from "@/assets/calendar.svg";
 import songIcon from "@/assets/musical_note.svg";
-import durationIcon from "@/assets/time.svg";
+import durationIcon from "@/assets/clock.svg";
 import listeningIcon from "@/assets/listening_count.svg";
+
 import countIcon from "@/assets/Container_count.png";
 import likedIcon from "@/assets/Container_liked.png";
 import ratingIcon from "@/assets/Container_rating.png";
@@ -82,8 +83,7 @@ const LabelAlbumDetailModal: React.FC<Props> = ({
   album,
   songs,
 }) => {
-  if (!isOpen) return null;
-  if (!album) return null;
+  if (!isOpen || !album) return null;
 
   const albumId = Number(album.id ?? 0);
   const cover = album.coverImage || fallbackCover;
@@ -122,10 +122,11 @@ const LabelAlbumDetailModal: React.FC<Props> = ({
   const totalListening =
     Number((album as any)?.totalListeningCount) ||
     songRows.reduce((sum, s) => sum + (s.listeningCount ?? 0), 0) ||
-    seeded(albumId, 18_000_000, 5_000_000);
+    seeded(albumId || 1, 18_000_000, 5_000_000);
 
   const totalLikes =
-    Number((album as any)?.totalLikes) || seeded(albumId, 1_400_000, 700_000);
+    Number((album as any)?.totalLikes) ||
+    seeded(albumId || 1, 1_400_000, 700_000);
 
   const avgRating = Number((album as any)?.avgRating) || 5.0;
 
@@ -175,26 +176,17 @@ const LabelAlbumDetailModal: React.FC<Props> = ({
               <div className="lad-artist">{artistName}</div>
 
               <div className="lad-badges">
-                <div
-                  className="lad-badge"
-                  style={{ display: "flex", gap: 8, alignItems: "center" }}
-                >
+                <div className="lad-badge lad-badgeFlex">
                   <img src={calendarIcon} alt="" width={16} height={16} />
                   <span>{releaseText}</span>
                 </div>
 
-                <div
-                  className="lad-badge"
-                  style={{ display: "flex", gap: 8, alignItems: "center" }}
-                >
+                <div className="lad-badge lad-badgeFlex">
                   <img src={songIcon} alt="" width={16} height={16} />
                   <span>{tracksCount} song</span>
                 </div>
 
-                <div
-                  className="lad-badge"
-                  style={{ display: "flex", gap: 8, alignItems: "center" }}
-                >
+                <div className="lad-badge lad-badgeFlex">
                   <img src={durationIcon} alt="" width={16} height={16} />
                   <span>{totalDurationText}</span>
                 </div>
@@ -206,33 +198,24 @@ const LabelAlbumDetailModal: React.FC<Props> = ({
 
           <h4 className="lad-section-title">Thống kê Album</h4>
           <div className="lad-stats">
-            <div
-              className="lad-stat"
-              style={{ display: "flex", gap: 12, alignItems: "center" }}
-            >
-              <img src={countIcon} alt="" width={44} height={44} />
+            <div className="lad-stat lad-statFlex">
+              <img src={countIcon} alt="" width={40} height={40} />
               <div>
                 <div className="lad-stat-label">Total Listening Count</div>
                 <div className="lad-stat-value">{formatVN(totalListening)}</div>
               </div>
             </div>
 
-            <div
-              className="lad-stat"
-              style={{ display: "flex", gap: 12, alignItems: "center" }}
-            >
-              <img src={likedIcon} alt="" width={44} height={44} />
+            <div className="lad-stat lad-statFlex">
+              <img src={likedIcon} alt="" width={40} height={40} />
               <div>
                 <div className="lad-stat-label">Total Likes</div>
                 <div className="lad-stat-value">{formatVN(totalLikes)}</div>
               </div>
             </div>
 
-            <div
-              className="lad-stat"
-              style={{ display: "flex", gap: 12, alignItems: "center" }}
-            >
-              <img src={ratingIcon} alt="" width={44} height={44} />
+            <div className="lad-stat lad-statFlex">
+              <img src={ratingIcon} alt="" width={40} height={40} />
               <div>
                 <div className="lad-stat-label">Average Rating</div>
                 <div className="lad-stat-value">
@@ -248,11 +231,11 @@ const LabelAlbumDetailModal: React.FC<Props> = ({
             <table className="lad-table">
               <thead>
                 <tr>
-                  <th style={{ width: 60 }}>#</th>
+                  <th style={{ width: 56 }}>#</th>
                   <th>Song Name</th>
-                  <th style={{ width: 180 }}>Genre</th>
-                  <th style={{ width: 220 }}>Listening Count</th>
-                  <th style={{ width: 160 }}>Duration</th>
+                  <th style={{ width: 160 }}>Genre</th>
+                  <th style={{ width: 210 }}>Listening Count</th>
+                  <th style={{ width: 140 }}>Duration</th>
                 </tr>
               </thead>
 
@@ -273,13 +256,7 @@ const LabelAlbumDetailModal: React.FC<Props> = ({
                       </td>
 
                       <td>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                          }}
-                        >
+                        <div className="lad-listenCell">
                           <img
                             src={listeningIcon}
                             alt=""
@@ -297,6 +274,8 @@ const LabelAlbumDetailModal: React.FC<Props> = ({
               </tbody>
             </table>
           </div>
+
+          <div className="lad-bottomPad" />
         </div>
       </div>
     </>
