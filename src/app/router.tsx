@@ -1,6 +1,6 @@
 // src/app/router.tsx
 import React, { lazy } from "react";
-import { createBrowserRouter, Navigate } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import App from "@/app/App";
 
@@ -32,6 +32,8 @@ import PlayerPage from "@/features/player/pages/PlayerPage";
 // label pages
 import LabelHomePage from "@/features/label/home/pages/LabelHomePage";
 import LabelSongManagementPage from "@/features/label/songs/pages/LabelSongManagementPage";
+import LabelAlbumManagementPage from "@/features/label/albums/pages/LabelAlbumManagementPage";
+import CreateAlbumPage from "@/features/label/albums/pages/CreateAlbumPage";
 
 // admin pages
 import AdminDashboardPage from "@/features/admin/pages/AdminDashboardPage";
@@ -145,12 +147,12 @@ export const router = createBrowserRouter([
       // Label area
       {
         path: "label",
-        element: (
-          <ProtectedRoute>
-            <LabelLayout />
-          </ProtectedRoute>
-        ),
+        element: <LabelLayout />,
         children: [
+          {
+            index: true,
+            element: <Navigate to="/label/home" replace />,
+          },
           {
             path: "home",
             element: (
@@ -169,7 +171,19 @@ export const router = createBrowserRouter([
           },
           {
             path: "albums",
-            element: <div>Label Albums Page (Coming Soon)</div>,
+            element: (
+              <LazyLoad>
+                <LabelAlbumManagementPage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: "albums/create",
+            element: (
+              <LazyLoad>
+                <CreateAlbumPage />
+              </LazyLoad>
+            ),
           },
           {
             path: "report",
@@ -223,6 +237,14 @@ export const router = createBrowserRouter([
               </LazyLoad>
             ),
           },
+        ],
+      },
+      {
+        path: "dev",
+        element: <LabelLayout />,
+        children: [
+          { path: "label/albums", element: <LabelAlbumManagementPage /> },
+          { path: "label/albums/create", element: <CreateAlbumPage /> },
         ],
       },
 
