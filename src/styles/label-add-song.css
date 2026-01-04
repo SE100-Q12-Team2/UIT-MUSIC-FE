@@ -1,0 +1,111 @@
+.las-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 14, 28, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 1100;
+}
+
+.las-dialog {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, calc(100vw - 40px));
+  background: rgba(22, 44, 78, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  z-index: 1110;
+  overflow: hidden;
+}
+
+.las-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.las-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.las-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.las-body {
+  padding: 16px;
+}
+
+.las-field {
+  margin-bottom: 12px;
+}
+
+.las-label {
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+}
+
+.las-input {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(8, 14, 28, 0.45);
+  padding: 11px 12px;
+  color: rgba(255, 255, 255, 0.92);
+  outline: none;
+}
+
+.las-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.las-help {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.75;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.las-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.las-btn {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(64, 110, 255, 0.25);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.las-btn.ghost {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.las-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
