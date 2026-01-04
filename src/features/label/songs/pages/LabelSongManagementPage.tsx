@@ -442,7 +442,7 @@ const LabelSongManagementPage: React.FC = () => {
                         </div>
                       </td>
                       <td>
-                        {song.songArtists.map((sa) => sa.artist.artistName).join(', ')}
+                        {(song.songArtists || []).map((sa) => sa.artist.artistName).join(', ') || 'Unknown Artist'}
                       </td>
                       <td>{song.genre.genreName}</td>
                       <td>{formatPlayCount(song.playCount)}</td>

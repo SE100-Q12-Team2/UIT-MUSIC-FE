@@ -12,6 +12,7 @@ import LazyLoad from "@/shared/components/common/LazyLoad";
 // layouts
 import MainLayout from "@/shared/layouts/MainLayout";
 import LabelLayout from "@/shared/layouts/LabelLayout";
+import AdminLayout from "@/shared/layouts/AdminLayout";
 
 // pages (auth)
 import LoginPage from "@/features/auth/pages/LoginPage";
@@ -34,10 +35,17 @@ import LabelSongManagementPage from "@/features/label/songs/pages/LabelSongManag
 import LabelAlbumManagementPage from "@/features/label/albums/pages/LabelAlbumManagementPage";
 import CreateAlbumPage from "@/features/label/albums/pages/CreateAlbumPage";
 
+// admin pages
+import AdminDashboardPage from "@/features/admin/pages/AdminDashboardPage";
+import AdminHomePage from "@/features/admin/home/pages/AdminHomePage";
+
 // others
 import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
 import RoleBasedRedirect from "@/shared/components/RoleBasedRedirect";
 import PremiumSubscriptionsPage from "@/features/user/subscription/pages/PremiumSubscriptionsPage";
+import { CopyrightReportPage } from "@/features/label/cp-report/pages";
+import AnalyticsScreen from "@/features/admin/trendings/AnalyticsScreen";
+import ResourceScreen from "@/features/admin/songs-resource/pages/ResourceScreen";
 
 const LandingPage = lazy(
   () => import("@/features/user/landing/pages/LandingPage")
@@ -179,7 +187,55 @@ export const router = createBrowserRouter([
           },
           {
             path: "report",
-            element: <div>Label Report Page (Coming Soon)</div>,
+            element: <LazyLoad><CopyrightReportPage/></LazyLoad>,
+          },
+        ],
+      },
+
+      // Admin area - Protected route requiring Admin role
+      {
+        path: "admin",
+        element: (
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/admin/home" replace />,
+          },
+          {
+            path: "home",
+            element: (
+              <LazyLoad>
+                <AdminHomePage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: "trendings",
+            element: (
+              <LazyLoad>
+                <AnalyticsScreen/>
+              </LazyLoad>
+            ),
+          },
+          {
+            path: "human",
+            element: (
+              <LazyLoad>
+                <AdminDashboardPage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: "songs",
+            element: (
+              <LazyLoad>
+                <ResourceScreen/>
+              </LazyLoad>
+            ),
           },
         ],
       },

@@ -3,6 +3,8 @@ import backgroundImg from "@/assets/background-subscription.jpg";
 import { SubscriptionHeader, SubscriptionCardsGrid } from "../components";
 import { useSubscriptionPlans } from "@/shared/hooks/useSubscriptionPlans";
 import { usePageBackground } from "@/shared/hooks/usePageBackground";
+import { useSubscribe } from "@/core/services/subscription.service";
+import { toast } from "sonner";
 
 const LoadingState = () => (
   <div className="subscription-loading">
@@ -18,10 +20,16 @@ const ErrorState = ({ error }: { error: string }) => (
 
 export default function PremiumSubscriptionsPage() {
   const { plans, loading, error } = useSubscriptionPlans();
+  const subscribeMutation = useSubscribe();
   usePageBackground(backgroundImg);
 
-  const handleSubscribe = (planId: number) => {
-    console.log("Subscribe to plan:", planId);
+  const handleSubscribe = async (planId: number) => {
+    try {
+      await subscribeMutation.mutateAsync(planId);
+      toast.success("Subscription successful! Welcome to Premium.");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to subscribe. Please try again.");
+    }
   };
 
   if (loading) return <LoadingState />;

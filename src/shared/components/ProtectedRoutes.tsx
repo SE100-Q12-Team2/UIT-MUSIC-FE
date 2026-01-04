@@ -26,6 +26,16 @@ const ProtectedRoute = ({
   }
   if (requireAdmin && user?.role?.name !== "ADMIN") {
     return <Navigate to="/" replace />;
+
+  // If admin route is required, only allow access if user is Admin
+  if (requireAdmin) {
+    const isAdmin = user?.roleId === 2 || user?.role?.name === 'Admin';
+    if (isAdmin) {
+      return <>{children}</>;
+    } else {
+      // User is not admin, redirect to home
+      return <Navigate to="/" replace />;
+    }
   }
 
   return <>{children}</>;

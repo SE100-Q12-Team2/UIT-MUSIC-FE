@@ -66,6 +66,37 @@ export interface Song {
   asset?: SongAsset;
 }
 
+// Contributor info for trending songs
+export interface TrendingSongContributor {
+  songId: number;
+  labelId: number;
+  role: string;
+  label: SongLabel;
+}
+
+// Trending song from API GET /songs/trending
+export interface TrendingSong {
+  id: number;
+  title: string;
+  description: string | null;
+  duration: number;
+  language: string | null;
+  lyrics: string | null;
+  albumId: number;
+  genreId: number;
+  labelId: number;
+  uploadDate: string;
+  isActive: boolean;
+  copyrightStatus: 'Clear' | 'Disputed' | 'Violation';
+  playCount: number;
+  contributors: TrendingSongContributor[];
+  album: SongAlbum;
+  genre: SongGenre;
+  label: SongLabel;
+  asset?: SongAsset;
+  favorites: any[];
+}
+
 export interface SongFilters {
   page?: number;
   limit?: number;
@@ -80,9 +111,17 @@ export interface SongsResponse {
   totalPages: number;
 }
 
+export interface TrendingSongsResponse {
+  items: TrendingSong[];
+}
+
 export const songService = {
   getSongs: async (filters?: SongFilters): Promise<SongsResponse> => {
     return api.get<SongsResponse>('/songs', { params: filters });
+  },
+
+  getTrendingSongs: async (): Promise<TrendingSongsResponse> => {
+    return api.get<TrendingSongsResponse>('/songs/trending');
   },
 
   getSongById: async (id: number): Promise<Song> => {
@@ -114,6 +153,14 @@ export const useSongs = (filters?: SongFilters) => {
   });
 };
 
+export const useTrendingSongs = () => {
+  return useQuery({
+    queryKey: ['songs', 'trending'],
+    queryFn: () => songService.getTrendingSongs(),
+    enabled: true,
+  });
+};
+
 export const useSong = (id: number) => {
   return useQuery({
     queryKey: QUERY_KEYS.songs.detail(id),
@@ -124,15 +171,25 @@ export const useSong = (id: number) => {
 
 // Hook to fetch multiple songs by IDs
 export const useSongsByIds = (songIds: number[]) => {
+  // Create a stable key by sorting and joining
+  const sortedIds = [...songIds].sort((a, b) => a - b);
+  const idsKey = sortedIds.join(',');
+  
   return useQuery({
-    queryKey: ['songs', 'byIds', songIds],
+    queryKey: ['songs', 'byIds', idsKey],
     queryFn: async () => {
+      console.log('Fetching songs for IDs:', songIds);
+      if (songIds.length === 0) {
+        return [];
+      }
       const songs = await Promise.all(
         songIds.map((id) => songService.getSongById(id))
       );
+      console.log('Fetched songs:', songs);
       return songs;
     },
     enabled: songIds.length > 0,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 };
 

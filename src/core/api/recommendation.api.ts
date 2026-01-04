@@ -1,31 +1,27 @@
 
 
 import api from '@/config/api.config';
-import type { ApiResponse } from '@/core/types/common.types';
 import { RecommendationMix, RecommendationSong } from '@/types/recommendation.types';
 
 export const recommendationApi = {
   // GET /recommendations/personalized
-  getPersonalized: async (limit?: number): Promise<RecommendationSong[]> => {
-    const res = await api.get<ApiResponse<RecommendationSong[]>>('/recommendations/personalized', { params: { limit } });
-    return res.data
+  // Note: limit is required according to api-json.json, but we'll make it optional with default for backward compatibility
+  getPersonalized: async (limit: number = 30): Promise<RecommendationSong[]> => {
+    return api.get<RecommendationSong[]>('/recommendations/personalized', { params: { limit } });
   },
 
   // GET /recommendations/similar/:songId
   getSimilar: async (songId: number, limit?: number): Promise<RecommendationSong[]> => {
-    const res = await api.get<ApiResponse<RecommendationSong[]>>(`/recommendations/similar/${songId}`, { params: { limit } });
-    return res.data
+    return api.get<RecommendationSong[]>(`/recommendations/similar/${songId}`, { params: { limit } });
   },
 
   // GET /recommendations/for-you
   getDiscoverWeekly: async (): Promise<RecommendationSong[]> => {
-    const res = await api.get<ApiResponse<RecommendationSong[]>>('/recommendations/for-you');
-    return res.data
+    return api.get<RecommendationSong[]>('/recommendations/for-you');
   },
 
   // GET /recommendations/daily-mix
   getDailyMix: async (): Promise<{ mixes: RecommendationMix[] }> => {
-    const res = await api.get<ApiResponse<{ mixes: RecommendationMix[] }>>('/recommendations/daily-mix');
-    return res.data
+    return api.get<{ mixes: RecommendationMix[] }>('/recommendations/daily-mix');
   },
 };

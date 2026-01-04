@@ -10,8 +10,8 @@ interface PlaylistDetailProps {
   author: string;
   tracks: Track[];
   onTrackClick?: (track: Track) => void;
-  onFavoriteToggle?: (trackId: number) => void;
-  onMoreClick?: (trackId: number) => void;
+  onRemoveFromPlaylist?: (trackId: number, playlistId: number) => void;
+  onPlayTrack?: (trackId: number) => void;
   onClose?: () => void;
 }
 
@@ -23,8 +23,8 @@ const PlaylistDetail: React.FC<PlaylistDetailProps> = ({
   author,
   tracks,
   onTrackClick,
-  onFavoriteToggle,
-  onMoreClick,
+  onRemoveFromPlaylist,
+  onPlayTrack,
   onClose,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -101,8 +101,8 @@ const PlaylistDetail: React.FC<PlaylistDetailProps> = ({
             key={track.id}
             track={track}
             onClick={onTrackClick}
-            onFavoriteToggle={onFavoriteToggle}
-            onMoreClick={onMoreClick}
+            onRemoveFromPlaylist={onRemoveFromPlaylist}
+            onPlayTrack={onPlayTrack}
           />
         ))}
       </div>

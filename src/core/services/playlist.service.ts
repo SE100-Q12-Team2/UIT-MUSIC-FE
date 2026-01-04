@@ -1,5 +1,5 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import api from '@/config/api.config';
 import { Playlist, PlaylistTrack } from '@/types/playlist.types';
 import { useProfileStore } from '@/store/profileStore';
@@ -28,30 +28,41 @@ export interface PlaylistDetail extends ExtendedPlaylist {
 export const playlistService = {
   // Get all playlists for a user
   getPlaylists: async (ownerId: number): Promise<Playlist[]> => {
-    // api.get already unwraps response.data.data, so we get array directly
-    const playlists = await api.get<Playlist[]>('/playlists', {
+    const response = await api.get<Playlist[] | { data: Playlist[] }>('/playlists', {
       params: { ownerId },
     });
+    // Handle both direct array and object with data property
+    const playlists = Array.isArray(response) ? response : (response.data || []);
     return playlists;
   },
 
   // Get tracks in a playlist
   getPlaylistTracks: async (playlistId: number): Promise<PlaylistTrack[]> => {
-    // api.get already unwraps response.data.data, so we get array directly
-    const tracks = await api.get<PlaylistTrack[]>(`/playlists/${playlistId}/tracks`);
+    const response = await api.get<PlaylistTrack[] | { data: PlaylistTrack[] }>(`/playlists/${playlistId}/tracks`);
+    // Handle both direct array and object with data property
+    const tracks = Array.isArray(response) ? response : (response.data || []);
     return tracks;
   },
 
   // Get track count for multiple playlists
   getPlaylistsWithTrackCounts: async (ownerId: number): Promise<(Playlist & { trackCount: number })[]> => {
-    const playlists = await api.get<Playlist[]>('/playlists', {
+    const response = await api.get<Playlist[] | { data: Playlist[] }>('/playlists', {
       params: { ownerId },
     });
+    
+    // Handle both direct array and object with data property
+    const playlists = Array.isArray(response) ? response : (response.data || []);
+    
+    // If no playlists, return empty array
+    if (!Array.isArray(playlists) || playlists.length === 0) {
+      return [];
+    }
     
     // Fetch track counts for all playlists
     const playlistsWithCounts = await Promise.all(
       playlists.map(async (playlist) => {
-        const tracks = await api.get<PlaylistTrack[]>(`/playlists/${playlist.id}/tracks`);
+        const tracksResponse = await api.get<PlaylistTrack[] | { data: PlaylistTrack[] }>(`/playlists/${playlist.id}/tracks`);
+        const tracks = Array.isArray(tracksResponse) ? tracksResponse : (tracksResponse.data || []);
         return {
           ...playlist,
           trackCount: tracks.length,
@@ -64,21 +75,51 @@ export const playlistService = {
   
   // Get all song IDs from all user's playlists
   getAllPlaylistSongIds: async (ownerId: number): Promise<Set<number>> => {
-    const playlists = await api.get<Playlist[]>('/playlists', {
+    const response = await api.get<Playlist[] | { data: Playlist[] }>('/playlists', {
       params: { ownerId },
     });
     
+    // Handle both direct array and object with data property
+    const playlists = Array.isArray(response) ? response : (response.data || []);
     const allSongIds = new Set<number>();
+    
+    // If no playlists, return empty set
+    if (!Array.isArray(playlists) || playlists.length === 0) {
+      return allSongIds;
+    }
     
     // Fetch all tracks from all playlists
     await Promise.all(
       playlists.map(async (playlist) => {
-        const tracks = await api.get<PlaylistTrack[]>(`/playlists/${playlist.id}/tracks`);
+        const tracksResponse = await api.get<PlaylistTrack[] | { data: PlaylistTrack[] }>(`/playlists/${playlist.id}/tracks`);
+        const tracks = Array.isArray(tracksResponse) ? tracksResponse : (tracksResponse.data || []);
         tracks.forEach(track => allSongIds.add(track.songId));
       })
     );
     
     return allSongIds;
+  },
+
+  // Create a new playlist
+  createPlaylist: async (data: {
+    userId: number;
+    playlistName: string;
+    description?: string;
+    coverImageUrl?: string;
+    isPublic?: boolean;
+    tags?: string[];
+  }): Promise<Playlist> => {
+    return api.post<Playlist>('/playlists', data);
+  },
+
+  // Add a track to a playlist
+  addTrackToPlaylist: async (playlistId: number, trackId: number): Promise<void> => {
+    return api.post<void>(`/playlists/${playlistId}/tracks`, { trackId });
+  },
+
+  // Remove a track from a playlist
+  removeTrackFromPlaylist: async (playlistId: number, trackId: number): Promise<void> => {
+    return api.delete<void>(`/playlists/${playlistId}/tracks/${trackId}`);
   },
 };
 
@@ -213,5 +254,51 @@ export const useAllPlaylistSongIds = () => {
       return playlistService.getAllPlaylistSongIds(profileId);
     },
     enabled: !!profileId,
+  });
+};
+
+// Mutation hook to create a new playlist
+export const useCreatePlaylist = () => {
+  const queryClient = useQueryClient();
+  const profileId = useProfileStore((state) => state.profile?.id);
+
+  return useMutation({
+    mutationFn: (data: Parameters<typeof playlistService.createPlaylist>[0]) =>
+      playlistService.createPlaylist(data),
+    onSuccess: () => {
+      // Invalidate playlists queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['playlists-with-counts', profileId] });
+      queryClient.invalidateQueries({ queryKey: ['all-playlist-song-ids', profileId] });
+    },
+  });
+};
+
+// Mutation hook to add a track to a playlist
+export const useAddTrackToPlaylist = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ playlistId, trackId }: { playlistId: number; trackId: number }) =>
+      playlistService.addTrackToPlaylist(playlistId, trackId),
+    onSuccess: (_, variables) => {
+      // Invalidate specific playlist tracks query
+      queryClient.invalidateQueries({ queryKey: ['playlist-tracks', variables.playlistId] });
+      queryClient.invalidateQueries({ queryKey: ['all-playlist-song-ids'] });
+    },
+  });
+};
+
+// Mutation hook to remove a track from a playlist
+export const useRemoveTrackFromPlaylist = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ playlistId, trackId }: { playlistId: number; trackId: number }) =>
+      playlistService.removeTrackFromPlaylist(playlistId, trackId),
+    onSuccess: (_, variables) => {
+      // Invalidate specific playlist tracks query
+      queryClient.invalidateQueries({ queryKey: ['playlist-tracks', variables.playlistId] });
+      queryClient.invalidateQueries({ queryKey: ['all-playlist-song-ids'] });
+    },
   });
 };

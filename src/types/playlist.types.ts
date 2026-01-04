@@ -23,6 +23,7 @@ export interface PlaylistSongArtist {
 export interface PlaylistSongAlbum {
   id: number;
   albumTitle: string;
+  coverImage: string;
 }
 
 // Song info embedded in playlist track

@@ -17,8 +17,8 @@ export const listeningHistoryApi = {
   },
 
   // Get recently played songs
-  getRecentlyPlayed: async (limit?: number): Promise<ApiResponse<RecentlyPlayedResponse>> => {
-    return api.get('/listening-history/recently-played', { params: { limit } });
+  getRecentlyPlayed: async (limit?: number): Promise<RecentlyPlayedResponse> => {
+    return api.get<RecentlyPlayedResponse>('/listening-history/recently-played', { params: { limit } });
   },
 
   // Get listening statistics

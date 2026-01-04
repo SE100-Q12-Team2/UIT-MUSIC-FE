@@ -17,6 +17,11 @@ export const labelService = {
     return response.items;
   },
 
+  // Get a specific record label by ID
+  getRecordLabelById: async (labelId: number): Promise<RecordLabel> => {
+    return api.get<RecordLabel>(`/record-labels/${labelId}`);
+  },
+
   // Get albums for a label
   getLabelAlbums: async (labelId: number, page = 1, limit = 10): Promise<LabelAlbumsResponse> => {
     return api.get<LabelAlbumsResponse>('/albums', {
@@ -86,5 +91,17 @@ export const useUpdateLabel = () => {
       queryClient.invalidateQueries({ queryKey: ['record-labels'] });
       queryClient.setQueryData(['record-labels', variables.labelId], data);
     },
+  });
+};
+
+// React Query hook for getting a specific record label
+export const useRecordLabel = (labelId: number | undefined) => {
+  return useQuery({
+    queryKey: ['record-label', labelId],
+    queryFn: () => {
+      if (!labelId) throw new Error('Label ID not available');
+      return labelService.getRecordLabelById(labelId);
+    },
+    enabled: !!labelId,
   });
 };
