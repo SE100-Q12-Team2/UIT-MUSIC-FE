@@ -114,3 +114,13 @@
   height: 100%;
   object-fit: cover;
 }
+
+.app-header__profile-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 9999px;
+  width: 32px;
+  height: 32px;
+}

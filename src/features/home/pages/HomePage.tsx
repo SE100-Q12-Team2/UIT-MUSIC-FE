@@ -25,7 +25,6 @@ import { RecentlyPlayedSong } from '@/types/listening-history.api';
 import LoadingSpinner from '@/shared/components/common/LoadingSpinner';
 
 /* ---------------- Section ---------------- */
-
 const Section = ({ title, actionText = 'See All', children }: SectionProps) => (
   <div className="px-8 py-6">
     <div className="flex items-center justify-between mb-4">

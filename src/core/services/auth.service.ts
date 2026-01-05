@@ -92,10 +92,7 @@ export const useLogin = () => {
 
 export const useRegister = () => {
   return useMutation({
-    mutationFn: (data: RegisterRequest) => authService.register(data),
-    onSuccess: (data) => {
-      cookieStorage.setItem('registered_user', JSON.stringify(data), { days: 1, secure: ENV.IS_PRODUCTION });
-    },
+    mutationFn: (data: RegisterRequest) => authService.register(data)
   });
 };
 

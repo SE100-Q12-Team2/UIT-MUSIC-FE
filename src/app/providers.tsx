@@ -136,7 +136,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async() => {
+    await authService.logout(cookieStorage.getItem('refresh_token') || '');
     cookieStorage.removeItem('access_token');
     cookieStorage.removeItem('refresh_token');
     cookieStorage.removeItem('user');
