@@ -1,5 +1,9 @@
+'use client';
+
 import React, { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import { User, Settings, LogOut } from 'lucide-react';
+
 import logoWithName from '@/assets/logo-name-under.svg';
 import searchIcon from '@/assets/search.svg';
 import notificationIcon from '@/assets/notification.svg';
@@ -7,17 +11,47 @@ import settingsIcon from '@/assets/settings.svg';
 import profileImg from '@/assets/artist-1.jpg';
 import '@/styles/app-header.css';
 
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/shared/hooks/auth/useAuth';
+import { toast } from 'sonner';
+import { ROUTES } from '@/core/constants/routes';
+
 const AppHeader: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleLogout = async() => {
+    await logout();
+    toast.success('Logged out successfully');
+    navigate(ROUTES.HOME)
+  };
+
   return (
     <header className="app-header">
+      {/* LEFT */}
       <div className="app-header__left">
         <Link to="/" className="app-header__logo">
-          <img src={logoWithName} alt="VioTune" className="app-header__logo-img" />
+          <img
+            src={logoWithName}
+            alt="VioTune"
+            className="app-header__logo-img"
+          />
         </Link>
+
         <div className="app-header__search">
-          <img src={searchIcon} alt="Search" className="app-header__search-icon" />
+          <img
+            src={searchIcon}
+            alt="Search"
+            className="app-header__search-icon"
+          />
           <input
             type="text"
             placeholder="Search"
@@ -28,16 +62,87 @@ const AppHeader: React.FC = () => {
         </div>
       </div>
 
+      {/* RIGHT */}
       <div className="app-header__right">
-        <button className="app-header__icon-btn" aria-label="Notifications">
+        <button className="app-header__icon-btn">
           <img src={notificationIcon} alt="Notifications" />
         </button>
-        <Link to="/settings" className="app-header__icon-btn" aria-label="Settings">
+
+        <Link to="/settings" className="app-header__icon-btn">
           <img src={settingsIcon} alt="Settings" />
         </Link>
-        <Link to="/profile" className="app-header__profile">
-          <img src={profileImg} alt="Profile" className="app-header__profile-img" />
-        </Link>
+
+        {/* PROFILE DROPDOWN */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="app-header__profile-btn">
+              <img
+                src={profileImg}
+                alt="Profile"
+                className="h-9 w-9 rounded-full object-cover ring-2 ring-white/10 hover:ring-white/30 transition"
+              />
+            </button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            align="end"
+            sideOffset={10}
+            className="
+              w-56
+              rounded-xl
+              border border-white/10
+              bg-[#121826]
+              p-1
+              text-white
+              shadow-xl
+              backdrop-blur
+            "
+          >
+            {/* USER INFO */}
+            <div className="px-3 py-2">
+              <p className="text-sm font-medium leading-none">Johan Tuấn Lộc</p>
+              <p className="text-xs text-white/60 truncate">
+                listener@viotune.app
+              </p>
+            </div>
+
+            <DropdownMenuSeparator className="bg-white/10 my-1" />
+
+            <DropdownMenuItem asChild>
+              <Link
+                to="/profile"
+                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-white/10"
+              >
+                <User className="h-4 w-4 opacity-80" />
+                Profile
+              </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem asChild>
+              <Link
+                to="/settings/profile"
+                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-white/10"
+              >
+                <Settings className="h-4 w-4 opacity-80" />
+                Account settings
+              </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator className="bg-white/10 my-1" />
+
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="
+                flex items-center gap-3 rounded-md px-3 py-2 text-sm
+                text-red-400 hover:bg-red-500/10 hover:text-red-300
+                focus:bg-red-500/10
+              "
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

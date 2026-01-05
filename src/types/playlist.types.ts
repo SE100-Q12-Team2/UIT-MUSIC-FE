@@ -1,3 +1,12 @@
+import { Song } from "@/types/song.types";
+
+export interface PlaylistSong {
+  id: number;
+  playlistId: number;
+  position: number;
+  song: Song;
+}
+
 export interface Playlist {
   id: number;
   userId: number;
@@ -5,6 +14,7 @@ export interface Playlist {
   description: string;
   tags: string[];
   coverImageUrl: string;
+  playlistSongs: PlaylistSong[];
   isFavorite: boolean;
   isPublic: boolean;
   createdAt: string;
