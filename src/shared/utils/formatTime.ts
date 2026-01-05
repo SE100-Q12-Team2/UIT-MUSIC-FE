@@ -1,3 +1,5 @@
+import { PlaylistTrack } from "@/types/playlist.types";
+
 /**
  * Format seconds to MM:SS format
  * @param seconds - number of seconds
@@ -50,3 +52,8 @@ export const parseTime = (timeString: string): number => {
 
     return 0;
 };
+
+export const getTotalDuration = (tracks: PlaylistTrack[] | undefined) => {
+  if (!tracks || tracks.length === 0) return 0;
+  return tracks.reduce((sum, t) => sum + (t.song?.duration || 0), 0);
+}

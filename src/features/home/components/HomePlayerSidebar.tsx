@@ -1,4 +1,9 @@
-'use client';
+import {
+  usePlaylists,
+  usePlaylistTracks,
+} from '@/core/services/playlist.service';
+import { formatTime, getTotalDuration } from '@/shared/utils/formatTime';
+import { useProfileStore } from '@/store/profileStore';
 
 interface HomePlayerSidebarProps {
   isPlayerVisible: boolean;
@@ -9,19 +14,12 @@ export default function HomePlayerSidebar({
   isPlayerVisible,
   setIsPlayerVisible,
 }: HomePlayerSidebarProps) {
-  const songs = [
-    { title: 'idfc', artist: 'Blackbear', active: true },
-    { title: 'So Low', artist: 'SZA' },
-    { title: 'Chihiro', artist: 'Billie Eilish' },
-    { title: 'Drama', artist: 'Roy Woods' },
-    { title: 'Miracles', artist: 'Stalking Gia' },
-    { title: 'Ride', artist: 'Twenty One Pilots' },
-    { title: 'Where Is My Love', artist: 'SYML' },
-    { title: 'Feel Something', artist: 'Bea Miller' },
-    { title: 'Ocean Eyes', artist: 'Billie Eilish' },
-    { title: 'Let Me Down Slowly', artist: 'Alec Benjamin' },
-    { title: 'Lovely', artist: 'Billie Eilish & Khalid' }
-  ];
+  const { data: playlists, isLoading: playlistsLoading } = usePlaylists();
+  const playlist = playlists && playlists.length > 0 ? playlists[0] : null;
+  const { data: tracks, isLoading: tracksLoading } = usePlaylistTracks(
+    playlist?.id || 0
+  );
+  const profile = useProfileStore((state) => state.profile);
 
   return (
     <aside
@@ -40,12 +38,11 @@ export default function HomePlayerSidebar({
         }
       `}
     >
-      {/* IMPORTANT: min-h-0 để scroll hoạt động */}
       <div className="p-4 flex flex-col gap-4 h-full min-h-0">
         {/* ================= Header ================= */}
         <div className="flex items-center justify-between">
           <h3 className="text-white font-semibold text-lg truncate">
-            I Don’t Care
+            {playlist?.playlistName || 'No Playlist'}
           </h3>
           <button
             onClick={() => setIsPlayerVisible(false)}
@@ -59,54 +56,76 @@ export default function HomePlayerSidebar({
         {/* ================= Playlist Info ================= */}
         <div className="flex gap-4">
           <img
-            src="https://i.scdn.co/image/ab67616d0000b273e0f4e8f7a7e6f8a6c5b6f5a5"
+            src={
+              playlist?.coverImageUrl ||
+              'https://i.scdn.co/image/ab67616d0000b273e0f4e8f7a7e6f8a6c5b6f5a5'
+            }
             alt="cover"
             className="w-28 h-28 rounded-lg object-cover shadow-lg"
           />
 
           <div className="flex flex-col justify-between text-sm text-gray-300">
             <div className="flex items-center gap-2">
-              🎵 <span>24 Tracks</span>
+              🎵 <span>{tracks ? tracks.length : 0} Tracks</span>
             </div>
             <div className="flex items-center gap-2">
-              ⏱ <span>01:38:58</span>
+              🕠 <span>{formatTime(getTotalDuration(tracks))}</span>
             </div>
             <div className="flex items-center gap-2">
-              👤 <span>Rayan</span>
+              👤 <span>{profile?.fullName || 'Unknown'}</span>
             </div>
           </div>
         </div>
 
         {/* ================= Song List (SCROLL HERE) ================= */}
         <div className="flex-1 min-h-0 overflow-y-auto mt-2 pr-1">
-          {songs.map((song, idx) => (
-            <div
-              key={idx}
-              className={`
-                flex items-center gap-3 p-2 mb-2 rounded-lg
-                border border-white/10
-                hover:bg-white/10 transition
-                ${song.active ? 'bg-white/10' : ''}
-              `}
-            >
-              <img
-                src="https://i.scdn.co/image/ab67616d0000b273e0f4e8f7a7e6f8a6c5b6f5a5"
-                alt=""
-                className="w-10 h-10 rounded object-cover"
-              />
+          {tracksLoading || playlistsLoading ? (
+            <div className="text-gray-400 text-center mt-8">Loading...</div>
+          ) : !tracks || tracks.length === 0 ? (
+            <div className="text-gray-400 text-center mt-8">
+              No songs in playlist.
+            </div>
+          ) : (
+            tracks.map((track) => (
+              <div
+                key={track.id}
+                className={`
+                  flex items-center gap-3 p-2 mb-2 rounded-lg
+                  border border-white/10
+                  hover:bg-white/10 transition
+                `}
+              >
+                <img
+                  src={
+                    playlist?.coverImageUrl ||
+                    'https://i.scdn.co/image/ab67616d0000b273e0f4e8f7a7e6f8a6c5b6f5a5'
+                  }
+                  alt=""
+                  className="w-10 h-10 rounded object-cover"
+                />
 
-              <div className="flex-1 min-w-0">
-                <div className="text-white text-sm truncate">{song.title}</div>
-                <div className="text-xs text-gray-400 truncate">
-                  {song.artist}
+                <div className="flex-1 min-w-0">
+                  <div className="text-white text-sm truncate flex items-center gap-2">
+                    {track.song.title}
+                    <span className="text-xs text-gray-400 ml-2">
+                      {formatTime(track.song.duration)}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-400 truncate">
+                    {track.song.songArtists && track.song.songArtists.length > 0
+                      ? track.song.songArtists
+                          .map((a) => a.artist.artistName)
+                          .join(', ')
+                      : 'Unknown Artist'}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-gray-400">
+                  ♡<button className="hover:text-white">•••</button>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 text-gray-400">
-                ♡<button className="hover:text-white">•••</button>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </aside>
