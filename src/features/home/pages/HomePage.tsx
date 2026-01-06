@@ -3,7 +3,14 @@
 import { useState } from 'react';
 import { Heart } from 'lucide-react';
 
-import { ARTIST_UPDATES } from '@/data/home.data';
+import { 
+  ARTIST_UPDATES, 
+  ARTISTS_FOLLOW, 
+  GENRES,
+  TAILORED_PLAYLISTS,
+  PERSONAL_SPACE,
+  DAILY_PICK_SONGS
+} from '@/data/home.data';
 
 import { Button } from '@/shared/components/ui/button';
 import MusicCard from '@/features/home/components/MusicCard';
@@ -191,6 +198,168 @@ const Home = () => {
               description="Check back tomorrow for fresh music recommendations picked just for you"
             />
           )}
+        </Section>
+
+        {/* Artists You Follow */}
+        <Section title="Artists You Follow">
+          <div className="flex gap-6 overflow-x-auto pb-2">
+            {ARTISTS_FOLLOW.map((artist) => (
+              <div
+                key={artist.id}
+                className="flex flex-col items-center gap-2 cursor-pointer group shrink-0"
+              >
+                <div className="relative">
+                  <img
+                    src={artist.imageUrl}
+                    alt={artist.name}
+                    className="w-32 h-32 rounded-full object-cover ring-2 ring-white/10 group-hover:ring-vio-500 transition-all"
+                  />
+                </div>
+                <span className="text-sm text-white font-medium capitalize">
+                  {artist.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* Discover Series */}
+        <Section title="Discover The Magic Of Series Musics With Viotune">
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {TAILORED_PLAYLISTS.map((item) => (
+              <div key={item.id} className="shrink-0 w-40">
+                <MusicCard 
+                  id={item.id}
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  coverUrl={item.coverUrl}
+                />
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* Since You Enjoy Till Dusk */}
+        <Section title="Since You Enjoy Till Dusk">
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {PERSONAL_SPACE.map((item) => (
+              <div key={item.id} className="shrink-0 w-40">
+                <MusicCard 
+                  id={item.id}
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  coverUrl={item.coverUrl}
+                />
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* Albums You Were Listening To */}
+        <Section title="Albums You Were Listening To">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {ARTIST_UPDATES.slice(0, 4).map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-4 bg-[#13132b]/50 p-4 rounded-lg hover:bg-[#13132b] transition-colors group cursor-pointer border border-white/5"
+              >
+                <img
+                  src={item.coverUrl}
+                  alt={item.title}
+                  className="w-16 h-16 rounded shadow-lg"
+                />
+                <div className="flex-1">
+                  <h4 className="text-white font-medium">{item.title}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {item.subtitle}
+                  </p>
+                </div>
+                <Heart
+                  className="text-muted-foreground group-hover:text-white transition-colors"
+                  size={20}
+                />
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* Genres You Interested In */}
+        <Section title="Genres You Interested In">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {GENRES.map((genre) => (
+              <div
+                key={genre.id}
+                className="relative h-32 rounded-xl overflow-hidden group cursor-pointer"
+              >
+                <img
+                  src={genre.coverUrl}
+                  alt={genre.title}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
+                <div className="absolute bottom-4 left-4">
+                  <h3 className="text-2xl font-bold text-white">{genre.title}</h3>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* More Artists You'll Love */}
+        <Section title="More Artists You'll Love">
+          <div className="flex gap-6 overflow-x-auto pb-2">
+            {ARTISTS_FOLLOW.map((artist) => (
+              <div
+                key={`more-${artist.id}`}
+                className="flex flex-col items-center gap-2 cursor-pointer group shrink-0"
+              >
+                <div className="relative">
+                  <img
+                    src={artist.imageUrl}
+                    alt={artist.name}
+                    className="w-32 h-32 rounded-full object-cover ring-2 ring-white/10 group-hover:ring-vio-500 transition-all"
+                  />
+                </div>
+                <span className="text-sm text-white font-medium capitalize">
+                  {artist.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* Trending Now */}
+        <Section title="Trending Now">
+          <div className="bg-[#13132b]/30 rounded-xl border border-white/5 overflow-hidden">
+            {DAILY_PICK_SONGS.slice(0, 5).map((song, idx) => (
+              <div
+                key={`trending-${song.id}`}
+                className={
+                  idx !== 4
+                    ? 'border-b border-white/5'
+                    : ''
+                }
+              >
+                <SongRow song={song} />
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* You Recently Seed */}
+        <Section title="You Recently Seen">
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {TAILORED_PLAYLISTS.map((item) => (
+              <div key={`recent-${item.id}`} className="shrink-0 w-40">
+                <MusicCard 
+                  id={item.id}
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  coverUrl={item.coverUrl}
+                />
+              </div>
+            ))}
+          </div>
         </Section>
       </div>
 
