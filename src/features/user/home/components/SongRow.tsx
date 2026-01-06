@@ -1,13 +1,14 @@
 import React from 'react';
 import { Heart, GripVertical } from 'lucide-react';
-import { Song } from '@/features/user/home/types/home.types';
 import { Song as ApiSong } from '@/core/services/song.service';
 import { formatTime } from '@/shared/utils/formatTime';
+import { Song } from '@/types/song.types';
+import { SongData } from '@/features/user/home/hooks/useHomeData';
 
 interface SongRowProps {
-  song: Song | ApiSong;
+  song: Song | ApiSong | SongData;
   index?: number;
-  allSongs?: (Song | ApiSong)[];
+  allSongs?: (Song | ApiSong | SongData)[];
 }
 
 interface SongWithCoverUrl {
