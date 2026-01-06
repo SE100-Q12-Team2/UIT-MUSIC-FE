@@ -157,6 +157,12 @@ export function useHomeData() {
     personalSpace,
     dailyPickSongs,
     isLoading,
+    loadingStates: {
+      recentlyPlayed: recentlyPlayedLoading,
+      personalized: personalizedLoading,
+      dailyMix: dailyMixLoading,
+      discoverWeekly: discoverWeeklyLoading,
+    },
     raw: {
       recentlyPlayed: recentlyPlayedData,
       personalized: personalizedData,

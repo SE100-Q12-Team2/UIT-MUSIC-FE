@@ -13,8 +13,12 @@ import { SectionProps } from '@/features/user/home/types/home.types';
 import HomePlayerSidebar from '@/features/home/components/HomePlayerSidebar';
 import HomeFloatingButtonToggle from '@/features/home/components/FloatingToggleButton';
 import HomeMiniPlayer from '@/features/home/components/HomeMiniPlayer';
-import LoadingSpinner from '@/shared/components/common/LoadingSpinner';
 import { useHomeData, BannerData } from '@/features/home/hooks/useHomeData';
+import { 
+  BannersSectionSkeleton, 
+  MusicCardGridSkeleton, 
+  SongListSkeleton 
+} from '@/features/home/components/SkeletonLoaders';
 
 /* ---------------- Section ---------------- */
 const Section = ({ title, actionText = 'See All', children }: SectionProps) => (
@@ -45,16 +49,8 @@ const Home = () => {
     tailoredPlaylists,
     personalSpace,
     dailyPickSongs,
-    isLoading,
+    loadingStates,
   } = useHomeData();
-
-  if (isLoading) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center bg-linear-to-b from-vio-900 via-[#0a0a16] to-[#05050a]">
-        <LoadingSpinner />
-      </div>
-    );
-  }
 
   return (
     <div className="w-full min-h-screen flex bg-linear-to-b from-vio-900 via-[#0a0a16] to-[#05050a] overflow-x-hidden">
@@ -65,7 +61,9 @@ const Home = () => {
         }`}
       >
         {/* Recently Played */}
-        {recentlyPlayedBanners.length > 0 && (
+        {loadingStates.recentlyPlayed ? (
+          <BannersSectionSkeleton />
+        ) : recentlyPlayedBanners.length > 0 ? (
           <section className="px-8 pt-6 pb-8">
             <div className="flex gap-6">
               {recentlyPlayedBanners.map((banner: BannerData) => (
@@ -91,10 +89,12 @@ const Home = () => {
               ))}
             </div>
           </section>
-        )}
+        ) : null}
 
         <Section title="Playlists Tailored For You">
-          {tailoredPlaylists.length > 0 ? (
+          {loadingStates.dailyMix ? (
+            <MusicCardGridSkeleton count={5} />
+          ) : tailoredPlaylists.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {tailoredPlaylists.map((item) => (
                 <MusicCard 
@@ -116,7 +116,9 @@ const Home = () => {
         </Section>
 
         <Section title="Your Personal Music Space">
-          {personalSpace.length > 0 ? (
+          {loadingStates.personalized ? (
+            <MusicCardGridSkeleton count={5} />
+          ) : personalSpace.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {personalSpace.map((item) => (
                 <MusicCard 
@@ -165,7 +167,9 @@ const Home = () => {
         </Section>
 
         <Section title="Daily Pick">
-          {dailyPickSongs.length > 0 ? (
+          {loadingStates.discoverWeekly ? (
+            <SongListSkeleton count={5} />
+          ) : dailyPickSongs.length > 0 ? (
             <div className="bg-[#13132b]/30 rounded-xl border border-white/5 overflow-hidden">
               {dailyPickSongs.map((song, idx) => (
                 <div
