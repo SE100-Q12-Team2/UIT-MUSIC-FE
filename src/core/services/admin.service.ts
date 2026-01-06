@@ -16,7 +16,6 @@ export const adminService = {
       return await adminApi.getUsers(page, limit, search);
     } catch (error: any) {
       // Fallback to mock data if API fails
-      console.warn('API failed, using mock data:', error);
       let filteredUsers = [...MOCK_ADMIN_USERS];
       
       if (search) {
@@ -44,7 +43,6 @@ export const adminService = {
       return await adminApi.getLabels(page, limit, search);
     } catch (error: any) {
       // Fallback to mock data if API fails
-      console.warn('API failed, using mock data:', error);
       let filteredLabels = [...MOCK_ADMIN_LABELS];
       
       if (search) {
@@ -70,7 +68,6 @@ export const adminService = {
       return await adminApi.getCopyrightReports();
     } catch (error: any) {
       // Fallback to mock data if API fails
-      console.warn('API failed, using mock data:', error);
       const reports = [...MOCK_COPYRIGHT_REPORTS];
       
       return {
@@ -123,7 +120,6 @@ export const useUpdateUserStatus = () => {
     },
     onError: (error: any, variables) => {
       // Fallback to mock data if API fails
-      console.warn('API failed, updating mock data:', error);
       const users = queryClient.getQueryData<AdminUsersResponse>(['admin-users'])?.items || MOCK_ADMIN_USERS;
       const updatedUsers = users.map(user => 
         user.id === variables.id ? { ...user, accountStatus: variables.data.accountStatus } : user
@@ -151,7 +147,6 @@ export const useDeleteUser = () => {
     },
     onError: (error: any, id) => {
       // Fallback to mock data if API fails
-      console.warn('API failed, updating mock data:', error);
       const users = queryClient.getQueryData<AdminUsersResponse>(['admin-users'])?.items || MOCK_ADMIN_USERS;
       const updatedUsers = users.filter(user => user.id !== id);
       queryClient.setQueryData(['admin-users'], (old: any) => ({
@@ -179,7 +174,6 @@ export const useUpdateLabelStatus = () => {
     },
     onError: (error: any, variables) => {
       // Fallback to mock data if API fails
-      console.warn('API failed, updating mock data:', error);
       const labels = queryClient.getQueryData<AdminLabelsResponse>(['admin-labels'])?.items || MOCK_ADMIN_LABELS;
       const updatedLabels = labels.map(label => 
         label.id === variables.id ? { ...label, status: variables.data.status } : label
@@ -207,7 +201,6 @@ export const useDeleteLabel = () => {
     },
     onError: (error: any, id) => {
       // Fallback to mock data if API fails
-      console.warn('API failed, updating mock data:', error);
       const labels = queryClient.getQueryData<AdminLabelsResponse>(['admin-labels'])?.items || MOCK_ADMIN_LABELS;
       const updatedLabels = labels.filter(label => label.id !== id);
       queryClient.setQueryData(['admin-labels'], (old: any) => ({

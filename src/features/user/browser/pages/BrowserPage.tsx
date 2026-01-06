@@ -56,7 +56,6 @@ const BrowserPage: React.FC = () => {
   const handlePlayClick = (e: React.MouseEvent, songId: number) => {
     e.stopPropagation();
     setPlayingSongId(playingSongId === songId ? null : songId);
-    console.log('Play song:', songId);
   };
 
   const handleSlideClick = (index: number) => {

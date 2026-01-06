@@ -81,22 +81,13 @@ const transformRecentlyPlayedToBanner = (song: RecentlyPlayedSong, index: number
 
 
 export function useHomeData() {
-  const { data: recentlyPlayedData, isLoading: recentlyPlayedLoading, error: recentlyPlayedError } = useRecentlyPlayed(3);
-  const { data: personalizedData, isLoading: personalizedLoading, error: personalizedError } = usePersonalizedRecommendations(30);
-  const { data: dailyMixData, isLoading: dailyMixLoading, error: dailyMixError } = useDailyMix();
-  const { data: discoverWeeklyData, isLoading: discoverWeeklyLoading, error: discoverWeeklyError } = useDiscoverWeekly();
-
-  // Debug logging
-  console.group('🎵 Home Data Debug');
-  console.log('Recently Played:', { data: recentlyPlayedData, error: recentlyPlayedError });
-  console.log('Personalized:', { data: personalizedData, error: personalizedError });
-  console.log('Daily Mix:', { data: dailyMixData, error: dailyMixError });
-  console.log('Discover Weekly:', { data: discoverWeeklyData, error: discoverWeeklyError });
-  console.groupEnd();
+  const { data: recentlyPlayedData, isLoading: recentlyPlayedLoading } = useRecentlyPlayed(3);
+  const { data: personalizedData, isLoading: personalizedLoading } = usePersonalizedRecommendations(30);
+  const { data: dailyMixData, isLoading: dailyMixLoading } = useDailyMix();
+  const { data: discoverWeeklyData, isLoading: discoverWeeklyLoading } = useDiscoverWeekly();
 
   const recentlyPlayedBanners = useMemo(() => {
     if (!recentlyPlayedData?.data) {
-      console.warn('⚠️ No recently played data');
       return [];
     }
     try {
@@ -111,12 +102,10 @@ export function useHomeData() {
 
   const tailoredPlaylists = useMemo(() => {
     if (!dailyMixData?.mixes) {
-      console.warn('⚠️ No daily mix data');
       return [];
     }
     try {
       const playlists = dailyMixData.mixes.slice(0, 5).map(transformMixToPlaylist);
-      console.log('🎨 Tailored Playlists covers:', playlists.map(p => ({ title: p.title, coverUrl: p.coverUrl })));
       return playlists;
     } catch (error) {
       console.error('❌ Error transforming daily mix:', error);
@@ -126,7 +115,6 @@ export function useHomeData() {
 
   const personalSpace = useMemo(() => {
     if (!personalizedData || !Array.isArray(personalizedData)) {
-      console.warn('⚠️ No personalized data or not an array:', personalizedData);
       return [];
     }
     try {
@@ -142,7 +130,6 @@ export function useHomeData() {
           coverUrl: albumCover || fallbackUrl,
         };
       });
-      console.log('🎨 Personal Space covers:', spaces.map(s => ({ title: s.title, coverUrl: s.coverUrl })));
       return spaces;
     } catch (error) {
       console.error('❌ Error transforming personalized data:', error);
@@ -152,7 +139,6 @@ export function useHomeData() {
 
   const dailyPickSongs = useMemo(() => {
     if (!discoverWeeklyData || !Array.isArray(discoverWeeklyData)) {
-      console.warn('⚠️ No discover weekly data or not an array:', discoverWeeklyData);
       return [];
     }
     try {

@@ -25,7 +25,6 @@ export function useDiscoverWeekly() {
         const result = await recommendationApi.getDiscoverWeekly();
         return result || [];
       } catch (error) {
-        console.warn('Failed to fetch recommendations:', error);
         return [];
       }
     },

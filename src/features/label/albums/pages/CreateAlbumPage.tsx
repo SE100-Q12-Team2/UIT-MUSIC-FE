@@ -105,10 +105,7 @@ const CreateAlbumPage: React.FC<Props> = ({ onSubmit }) => {
 
       if (onSubmit) {
         await onSubmit(payload);
-      } else {
-        console.log("create album:", payload, "user:", user);
-      }
-
+      } 
       toast.success("Created successfully!");
       navigate("/label/albums");
     } catch (e) {

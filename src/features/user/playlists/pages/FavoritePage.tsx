@@ -80,7 +80,6 @@ const FavoritePage: React.FC = () => {
       e.stopPropagation();
       
       if (!user?.id) {
-        console.warn('User not logged in');
         return;
       }
 

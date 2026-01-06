@@ -178,14 +178,12 @@ export const useSongsByIds = (songIds: number[]) => {
   return useQuery({
     queryKey: ['songs', 'byIds', idsKey],
     queryFn: async () => {
-      console.log('Fetching songs for IDs:', songIds);
       if (songIds.length === 0) {
         return [];
       }
       const songs = await Promise.all(
         songIds.map((id) => songService.getSongById(id))
       );
-      console.log('Fetched songs:', songs);
       return songs;
     },
     enabled: songIds.length > 0,

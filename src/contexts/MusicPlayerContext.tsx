@@ -82,7 +82,6 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
           : '');
         
         if (!audioUrl) {
-          console.warn('No audio URL found for song:', song.title);
           return;
         }
         
@@ -145,7 +144,6 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
       : '');
     
     if (!audioUrl) {
-      console.warn('No audio URL found for song:', song.title);
       return;
     }
     
@@ -155,7 +153,6 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
       audioRef.current.play()
         .then(() => {
           setIsPlaying(true);
-          console.log('Playing:', song.title, 'URL:', audioUrl);
         })
         .catch((error) => {
           console.error('Error playing audio:', error);
@@ -206,7 +203,6 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
           : '');
         
         if (!audioUrl) {
-          console.warn('No audio URL found for song:', song.title);
           return;
         }
         

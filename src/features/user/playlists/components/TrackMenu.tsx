@@ -63,7 +63,6 @@ const TrackMenu: React.FC<TrackMenuProps> = ({
         className="track-menu__trigger"
         onClick={(e) => {
           e.stopPropagation();
-          console.log('Track menu clicked, trackId:', trackId);
           setIsOpen(!isOpen);
         }}
         type="button"
