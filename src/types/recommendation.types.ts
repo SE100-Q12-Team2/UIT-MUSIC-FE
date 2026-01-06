@@ -24,6 +24,7 @@ export interface RecommendationSong {
     id: number;
     albumTitle: string;
     coverImage: string | null;
+    totalTracks: number;
   } | null;
   genre?: {
     id: number;
@@ -38,14 +39,14 @@ export interface RecommendationSong {
     bucket: string;
     keyMaster: string;
   } | null;
-  songArtists?: Array<{
-    artistId: number;
+  contributors?: Array<{
+    labelId: number;
     songId: number;
     role: string;
-    artist: {
+    label: {
       id: number;
       artistName: string;
-      profileImage: string | null;
+      labelName: string | null;
     };
   }>;
   recommendationScore?: number;
