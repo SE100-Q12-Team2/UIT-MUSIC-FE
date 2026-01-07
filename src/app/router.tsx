@@ -24,7 +24,7 @@ import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 // pages (main)
 import SettingsPage from "@/features/settings/pages/SettingsPage";
 import PlaylistsPage from "@/features/user/playlists/pages/PlaylistsPage";
-import FavoritePage from "@/features/user/playlists/pages/FavoritePage";
+import FavoritePage from "@/features/user/favorite/pages/FavoritePage";
 import BrowserPage from "@/features/user/browser/pages/BrowserPage";
 import PlayerPage from "@/features/player/pages/PlayerPage";
 
