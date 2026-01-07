@@ -23,7 +23,7 @@ import ResetPassword from "@/features/auth/pages/ResetPassword";
 import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 // pages (main)
 import SettingsPage from "@/features/settings/pages/SettingsPage";
-import PlaylistsPage from "@/features/user/playlists/pages/PlaylistsPage";
+import UserPlaylistsPage from "@/features/user/playlists/pages/UserPlaylistsPage";
 import FavoritePage from "@/features/user/favorite/pages/FavoritePage";
 import BrowserPage from "@/features/user/browser/pages/BrowserPage";
 import PlayerPage from "@/features/player/pages/PlayerPage";
@@ -106,7 +106,7 @@ export const router = createBrowserRouter([
             element: (
               <ProtectedRoute>
                 <LazyLoad>
-                  <PlaylistsPage />
+                  <UserPlaylistsPage />
                 </LazyLoad>
               </ProtectedRoute>
             ),

@@ -4,6 +4,7 @@ import { AddTracksSection } from '@/features/user/playlists/components';
 import { AddTrack } from '@/features/user/playlists/components/AddTrackItem';
 import { useCarousel, usePlaybackHandler } from '../hooks';
 import '@/styles/browser.css';
+import '@/styles/playlists.css';
 
 const BrowserPage: React.FC = () => {
   const { data: trendingResponse, isLoading } = useTrendingSongs();
