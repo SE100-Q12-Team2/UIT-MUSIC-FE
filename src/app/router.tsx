@@ -22,10 +22,9 @@ import EnterCode from "@/features/auth/pages/EnterCode";
 import ResetPassword from "@/features/auth/pages/ResetPassword";
 import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 // pages (main)
-import Home from "@/features/home/pages/HomePage";
 import SettingsPage from "@/features/settings/pages/SettingsPage";
 import PlaylistsPage from "@/features/user/playlists/pages/PlaylistsPage";
-import FavoritePage from "@/features/user/playlists/pages/FavoritePage";
+import FavoritePage from "@/features/user/favorite/pages/FavoritePage";
 import BrowserPage from "@/features/user/browser/pages/BrowserPage";
 import PlayerPage from "@/features/player/pages/PlayerPage";
 
@@ -46,6 +45,7 @@ import PremiumSubscriptionsPage from "@/features/user/subscription/pages/Premium
 import { CopyrightReportPage } from "@/features/label/cp-report/pages";
 import AnalyticsScreen from "@/features/admin/trendings/AnalyticsScreen";
 import ResourceScreen from "@/features/admin/songs-resource/pages/ResourceScreen";
+import Home from "@/features/user/home/pages/HomePage";
 
 const LandingPage = lazy(
   () => import("@/features/user/landing/pages/LandingPage")

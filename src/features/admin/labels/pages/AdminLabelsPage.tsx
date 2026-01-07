@@ -85,14 +85,12 @@ const AdminLabelsPage: React.FC = () => {
                     <DropdownMenuContent align="start" side="left" className="admin-labels-management__dropdown-content">
                       <DropdownMenuItem onClick={() => {
                         // View label details - can be implemented later
-                        console.log('View label:', label.id);
                       }}>
                         <Eye size={16} />
                         View Details
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => {
                         // Edit label - can be implemented later
-                        console.log('Edit label:', label.id);
                       }}>
                         <Edit size={16} />
                         Edit Label

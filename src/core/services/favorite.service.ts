@@ -174,7 +174,6 @@ export const useCheckFavorite = (userId: number | undefined, songId: number | un
         return result || { isFavorite: false, likedAt: undefined };
       } catch (error) {
         // If API fails or returns error, assume not favorited
-        console.warn('Failed to check favorite status:', error);
         return { isFavorite: false, likedAt: undefined };
       }
     },

@@ -50,7 +50,6 @@ const PlaylistMenu: React.FC<PlaylistMenuProps> = ({
         className="playlist-menu__trigger"
         onClick={(e) => {
           e.stopPropagation();
-          console.log('Menu clicked, current isOpen:', isOpen);
           setIsOpen(!isOpen);
         }}
         type="button"

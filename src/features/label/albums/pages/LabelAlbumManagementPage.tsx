@@ -139,7 +139,6 @@ const LabelAlbumManagementPage: React.FC = () => {
   const handleDelete = (albumId: LabelAlbum["id"]) => {
     const ok = window.confirm("Delete this album?");
     if (!ok) return;
-    console.log("delete album:", albumId);
   };
 
   const showLoading = isLoadingLabels || (!useMock && isLoadingAlbums);

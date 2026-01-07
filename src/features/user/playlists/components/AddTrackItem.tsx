@@ -47,7 +47,6 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
     e.stopPropagation();
     
     if (!userId) {
-      console.warn('User not logged in');
       return;
     }
 
