@@ -12,12 +12,14 @@ interface AddTracksSectionProps {
   onSeeAll?: () => void;
   onTrackClick?: (track: AddTrack) => void;
   onFavoriteToggle?: (trackId: number) => void;
+  onPlayTrack?: (trackId: number) => void;
 }
 
 const AddTracksSection: React.FC<AddTracksSectionProps> = ({
   onSeeAll,
   onTrackClick,
   onFavoriteToggle,
+  onPlayTrack,
 }) => {
   const [showAll, setShowAll] = useState(false);
   const [showSelectPlaylistModal, setShowSelectPlaylistModal] = useState(false);
@@ -110,6 +112,7 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
               userId={user?.id}
               onClick={onTrackClick}
               onFavoriteToggle={onFavoriteToggle}
+              onPlayTrack={onPlayTrack}
               onAddToExisting={() => {
                 setSelectedTrackId(track.id);
                 setShowSelectPlaylistModal(true);

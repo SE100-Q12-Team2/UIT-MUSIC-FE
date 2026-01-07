@@ -1,92 +1,53 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { useTrendingSongs } from '@/core/services/song.service';
 import { AddTracksSection } from '@/features/user/playlists/components';
 import { AddTrack } from '@/features/user/playlists/components/AddTrackItem';
+import { useCarousel, usePlaybackHandler } from '../hooks';
 import '@/styles/browser.css';
 
-// Import sample music icon
-import sampleMusicIcon from '@/assets/sample-music-icon.png';
-
-interface CarouselSong {
-  id: number;
-  title: string;
-  artist: string;
-  coverImage: string;
-}
-
 const BrowserPage: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [playingSongId, setPlayingSongId] = useState<number | null>(null);
-  
-  // Fetch trending songs from API for carousel
   const { data: trendingResponse, isLoading } = useTrendingSongs();
 
-  // Convert trending songs to carousel format with infinite loop
-  const carouselSongs: CarouselSong[] = useMemo(() => {
-    if (!trendingResponse?.items || trendingResponse.items.length === 0) {
-      return [];
-    }
+  const {
+    playingSongId,
+    isLoadingPlayback,
+    currentSong,
+    isPlaying,
+    handlePlay,
+    handlePause,
+  } = usePlaybackHandler({ trendingSongs: trendingResponse?.items });
 
-    const songs = trendingResponse.items.map(song => ({
-      id: song.id,
-      title: song.title,
-      artist: song.contributors?.[0]?.label?.labelName || song.label?.labelName || 'Unknown Artist',
-      coverImage: song.album?.coverImage || sampleMusicIcon,
-    }));
-
-    // For infinite scrolling, duplicate songs at both ends
-    // This ensures smooth transition when wrapping around
-    if (songs.length > 0) {
-      return [...songs, ...songs, ...songs]; // Triple the array for seamless infinite scroll
-    }
-    return songs;
-  }, [trendingResponse]);
-
-  // Start at middle set for infinite scroll
-  const originalLength = trendingResponse?.items?.length || 0;
-  const initialSlide = originalLength; // Start at second set (middle)
-
-  // Initialize at middle set on first load
-  React.useEffect(() => {
-    if (originalLength > 0 && currentSlide === 0) {
-      setCurrentSlide(initialSlide);
-    }
-  }, [originalLength, initialSlide, currentSlide]);
-
-  const handlePlayClick = (e: React.MouseEvent, songId: number) => {
-    e.stopPropagation();
-    setPlayingSongId(playingSongId === songId ? null : songId);
-  };
-
-  const handleSlideClick = (index: number) => {
-    // Smooth transition to clicked slide
-    setCurrentSlide(index);
-    
-    // Handle infinite loop wrapping
-    setTimeout(() => {
-      if (originalLength > 0) {
-        // If we're in the first set, jump to middle set
-        if (index < originalLength) {
-          setCurrentSlide(index + originalLength);
-        }
-        // If we're in the last set, jump to middle set
-        else if (index >= originalLength * 2) {
-          setCurrentSlide(index - originalLength);
-        }
+  const {
+    carouselSongs,
+    currentSlide,
+    originalLength,
+    handleSlideClick,
+  } = useCarousel({
+    trendingSongs: trendingResponse?.items,
+    currentSongId: currentSong?.id || null,
+    isPlaying,
+    onSlideChange: () => {
+      if (isPlaying) {
+        handlePause();
       }
-    }, 500); // Wait for transition to complete
+    },
+  });
+
+  const handlePlayClick = async (e: React.MouseEvent, songId: number) => {
+    e.stopPropagation();
+    await handlePlay(songId);
   };
 
   const handleTrackClick = (track: AddTrack) => {
     console.log('Track clicked:', track);
   };
 
-  const handleFavoriteToggle = (trackId: number) => {
-    console.log('Toggle favorite:', trackId);
+  const handlePlayTrack = async (trackId: number) => {
+    await handlePlay(trackId);
   };
 
-  const handleMoreClick = (trackId: number) => {
-    console.log('More clicked:', trackId);
+  const handleFavoriteToggle = (trackId: number) => {
+    console.log('Toggle favorite:', trackId);
   };
 
   if (isLoading) {
@@ -160,8 +121,23 @@ const BrowserPage: React.FC = () => {
                           <button 
                             className="browser-carousel__play"
                             onClick={(e) => handlePlayClick(e, song.id)}
+                            disabled={isLoadingPlayback}
+                            style={{ opacity: isLoadingPlayback ? 0.6 : 1 }}
                           >
-                            {playingSongId === song.id ? (
+                            {isLoadingPlayback && playingSongId === song.id ? (
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="#000" className="spinner">
+                                <circle cx="12" cy="12" r="10" stroke="#000" strokeWidth="2" fill="none" strokeDasharray="31.4 31.4" strokeLinecap="round">
+                                  <animateTransform 
+                                    attributeName="transform" 
+                                    type="rotate" 
+                                    from="0 12 12" 
+                                    to="360 12 12" 
+                                    dur="1s" 
+                                    repeatCount="indefinite"
+                                  />
+                                </circle>
+                              </svg>
+                            ) : currentSong?.id === song.id && isPlaying ? (
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="#000">
                                 <rect x="6" y="4" width="4" height="16" rx="1"/>
                                 <rect x="14" y="4" width="4" height="16" rx="1"/>
@@ -190,8 +166,8 @@ const BrowserPage: React.FC = () => {
       {/* Add Tracks Section - Use component from playlist page */}
       <AddTracksSection 
         onTrackClick={handleTrackClick}
+        onPlayTrack={handlePlayTrack}
         onFavoriteToggle={handleFavoriteToggle}
-        onMoreClick={handleMoreClick}
       />
     </div>
   );

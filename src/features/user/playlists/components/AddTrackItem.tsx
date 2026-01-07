@@ -28,6 +28,7 @@ interface AddTrackItemProps {
   onAddToExisting?: (trackId: number) => void;
   onAddToNew?: (trackId: number) => void;
   onClick?: (track: AddTrack) => void;
+  onPlayTrack?: (trackId: number) => void;
 }
 
 const AddTrackItem: React.FC<AddTrackItemProps> = ({
@@ -37,6 +38,7 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
   onAddToExisting,
   onAddToNew,
   onClick,
+  onPlayTrack,
 }) => {
   // Check favorite status from API
   const { data: favoriteStatus } = useCheckFavorite(userId, track.id);
@@ -62,8 +64,16 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
     }
   };
 
+  const handleTrackClick = () => {
+    if (onPlayTrack) {
+      onPlayTrack(track.id);
+    } else if (onClick) {
+      onClick(track);
+    }
+  };
+
   return (
-    <div className="add-track-item" onClick={() => onClick?.(track)}>
+    <div className="add-track-item" onClick={handleTrackClick}>
       <img
         src={track.coverImage || '/default-track.jpg'}
         alt={track.title}

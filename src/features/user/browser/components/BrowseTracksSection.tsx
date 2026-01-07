@@ -7,6 +7,7 @@ interface BrowseTracksSectionProps {
   onSeeAll?: () => void;
   onTrackClick?: (track: BrowseTrack) => void;
   onMoreClick?: (track: BrowseTrack) => void;
+  onPlayTrack?: (trackId: number) => void;
 }
 
 const BrowseTracksSection: React.FC<BrowseTracksSectionProps> = ({
@@ -15,6 +16,7 @@ const BrowseTracksSection: React.FC<BrowseTracksSectionProps> = ({
   onSeeAll,
   onTrackClick,
   onMoreClick,
+  onPlayTrack,
 }) => {
   return (
     <div className="browse-tracks-section">
@@ -31,6 +33,7 @@ const BrowseTracksSection: React.FC<BrowseTracksSectionProps> = ({
             track={track}
             onClick={onTrackClick}
             onMoreClick={onMoreClick}
+            onPlayTrack={onPlayTrack}
           />
         ))}
       </div>
