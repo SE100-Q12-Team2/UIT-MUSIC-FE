@@ -27,7 +27,7 @@ export default function PremiumSubscriptionsPage() {
 
   const handleSubscribe = async (planId: number) => {
     try {
-      await subscribeMutation.mutateAsync(planId);
+      await subscribeMutation.mutateAsync({ planId });
       toast.success("Subscription successful! Welcome to Premium.");
     } catch (error: any) {
       handleSubscriptionError(error);

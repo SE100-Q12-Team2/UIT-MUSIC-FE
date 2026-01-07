@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
 import { useUpdateProfile } from '@/core/services/auth.service';
+import { useChangePassword } from '@/core/services/settings.service';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Globe, Languages } from 'lucide-react';
+import { Globe, Languages, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import '@/styles/profile.css';
 
@@ -44,6 +45,7 @@ const languages = [
 const ProfileContent: React.FC = () => {
   const { user } = useAuth();
   const updateProfileMutation = useUpdateProfile();
+  const changePasswordMutation = useChangePassword();
   
   // Parse name từ user.fullName hoặc user.name (format: "First Last" hoặc "Full Name")
   const parseName = (fullName: string) => {
@@ -74,6 +76,15 @@ const ProfileContent: React.FC = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const maxBioLength = 500;
+
+  // Change Password state
+  const [passwordData, setPasswordData] = useState({
+    password: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   // Update form khi user data thay đổi
   useEffect(() => {
@@ -144,6 +155,47 @@ const ProfileContent: React.FC = () => {
       toast.error('Failed to update profile', { description: errorMsg });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handlePasswordChange = (field: 'password' | 'newPassword' | 'confirmPassword') => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setPasswordData(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters');
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      await changePasswordMutation.mutateAsync({
+        password: passwordData.password,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword,
+      });
+
+      toast.success('Password changed successfully');
+      setPasswordData({ password: '', newPassword: '', confirmPassword: '' });
+      setShowPasswordSection(false);
+    } catch (error: unknown) {
+      console.error('Change password error:', error);
+      const errorObj = error as { message?: string; response?: { data?: { message?: string } } };
+      const errorMsg = errorObj?.message || errorObj?.response?.data?.message || 'Failed to change password';
+      toast.error('Failed to change password', { description: errorMsg });
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -297,6 +349,108 @@ const ProfileContent: React.FC = () => {
             </Button>
           </div>
         </form>
+
+        {/* Change Password Section */}
+        <div className="profile-password-section" style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#fff', margin: 0 }}>Change Password</h3>
+            {!showPasswordSection && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowPasswordSection(true)}
+                className="profile-btn"
+              >
+                Change Password
+              </Button>
+            )}
+          </div>
+
+          {showPasswordSection && (
+            <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="profile-form__field profile-form__field--full">
+                <Label htmlFor="currentPassword" className="profile-label">
+                  Current Password
+                </Label>
+                <div style={{ position: 'relative' }}>
+                  <Lock className="profile-select-icon" size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#728AAB' }} />
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    value={passwordData.password}
+                    onChange={handlePasswordChange('password')}
+                    placeholder="Enter current password"
+                    className="profile-input"
+                    style={{ paddingLeft: '40px' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="profile-form__field profile-form__field--full">
+                <Label htmlFor="newPassword" className="profile-label">
+                  New Password
+                </Label>
+                <div style={{ position: 'relative' }}>
+                  <Lock className="profile-select-icon" size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#728AAB' }} />
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={passwordData.newPassword}
+                    onChange={handlePasswordChange('newPassword')}
+                    placeholder="Enter new password (min 6 characters)"
+                    className="profile-input"
+                    style={{ paddingLeft: '40px' }}
+                    minLength={6}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="profile-form__field profile-form__field--full">
+                <Label htmlFor="confirmPassword" className="profile-label">
+                  Confirm New Password
+                </Label>
+                <div style={{ position: 'relative' }}>
+                  <Lock className="profile-select-icon" size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#728AAB' }} />
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={passwordData.confirmPassword}
+                    onChange={handlePasswordChange('confirmPassword')}
+                    placeholder="Confirm new password"
+                    className="profile-input"
+                    style={{ paddingLeft: '40px' }}
+                    minLength={6}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="profile-form__actions">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowPasswordSection(false);
+                    setPasswordData({ password: '', newPassword: '', confirmPassword: '' });
+                  }}
+                  disabled={isChangingPassword}
+                  className="profile-btn profile-btn--cancel"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isChangingPassword || !passwordData.password || !passwordData.newPassword || !passwordData.confirmPassword}
+                  className="profile-btn profile-btn--save"
+                >
+                  {isChangingPassword ? 'Changing...' : 'Change Password'}
+                </Button>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

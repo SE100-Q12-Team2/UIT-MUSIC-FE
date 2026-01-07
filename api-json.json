@@ -1,0 +1,2543 @@
+{
+    "baseURL": "http://localhost:3000",
+    "description": "UIT-MUSIC API Endpoints - Complete API Reference for Frontend Integration",
+    "version": "2.1.0",
+    "lastUpdated": "2024-12-22",
+    "endpoints": {
+      "app": {
+        "description": "Application Health and Root APIs",
+        "endpoints": [
+          {
+            "name": "Root Endpoint",
+            "method": "GET",
+            "path": "/",
+            "auth": false,
+            "description": "Get application root message",
+            "queryParams": {},
+            "example": "/"
+          },
+          {
+            "name": "Health Check",
+            "method": "GET",
+            "path": "/health",
+            "auth": false,
+            "description": "Check application health status",
+            "queryParams": {},
+            "example": "/health"
+          }
+        ]
+      },
+      "home": {
+        "description": "APIs for Home Page - Trending, Recommendations, Discovery",
+        "endpoints": [
+          {
+            "name": "Get Trending Songs",
+            "method": "GET",
+            "path": "/songs/trending",
+            "auth": false,
+            "description": "Get trending songs for home page",
+            "queryParams": {
+              "limit": "number (optional, default: 10, max: 50)",
+              "genreId": "number (optional)"
+            },
+            "example": "/songs/trending?limit=20"
+          },
+          {
+            "name": "Get All Songs",
+            "method": "GET",
+            "path": "/songs",
+            "auth": false,
+            "description": "Get paginated list of songs with filters",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20, max: 100)",
+              "genreId": "number (optional)",
+              "artistId": "number (optional)",
+              "albumId": "number (optional)",
+              "labelId": "number (optional)",
+              "language": "string (optional)",
+              "order": "string (optional, values: 'latest', 'popular', 'title')"
+            },
+            "example": "/songs?page=1&limit=20&order=popular"
+          },
+          {
+            "name": "Get Song by ID",
+            "method": "GET",
+            "path": "/songs/:id",
+            "auth": false,
+            "description": "Get song details",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/songs/123"
+          },
+          {
+            "name": "Increment Play Count",
+            "method": "POST",
+            "path": "/songs/:id/play",
+            "auth": false,
+            "description": "Track song play and increment play counter",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/songs/123/play"
+          },
+          {
+            "name": "Get Personalized Recommendations",
+            "method": "GET",
+            "path": "/recommendations/personalized",
+            "auth": true,
+            "description": "Get personalized song recommendations",
+            "queryParams": {
+              "limit": "number (required)"
+            },
+            "example": "/recommendations/personalized?limit=30"
+          },
+          {
+            "name": "Get Discover Weekly",
+            "method": "GET",
+            "path": "/recommendations/for-you",
+            "auth": true,
+            "description": "Get discover weekly playlist (50 songs)",
+            "queryParams": {},
+            "example": "/recommendations/for-you"
+          },
+          {
+            "name": "Get Daily Mixes",
+            "method": "GET",
+            "path": "/recommendations/daily-mix",
+            "auth": true,
+            "description": "Get daily mix playlists (favorites, trending, discovery)",
+            "queryParams": {},
+            "example": "/recommendations/daily-mix"
+          },
+          {
+            "name": "Get Similar Songs",
+            "method": "GET",
+            "path": "/recommendations/similar/:songId",
+            "auth": false,
+            "description": "Get songs similar to a specific song",
+            "pathParams": {
+              "songId": "number (required)"
+            },
+            "queryParams": {
+              "limit": "number (required)"
+            },
+            "example": "/recommendations/similar/123?limit=15"
+          },
+          {
+            "name": "Get All Albums",
+            "method": "GET",
+            "path": "/albums",
+            "auth": false,
+            "description": "Get paginated list of albums",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20, max: 100)",
+              "labelId": "number (optional)",
+              "search": "string (optional)",
+              "order": "string (optional, values: 'latest', 'oldest', 'title', 'releaseDate')"
+            },
+            "example": "/albums?page=1&limit=20&order=latest"
+          },
+          {
+            "name": "Get Album by ID",
+            "method": "GET",
+            "path": "/albums/:id",
+            "auth": false,
+            "description": "Get album details with optional songs",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "queryParams": {
+              "includeSongs": "string (optional, 'true' or 'false')"
+            },
+            "example": "/albums/123?includeSongs=true"
+          },
+          {
+            "name": "Get Albums by Label",
+            "method": "GET",
+            "path": "/albums/label/:labelId",
+            "auth": false,
+            "description": "Get all albums from a specific record label",
+            "pathParams": {
+              "labelId": "number (required)"
+            },
+            "example": "/albums/label/1"
+          },
+          {
+            "name": "Get All Genres",
+            "method": "GET",
+            "path": "/genres",
+            "auth": false,
+            "description": "Get paginated list of music genres",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20)",
+              "q": "string (optional, search query)"
+            },
+            "example": "/genres?page=1&limit=20"
+          },
+          {
+            "name": "Get Genre by ID",
+            "method": "GET",
+            "path": "/genres/:id",
+            "auth": false,
+            "description": "Get genre details",
+            "pathParams": {
+              "id": "string (required)"
+            },
+            "example": "/genres/1"
+          },
+          {
+            "name": "Search",
+            "method": "GET",
+            "path": "/search",
+            "auth": false,
+            "description": "Global search across songs, albums, artists, and playlists",
+            "queryParams": {
+              "query": "string (required, min: 1, max: 255)",
+              "type": "string (optional, default: 'all', values: 'all', 'songs', 'albums', 'artists', 'playlists', 'users')",
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20, max: 100)"
+            },
+            "example": "/search?query=pop&type=songs&limit=20"
+          },
+          {
+            "name": "Get Search Suggestions",
+            "method": "GET",
+            "path": "/search/suggestions",
+            "auth": false,
+            "description": "Get autocomplete search suggestions",
+            "queryParams": {
+              "query": "string (required, min: 1, max: 255)",
+              "limit": "number (optional, default: 10, max: 20)"
+            },
+            "example": "/search/suggestions?query=pop&limit=10"
+          },
+          {
+            "name": "Get Trending Searches",
+            "method": "GET",
+            "path": "/search/trending",
+            "auth": false,
+            "description": "Get trending search queries",
+            "queryParams": {
+              "limit": "number (required)"
+            },
+            "example": "/search/trending?limit=15"
+          },
+          {
+            "name": "Get All Playlists",
+            "method": "GET",
+            "path": "/playlists",
+            "auth": false,
+            "description": "Get paginated list of playlists",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20, max: 100)",
+              "ownerId": "string (optional)",
+              "isPublic": "boolean (optional)",
+              "q": "string (optional, search query)",
+              "tags": "array (optional)",
+              "sort": "string (optional, values: 'createdAt', 'playlistName', 'updatedAt')",
+              "order": "string (optional, values: 'asc', 'desc')"
+            },
+            "example": "/playlists?page=1&limit=20&isPublic=true"
+          },
+          {
+            "name": "Get Playlist by ID",
+            "method": "GET",
+            "path": "/playlists/:id",
+            "auth": false,
+            "description": "Get playlist details with tracks",
+            "pathParams": {
+              "id": "string (required)"
+            },
+            "example": "/playlists/123"
+          },
+          {
+            "name": "Get User Favorites",
+            "method": "GET",
+            "path": "/favorites",
+            "auth": false,
+            "description": "Get user's favorite songs",
+            "queryParams": {
+              "userId": "string (optional)",
+              "page": "string (required)",
+              "limit": "string (required)",
+              "sort": "string (optional, default: 'likedAt', values: 'likedAt', 'title', 'playCount')",
+              "order": "string (optional, default: 'desc', values: 'asc', 'desc')",
+              "genreId": "string (optional)",
+              "language": "string (optional)"
+            },
+            "example": "/favorites?userId=1&page=1&limit=20"
+          },
+          {
+            "name": "Get Home Summary",
+            "method": "GET",
+            "path": "/favorites/home-summary",
+            "auth": false,
+            "description": "Get home page summary (recently played, top songs, favorites)",
+            "queryParams": {
+              "userId": "number (required)"
+            },
+            "example": "/favorites/home-summary?userId=1"
+          },
+          {
+            "name": "Check Favorite",
+            "method": "GET",
+            "path": "/favorites/check",
+            "auth": false,
+            "description": "Check if song is favorited",
+            "queryParams": {
+              "userId": "string (required)",
+              "songId": "string (required)"
+            },
+            "example": "/favorites/check?userId=1&songId=123"
+          },
+          {
+            "name": "Get Favorite Count",
+            "method": "GET",
+            "path": "/favorites/count/:userId",
+            "auth": false,
+            "description": "Get total count of favorite songs",
+            "pathParams": {
+              "userId": "string (required)"
+            },
+            "example": "/favorites/count/1"
+          },
+          {
+            "name": "Get Favorite Song IDs",
+            "method": "GET",
+            "path": "/favorites/songs/:userId",
+            "auth": false,
+            "description": "Get array of favorite song IDs",
+            "pathParams": {
+              "userId": "string (required)"
+            },
+            "example": "/favorites/songs/1"
+          },
+          {
+            "name": "Add to Favorites",
+            "method": "POST",
+            "path": "/favorites",
+            "auth": true,
+            "description": "Add song to favorites",
+            "bodyParams": {
+              "userId": "number (required)",
+              "songId": "number (required)"
+            },
+            "example": {
+              "userId": 1,
+              "songId": 123
+            }
+          },
+          {
+            "name": "Remove from Favorites",
+            "method": "DELETE",
+            "path": "/favorites/:userId/:songId",
+            "auth": true,
+            "description": "Remove song from favorites",
+            "pathParams": {
+              "userId": "string (required)",
+              "songId": "string (required)"
+            },
+            "example": "/favorites/1/123"
+          },
+          {
+            "name": "Get Recently Played",
+            "method": "GET",
+            "path": "/listening-history/recently-played",
+            "auth": true,
+            "description": "Get recently played songs",
+            "queryParams": {
+              "limit": "number (optional, default: 20)"
+            },
+            "example": "/listening-history/recently-played?limit=20"
+          },
+          {
+            "name": "Get Listening History",
+            "method": "GET",
+            "path": "/listening-history/my-history",
+            "auth": true,
+            "description": "Get paginated listening history",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20)",
+              "startDate": "string (optional, ISO format)",
+              "endDate": "string (optional, ISO format)",
+              "songId": "number (optional)"
+            },
+            "example": "/listening-history/my-history?page=1&limit=20"
+          },
+          {
+            "name": "Get Listening Stats",
+            "method": "GET",
+            "path": "/listening-history/stats",
+            "auth": true,
+            "description": "Get listening statistics",
+            "queryParams": {
+              "period": "string (optional, default: 'monthly', values: 'daily', 'weekly', 'monthly', 'yearly')",
+              "startDate": "string (optional, ISO format)",
+              "endDate": "string (optional, ISO format)"
+            },
+            "example": "/listening-history/stats?period=monthly"
+          },
+          {
+            "name": "Track Song Play",
+            "method": "POST",
+            "path": "/listening-history/track",
+            "auth": true,
+            "description": "Track song play in listening history",
+            "bodyParams": {
+              "songId": "number (required)",
+              "durationListened": "number (optional)",
+              "audioQuality": "string (optional, values: '128kbps', '320kbps', 'FLAC', 'Master')",
+              "deviceInfo": "string (optional, max: 255)"
+            },
+            "example": {
+              "songId": 123,
+              "durationListened": 180,
+              "audioQuality": "320kbps"
+            }
+          },
+          {
+            "name": "Clear Listening History",
+            "method": "DELETE",
+            "path": "/listening-history/clear",
+            "auth": true,
+            "description": "Clear all listening history",
+            "queryParams": {},
+            "example": "/listening-history/clear"
+          },
+          {
+            "name": "Delete History Item",
+            "method": "DELETE",
+            "path": "/listening-history/:id",
+            "auth": true,
+            "description": "Delete specific history item",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/listening-history/123"
+          }
+        ]
+      },
+      "subscriptions": {
+        "description": "APIs for Subscriptions Page - Plans, Payments, Transactions",
+        "endpoints": [
+          {
+            "name": "Get Subscription Plans",
+            "method": "GET",
+            "path": "/subscription-plans",
+            "auth": true,
+            "description": "Get all available subscription plans",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20, max: 100)",
+              "isActive": "string (optional)",
+              "search": "string (optional)"
+            },
+            "example": "/subscription-plans?page=1&limit=10"
+          },
+          {
+            "name": "Get Subscription Plan by ID",
+            "method": "GET",
+            "path": "/subscription-plans/:id",
+            "auth": true,
+            "description": "Get specific subscription plan details",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/subscription-plans/1"
+          },
+          {
+            "name": "Get Plan Statistics",
+            "method": "GET",
+            "path": "/subscription-plans/stats",
+            "auth": true,
+            "description": "Get subscription plan statistics (Admin only)",
+            "queryParams": {},
+            "example": "/subscription-plans/stats"
+          },
+          {
+            "name": "Subscribe to Plan",
+            "method": "POST",
+            "path": "/user-subscriptions",
+            "auth": true,
+            "description": "Subscribe to a subscription plan",
+            "bodyParams": {
+              "planId": "number (required)",
+              "autoRenew": "boolean (optional, default: false)"
+            },
+            "example": {
+              "planId": 1,
+              "autoRenew": true
+            }
+          },
+          {
+            "name": "Get My Subscriptions",
+            "method": "GET",
+            "path": "/user-subscriptions",
+            "auth": true,
+            "description": "Get subscription history for authenticated user",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20, max: 100)",
+              "isActive": "string (optional)",
+              "planId": "number (optional)"
+            },
+            "example": "/user-subscriptions?page=1&limit=20"
+          },
+          {
+            "name": "Get Active Subscription",
+            "method": "GET",
+            "path": "/user-subscriptions/active",
+            "auth": true,
+            "description": "Get currently active subscription",
+            "queryParams": {},
+            "example": "/user-subscriptions/active"
+          },
+          {
+            "name": "Check Subscription Status",
+            "method": "GET",
+            "path": "/user-subscriptions/status",
+            "auth": true,
+            "description": "Check current subscription status",
+            "queryParams": {},
+            "example": "/user-subscriptions/status"
+          },
+          {
+            "name": "Get Subscription by ID",
+            "method": "GET",
+            "path": "/user-subscriptions/:id",
+            "auth": true,
+            "description": "Get specific subscription details",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/user-subscriptions/123"
+          },
+          {
+            "name": "Update Subscription",
+            "method": "PATCH",
+            "path": "/user-subscriptions/:id",
+            "auth": true,
+            "description": "Update subscription details",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "autoRenew": "boolean (optional)"
+            },
+            "example": {
+              "autoRenew": false
+            }
+          },
+          {
+            "name": "Cancel Subscription",
+            "method": "POST",
+            "path": "/user-subscriptions/:id/cancel",
+            "auth": true,
+            "description": "Cancel an active subscription",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/user-subscriptions/123/cancel"
+          },
+          {
+            "name": "Renew Subscription",
+            "method": "POST",
+            "path": "/user-subscriptions/:id/renew",
+            "auth": true,
+            "description": "Renew a cancelled or expired subscription",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/user-subscriptions/123/renew"
+          },
+          {
+            "name": "Get Payment Methods",
+            "method": "GET",
+            "path": "/payment-methods",
+            "auth": true,
+            "description": "Get all available payment methods (Admin only)",
+            "queryParams": {
+              "page": "string (optional, default: '1')",
+              "limit": "string (optional, default: '10')",
+              "isActive": "string (optional)",
+              "search": "string (optional)"
+            },
+            "example": "/payment-methods?page=1&limit=20"
+          },
+          {
+            "name": "Get Payment Method by ID",
+            "method": "GET",
+            "path": "/payment-methods/:id",
+            "auth": true,
+            "description": "Get specific payment method (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/payment-methods/1"
+          },
+          {
+            "name": "Get Payment Method Stats",
+            "method": "GET",
+            "path": "/payment-methods/stats",
+            "auth": true,
+            "description": "Get payment method statistics (Admin only)",
+            "queryParams": {},
+            "example": "/payment-methods/stats"
+          },
+          {
+            "name": "Create Transaction",
+            "method": "POST",
+            "path": "/transactions",
+            "auth": true,
+            "description": "Create a new payment transaction and get QR code",
+            "bodyParams": {
+              "subscriptionId": "number (optional)",
+              "amount": "number (required, min: 0)",
+              "paymentMethodId": "number (required)",
+              "returnUrl": "string (optional, URI)",
+              "metadata": "object (optional)"
+            },
+            "example": {
+              "amount": 100000,
+              "paymentMethodId": 1,
+              "subscriptionId": 123
+            }
+          },
+          {
+            "name": "Get My Transactions",
+            "method": "GET",
+            "path": "/transactions/my-transactions",
+            "auth": true,
+            "description": "Get authenticated user's transaction history",
+            "queryParams": {
+              "page": "number (required)",
+              "limit": "number (required)"
+            },
+            "example": "/transactions/my-transactions?page=1&limit=10"
+          },
+          {
+            "name": "Get Transaction by ID",
+            "method": "GET",
+            "path": "/transactions/:id",
+            "auth": true,
+            "description": "Get specific transaction details",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/transactions/123"
+          },
+          {
+            "name": "Get All Transactions",
+            "method": "GET",
+            "path": "/transactions",
+            "auth": true,
+            "description": "Get paginated list of all transactions (Admin only)",
+            "queryParams": {
+              "page": "string (optional, default: '1')",
+              "limit": "string (optional, default: '10')",
+              "status": "string (optional, values: 'Pending', 'Completed', 'Failed', 'Refunded')",
+              "userId": "string (optional)",
+              "subscriptionId": "string (optional)",
+              "fromDate": "string (optional)",
+              "toDate": "string (optional)"
+            },
+            "example": "/transactions?page=1&limit=20&status=Completed"
+          },
+          {
+            "name": "Get Transaction Statistics",
+            "method": "GET",
+            "path": "/transactions/stats",
+            "auth": true,
+            "description": "Get transaction statistics (Admin only)",
+            "queryParams": {},
+            "example": "/transactions/stats"
+          },
+          {
+            "name": "Refund Transaction",
+            "method": "POST",
+            "path": "/transactions/:id/refund",
+            "auth": true,
+            "description": "Process a refund for a transaction (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "amount": "number (optional, min: 0)",
+              "reason": "string (required, min: 10, max: 500)"
+            },
+            "example": {
+              "reason": "Customer requested refund"
+            }
+          }
+        ]
+      },
+      "settings": {
+        "description": "APIs for Settings Page - Profile, Preferences, Devices",
+        "endpoints": [
+          {
+            "name": "Get User Profile",
+            "method": "GET",
+            "path": "/profile",
+            "auth": true,
+            "description": "Get authenticated user profile information",
+            "queryParams": {},
+            "example": "/profile"
+          },
+          {
+            "name": "Update User Profile",
+            "method": "PATCH",
+            "path": "/profile",
+            "auth": true,
+            "description": "Update user profile information",
+            "bodyParams": {
+              "email": "string (optional, email format)",
+              "fullName": "string (optional, min: 1)",
+              "dateOfBirth": "string (optional)",
+              "gender": "string (optional, values: 'Male', 'Female', 'Other')",
+              "profileImage": "string (optional)"
+            },
+            "example": {
+              "fullName": "John Doe",
+              "dateOfBirth": "1990-01-01",
+              "gender": "Male"
+            }
+          },
+          {
+            "name": "Change Password",
+            "method": "PATCH",
+            "path": "/profile/change-password",
+            "auth": true,
+            "description": "Change user password",
+            "bodyParams": {
+              "password": "string (required, min: 6, max: 100)",
+              "newPassword": "string (required, min: 6, max: 100)",
+              "confirmPassword": "string (required, min: 6, max: 100)"
+            },
+            "example": {
+              "password": "oldPassword123",
+              "newPassword": "newPassword123",
+              "confirmPassword": "newPassword123"
+            }
+          },
+          {
+            "name": "Get User Preferences",
+            "method": "GET",
+            "path": "/user-preferences",
+            "auth": true,
+            "description": "Get user preferences (audio quality, playback, notifications)",
+            "queryParams": {},
+            "example": "/user-preferences"
+          },
+          {
+            "name": "Create User Preferences",
+            "method": "POST",
+            "path": "/user-preferences",
+            "auth": true,
+            "description": "Create initial user preferences",
+            "bodyParams": {
+              "preferredGenres": "array (optional, array of genre IDs)",
+              "preferredLanguages": "array (optional, values: 'Vietnamese', 'English')",
+              "explicitContent": "boolean (optional, default: false)",
+              "autoPlay": "boolean (optional, default: true)",
+              "highQualityStreaming": "boolean (optional, default: false)"
+            },
+            "example": {
+              "preferredGenres": [1, 2, 3],
+              "preferredLanguages": ["Vietnamese", "English"],
+              "autoPlay": true,
+              "highQualityStreaming": true
+            }
+          },
+          {
+            "name": "Update User Preferences",
+            "method": "PUT",
+            "path": "/user-preferences",
+            "auth": true,
+            "description": "Update user preferences",
+            "bodyParams": {
+              "preferredGenres": "array (optional)",
+              "preferredLanguages": "array (optional)",
+              "explicitContent": "boolean (optional)",
+              "autoPlay": "boolean (optional)",
+              "highQualityStreaming": "boolean (optional)"
+            },
+            "example": {
+              "autoPlay": false,
+              "highQualityStreaming": true
+            }
+          },
+          {
+            "name": "Upsert User Preferences",
+            "method": "PUT",
+            "path": "/user-preferences/upsert",
+            "auth": true,
+            "description": "Create or update user preferences in one operation",
+            "bodyParams": {
+              "preferredGenres": "array (optional)",
+              "preferredLanguages": "array (optional)",
+              "explicitContent": "boolean (optional)",
+              "autoPlay": "boolean (optional)",
+              "highQualityStreaming": "boolean (optional)"
+            },
+            "example": {
+              "preferredGenres": [1, 2],
+              "autoPlay": true
+            }
+          },
+          {
+            "name": "Delete User Preferences",
+            "method": "DELETE",
+            "path": "/user-preferences",
+            "auth": true,
+            "description": "Delete user preferences and reset to defaults",
+            "queryParams": {},
+            "example": "/user-preferences"
+          },
+          {
+            "name": "Get User Devices",
+            "method": "GET",
+            "path": "/devices",
+            "auth": true,
+            "description": "Get all devices registered to user",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20, max: 100)",
+              "isActive": "string (optional)",
+              "sortBy": "string (optional, default: 'lastActive', values: 'lastActive', 'createdAt')",
+              "sortOrder": "string (optional, default: 'desc', values: 'asc', 'desc')"
+            },
+            "example": "/devices?page=1&limit=20"
+          },
+          {
+            "name": "Get Device Statistics",
+            "method": "GET",
+            "path": "/devices/stats",
+            "auth": true,
+            "description": "Get device statistics for user",
+            "queryParams": {},
+            "example": "/devices/stats"
+          },
+          {
+            "name": "Get Device by ID",
+            "method": "GET",
+            "path": "/devices/:id",
+            "auth": true,
+            "description": "Get specific device details",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/devices/123"
+          },
+          {
+            "name": "Revoke Device",
+            "method": "DELETE",
+            "path": "/devices/:id/revoke",
+            "auth": true,
+            "description": "Revoke access for a specific device",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/devices/123/revoke"
+          },
+          {
+            "name": "Revoke All Devices",
+            "method": "POST",
+            "path": "/devices/revoke-all",
+            "auth": true,
+            "description": "Revoke all devices except current one",
+            "queryParams": {},
+            "example": "/devices/revoke-all"
+          },
+          {
+            "name": "Delete Device",
+            "method": "DELETE",
+            "path": "/devices/:id",
+            "auth": true,
+            "description": "Permanently delete a device record",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/devices/123"
+          },
+          {
+            "name": "Get User by ID",
+            "method": "GET",
+            "path": "/users/:id",
+            "auth": false,
+            "description": "Get basic user information",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/users/1"
+          },
+          {
+            "name": "Get User Statistics",
+            "method": "GET",
+            "path": "/users/:id/statistics",
+            "auth": true,
+            "description": "Get user activity statistics",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/users/1/statistics"
+          },
+          {
+            "name": "Get User Detail",
+            "method": "GET",
+            "path": "/users/:id/detail",
+            "auth": true,
+            "description": "Get detailed user information",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/users/1/detail"
+          }
+        ]
+      },
+      "auth": {
+        "description": "Authentication APIs - Login, Register, OAuth",
+        "endpoints": [
+          {
+            "name": "Send OTP",
+            "method": "POST",
+            "path": "/auth/otp",
+            "auth": false,
+            "description": "Send OTP code to email",
+            "bodyParams": {
+              "email": "string (required, email format)",
+              "type": "string (required, values: 'REGISTER', 'FORGOT_PASSWORD', 'LOGIN', 'DISABLED_2FA')"
+            },
+            "example": {
+              "email": "user@example.com",
+              "type": "REGISTER"
+            }
+          },
+          {
+            "name": "Register",
+            "method": "POST",
+            "path": "/auth/register",
+            "auth": false,
+            "description": "Register new user account",
+            "bodyParams": {
+              "email": "string (required, email format)",
+              "password": "string (required, min: 6, max: 100)",
+              "fullName": "string (required, min: 1)",
+              "confirmPassword": "string (required, min: 6, max: 100)",
+              "code": "string (required, length: 6)"
+            },
+            "example": {
+              "email": "user@example.com",
+              "password": "password123",
+              "fullName": "John Doe",
+              "confirmPassword": "password123",
+              "code": "123456"
+            }
+          },
+          {
+            "name": "Login",
+            "method": "POST",
+            "path": "/auth/login",
+            "auth": false,
+            "description": "Login and get access token",
+            "bodyParams": {
+              "email": "string (required, email format)",
+              "password": "string (required)"
+            },
+            "example": {
+              "email": "user@example.com",
+              "password": "password123"
+            }
+          },
+          {
+            "name": "Refresh Token",
+            "method": "POST",
+            "path": "/auth/refresh-token",
+            "auth": false,
+            "description": "Refresh access token",
+            "bodyParams": {
+              "refreshToken": "string (required)"
+            },
+            "example": {
+              "refreshToken": "your_refresh_token"
+            }
+          },
+          {
+            "name": "Logout",
+            "method": "POST",
+            "path": "/auth/logout",
+            "auth": true,
+            "description": "Logout and invalidate refresh token",
+            "bodyParams": {
+              "refreshToken": "string (required)"
+            },
+            "example": {
+              "refreshToken": "your_refresh_token"
+            }
+          },
+          {
+            "name": "Forgot Password",
+            "method": "POST",
+            "path": "/auth/forgot-password",
+            "auth": false,
+            "description": "Request password reset",
+            "bodyParams": {
+              "email": "string (required, email format)"
+            },
+            "example": {
+              "email": "user@example.com"
+            }
+          },
+          {
+            "name": "Reset Password",
+            "method": "POST",
+            "path": "/auth/reset-password",
+            "auth": false,
+            "description": "Reset password with token",
+            "bodyParams": {
+              "resetToken": "string (required)",
+              "newPassword": "string (required, min: 6, max: 100)",
+              "confirmNewPassword": "string (required, min: 6, max: 100)"
+            },
+            "example": {
+              "resetToken": "reset_token",
+              "newPassword": "newPassword123",
+              "confirmNewPassword": "newPassword123"
+            }
+          },
+          {
+            "name": "Get Google OAuth Link",
+            "method": "GET",
+            "path": "/auth/google-link",
+            "auth": false,
+            "description": "Get Google OAuth authorization URL",
+            "queryParams": {},
+            "example": "/auth/google-link"
+          },
+          {
+            "name": "Google OAuth Callback",
+            "method": "GET",
+            "path": "/auth/google/callback",
+            "auth": false,
+            "description": "Handle Google OAuth callback",
+            "queryParams": {
+              "code": "string (required)",
+              "state": "string (required)"
+            },
+            "example": "/auth/google/callback?code=xxx&state=yyy"
+          },
+          {
+            "name": "Get Facebook OAuth Link",
+            "method": "GET",
+            "path": "/auth/facebook-link",
+            "auth": false,
+            "description": "Get Facebook OAuth authorization URL",
+            "queryParams": {},
+            "example": "/auth/facebook-link"
+          },
+          {
+            "name": "Facebook OAuth Callback",
+            "method": "GET",
+            "path": "/auth/facebook/callback",
+            "auth": false,
+            "description": "Handle Facebook OAuth callback",
+            "queryParams": {
+              "code": "string (optional)",
+              "state": "string (optional)",
+              "error": "string (optional)",
+              "error_description": "string (optional)"
+            },
+            "example": "/auth/facebook/callback?code=xxx&state=yyy"
+          }
+        ]
+      },
+      "playlists": {
+        "description": "Playlist Management APIs",
+        "endpoints": [
+          {
+            "name": "Create Playlist",
+            "method": "POST",
+            "path": "/playlists",
+            "auth": true,
+            "description": "Create a new playlist",
+            "bodyParams": {
+              "userId": "number (required)",
+              "playlistName": "string (required, min: 1, max: 255)",
+              "description": "string (optional)",
+              "coverImageUrl": "string (optional)",
+              "isPublic": "boolean (optional, default: false)",
+              "tags": "array (optional, default: [])"
+            },
+            "example": {
+              "userId": 1,
+              "playlistName": "My Playlist",
+              "description": "A great playlist",
+              "isPublic": true,
+              "tags": ["pop", "rock"]
+            }
+          },
+          {
+            "name": "Update Playlist",
+            "method": "PUT",
+            "path": "/playlists/:id",
+            "auth": true,
+            "description": "Update playlist information",
+            "pathParams": {
+              "id": "string (required)"
+            },
+            "bodyParams": {
+              "userId": "number (required)",
+              "playlistName": "string (optional)",
+              "description": "string (optional)",
+              "coverImageUrl": "string (optional)",
+              "isPublic": "boolean (optional)",
+              "tags": "array (optional)"
+            },
+            "example": {
+              "playlistName": "Updated Playlist Name",
+              "isPublic": false
+            }
+          },
+          {
+            "name": "Delete Playlist",
+            "method": "DELETE",
+            "path": "/playlists/:id",
+            "auth": true,
+            "description": "Delete a playlist",
+            "pathParams": {
+              "id": "string (required)"
+            },
+            "example": "/playlists/123"
+          },
+          {
+            "name": "Get Playlist Tracks",
+            "method": "GET",
+            "path": "/playlists/:playlistId/tracks",
+            "auth": true,
+            "description": "Get tracks in a playlist",
+            "pathParams": {
+              "playlistId": "string (required)"
+            },
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20, max: 100)",
+              "sort": "string (optional, default: 'position', values: 'position', 'addedAt')",
+              "order": "string (optional, default: 'asc', values: 'asc', 'desc')"
+            },
+            "example": "/playlists/123/tracks"
+          },
+          {
+            "name": "Add Track to Playlist",
+            "method": "POST",
+            "path": "/playlists/:playlistId/tracks",
+            "auth": true,
+            "description": "Add a track to playlist",
+            "pathParams": {
+              "playlistId": "string (required)"
+            },
+            "bodyParams": {
+              "trackId": "number (required)",
+              "beforeTrackId": "number (optional)",
+              "afterTrackId": "number (optional)"
+            },
+            "example": "/playlists/123/tracks"
+          },
+          {
+            "name": "Add Multiple Tracks",
+            "method": "POST",
+            "path": "/playlists/:playlistId/tracks/bulk",
+            "auth": true,
+            "description": "Add multiple tracks to playlist",
+            "pathParams": {
+              "playlistId": "string (required)"
+            },
+            "bodyParams": {
+              "trackIds": "array (required, array of track IDs)",
+              "insertAt": "string (optional, default: 'tail', values: 'head', 'tail')"
+            },
+            "example": "/playlists/123/tracks/bulk"
+          },
+          {
+            "name": "Reorder Track",
+            "method": "PATCH",
+            "path": "/playlists/:playlistId/tracks/:trackId/reorder",
+            "auth": true,
+            "description": "Reorder track in playlist",
+            "pathParams": {
+              "playlistId": "string (required)",
+              "trackId": "string (required)"
+            },
+            "bodyParams": {
+              "beforeTrackId": "number (optional)",
+              "afterTrackId": "number (optional)"
+            },
+            "example": "/playlists/123/tracks/456/reorder"
+          },
+          {
+            "name": "Remove Track from Playlist",
+            "method": "DELETE",
+            "path": "/playlists/:playlistId/tracks/:trackId",
+            "auth": true,
+            "description": "Remove track from playlist",
+            "pathParams": {
+              "playlistId": "string (required)",
+              "trackId": "string (required)"
+            },
+            "example": "/playlists/123/tracks/456"
+          }
+        ]
+      },
+      "artists": {
+        "description": "Artist Management APIs",
+        "endpoints": [
+          {
+            "name": "Get All Artists",
+            "method": "GET",
+            "path": "/artists",
+            "auth": true,
+            "description": "Get paginated list of artists",
+            "queryParams": {
+              "q": "string (optional)",
+              "hasPublicProfile": "boolean (optional)",
+              "createdFrom": "string (optional)",
+              "createdTo": "string (optional)",
+              "updatedFrom": "string (optional)",
+              "updatedTo": "string (optional)",
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20, max: 100)",
+              "sort": "string (optional, values: 'createdAt', 'updatedAt', 'artistName')",
+              "order": "string (optional, values: 'asc', 'desc')"
+            },
+            "example": "/artists?page=1&limit=20"
+          },
+          {
+            "name": "Get Artist by ID",
+            "method": "GET",
+            "path": "/artists/:id",
+            "auth": true,
+            "description": "Get artist details",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/artists/1"
+          },
+          {
+            "name": "Create Artist",
+            "method": "POST",
+            "path": "/artists",
+            "auth": true,
+            "description": "Create new artist profile",
+            "bodyParams": {
+              "artistName": "string (required, min: 1, max: 255)",
+              "biography": "string (optional)",
+              "profileImage": "string (optional, URI)",
+              "hasPublicProfile": "boolean (optional, default: true)"
+            },
+            "example": {
+              "artistName": "Artist Name",
+              "biography": "Artist biography",
+              "hasPublicProfile": true
+            }
+          },
+          {
+            "name": "Update Artist",
+            "method": "PATCH",
+            "path": "/artists/:id",
+            "auth": true,
+            "description": "Update artist profile",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "artistName": "string (optional)",
+              "biography": "string (optional)",
+              "profileImage": "string (optional)",
+              "hasPublicProfile": "boolean (optional)"
+            },
+            "example": {
+              "biography": "Updated biography"
+            }
+          },
+          {
+            "name": "Delete Artist",
+            "method": "DELETE",
+            "path": "/artists/:id",
+            "auth": true,
+            "description": "Delete artist profile",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/artists/1"
+          }
+        ]
+      },
+      "follow": {
+        "description": "Follow Artists and Labels APIs",
+        "endpoints": [
+          {
+            "name": "Get User Follows",
+            "method": "GET",
+            "path": "/follows",
+            "auth": false,
+            "description": "Get user's follows",
+            "queryParams": {
+              "userId": "string (optional)",
+              "targetType": "string (optional, values: 'Artist', 'Label')",
+              "limit": "number (optional, default: 20, max: 100)",
+              "page": "number (optional, default: 1)",
+              "sort": "string (optional, default: 'followedAt', values: 'followedAt', 'name')",
+              "order": "string (optional, default: 'desc', values: 'asc', 'desc')"
+            },
+            "example": "/follows?userId=1&targetType=Artist"
+          },
+          {
+            "name": "Add Follow",
+            "method": "POST",
+            "path": "/follows",
+            "auth": true,
+            "description": "Follow an artist or label",
+            "bodyParams": {
+              "userId": "number (required)",
+              "targetType": "string (required, values: 'Artist', 'Label')",
+              "targetId": "number (required)"
+            },
+            "example": {
+              "userId": 1,
+              "targetType": "Artist",
+              "targetId": 123
+            }
+          },
+          {
+            "name": "Check Follow",
+            "method": "GET",
+            "path": "/follows/check",
+            "auth": false,
+            "description": "Check if user follows target",
+            "queryParams": {
+              "userId": "string (required)",
+              "targetType": "string (required, values: 'Artist', 'Label')",
+              "targetId": "string (required)"
+            },
+            "example": "/follows/check?userId=1&targetType=Artist&targetId=123"
+          },
+          {
+            "name": "Get Followers Count",
+            "method": "GET",
+            "path": "/follows/count/:targetType/:targetId",
+            "auth": false,
+            "description": "Get followers count for artist or label",
+            "pathParams": {
+              "targetType": "string (required)",
+              "targetId": "string (required)"
+            },
+            "example": "/follows/count/Artist/123"
+          },
+          {
+            "name": "Get User Following Count",
+            "method": "GET",
+            "path": "/follows/user/:userId/count",
+            "auth": false,
+            "description": "Get user's following count",
+            "pathParams": {
+              "userId": "string (required)"
+            },
+            "example": "/follows/user/1/count"
+          },
+          {
+            "name": "Get User Following IDs",
+            "method": "GET",
+            "path": "/follows/user/:userId/ids",
+            "auth": false,
+            "description": "Get user's following IDs",
+            "pathParams": {
+              "userId": "string (required)"
+            },
+            "queryParams": {
+              "targetType": "string (required)"
+            },
+            "example": "/follows/user/1/ids?targetType=Artist"
+          },
+          {
+            "name": "Remove Follow",
+            "method": "DELETE",
+            "path": "/follows/:userId/:targetType/:targetId",
+            "auth": true,
+            "description": "Unfollow an artist or label",
+            "pathParams": {
+              "userId": "string (required)",
+              "targetType": "string (required)",
+              "targetId": "string (required)"
+            },
+            "example": "/follows/1/Artist/123"
+          }
+        ]
+      },
+      "recordLabels": {
+        "description": "Record Label Management APIs",
+        "endpoints": [
+          {
+            "name": "Get Record Labels",
+            "method": "GET",
+            "path": "/record-labels",
+            "auth": false,
+            "description": "Get paginated list of record labels",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20, max: 100)",
+              "search": "string (optional)",
+              "hasPublicProfile": "string (optional)",
+              "userId": "number (optional)"
+            },
+            "example": "/record-labels?page=1&limit=20"
+          },
+          {
+            "name": "Get Record Label by ID",
+            "method": "GET",
+            "path": "/record-labels/:id",
+            "auth": false,
+            "description": "Get record label details",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/record-labels/1"
+          },
+          {
+            "name": "Get Record Label by User ID",
+            "method": "GET",
+            "path": "/record-labels/user/:userId",
+            "auth": false,
+            "description": "Get record label by user ID",
+            "pathParams": {
+              "userId": "number (required)"
+            },
+            "example": "/record-labels/user/1"
+          },
+          {
+            "name": "Create Record Label",
+            "method": "POST",
+            "path": "/record-labels",
+            "auth": true,
+            "description": "Create new record label",
+            "bodyParams": {
+              "labelName": "string (required, min: 1, max: 255)",
+              "description": "string (optional)",
+              "website": "string (optional, URI)",
+              "contactEmail": "string (optional, email format)",
+              "hasPublicProfile": "boolean (optional, default: false)"
+            },
+            "example": {
+              "labelName": "My Label",
+              "description": "Label description",
+              "hasPublicProfile": true
+            }
+          },
+          {
+            "name": "Update Record Label",
+            "method": "PUT",
+            "path": "/record-labels/:id",
+            "auth": true,
+            "description": "Update record label",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "labelName": "string (optional)",
+              "description": "string (optional)",
+              "website": "string (optional)",
+              "contactEmail": "string (optional)",
+              "hasPublicProfile": "boolean (optional)"
+            },
+            "example": {
+              "description": "Updated description"
+            }
+          },
+          {
+            "name": "Delete Record Label",
+            "method": "DELETE",
+            "path": "/record-labels/:id",
+            "auth": true,
+            "description": "Delete record label",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/record-labels/1"
+          }
+        ]
+      },
+      "notifications": {
+        "description": "Notification Management APIs",
+        "endpoints": [
+          {
+            "name": "Get Notifications",
+            "method": "GET",
+            "path": "/notifications",
+            "auth": true,
+            "description": "Get paginated list of notifications",
+            "queryParams": {
+              "page": "string (optional, default: '1')",
+              "limit": "string (optional, default: '20')",
+              "type": "string (optional, values: 'Subscription Expiry', 'New Release', 'System Update', 'Copyright Notice')",
+              "isRead": "string (optional)"
+            },
+            "example": "/notifications?page=1&limit=20"
+          },
+          {
+            "name": "Get Notification by ID",
+            "method": "GET",
+            "path": "/notifications/:id",
+            "auth": true,
+            "description": "Get notification details",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/notifications/123"
+          },
+          {
+            "name": "Get Notification Statistics",
+            "method": "GET",
+            "path": "/notifications/stats",
+            "auth": true,
+            "description": "Get notification statistics",
+            "queryParams": {},
+            "example": "/notifications/stats"
+          },
+          {
+            "name": "Get Unread Count",
+            "method": "GET",
+            "path": "/notifications/unread-count",
+            "auth": true,
+            "description": "Get unread notification count",
+            "queryParams": {},
+            "example": "/notifications/unread-count"
+          },
+          {
+            "name": "Mark as Read",
+            "method": "POST",
+            "path": "/notifications/:id/read",
+            "auth": true,
+            "description": "Mark notification as read",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/notifications/123/read"
+          },
+          {
+            "name": "Mark All as Read",
+            "method": "POST",
+            "path": "/notifications/mark-all-read",
+            "auth": true,
+            "description": "Mark all notifications as read",
+            "queryParams": {},
+            "example": "/notifications/mark-all-read"
+          },
+          {
+            "name": "Mark Multiple as Read",
+            "method": "POST",
+            "path": "/notifications/mark-multiple-read",
+            "auth": true,
+            "description": "Mark multiple notifications as read",
+            "bodyParams": {
+              "notificationIds": "array (required, array of notification IDs)"
+            },
+            "example": {
+              "notificationIds": [1, 2, 3]
+            }
+          },
+          {
+            "name": "Delete Notification",
+            "method": "DELETE",
+            "path": "/notifications/:id",
+            "auth": true,
+            "description": "Delete notification",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/notifications/123"
+          },
+          {
+            "name": "Delete All Read",
+            "method": "DELETE",
+            "path": "/notifications/read",
+            "auth": true,
+            "description": "Delete all read notifications",
+            "queryParams": {},
+            "example": "/notifications/read"
+          },
+          {
+            "name": "Delete Multiple",
+            "method": "DELETE",
+            "path": "/notifications/multiple",
+            "auth": true,
+            "description": "Delete multiple notifications",
+            "bodyParams": {
+              "notificationIds": "array (required)"
+            },
+            "example": {
+              "notificationIds": [1, 2, 3]
+            }
+          },
+          {
+            "name": "Create Notification",
+            "method": "POST",
+            "path": "/notifications",
+            "auth": true,
+            "description": "Create notification (Admin only)",
+            "bodyParams": {
+              "userId": "number (required)",
+              "notificationType": "string (required)",
+              "title": "string (required, min: 1, max: 255)",
+              "message": "string (required, min: 1)"
+            },
+            "example": {
+              "userId": 1,
+              "notificationType": "New Release",
+              "title": "New Song Released",
+              "message": "Check out the new song!"
+            }
+          },
+          {
+            "name": "Create Bulk Notifications",
+            "method": "POST",
+            "path": "/notifications/bulk",
+            "auth": true,
+            "description": "Create bulk notifications (Admin only)",
+            "bodyParams": {
+              "userIds": "array (required, min: 1)",
+              "notificationType": "string (required)",
+              "title": "string (required)",
+              "message": "string (required)"
+            },
+            "example": {
+              "userIds": [1, 2, 3],
+              "notificationType": "System Update",
+              "title": "System Update",
+              "message": "New features available!"
+            }
+          }
+        ]
+      },
+      "ratings": {
+        "description": "Song Rating APIs",
+        "endpoints": [
+          {
+            "name": "Create or Update Rating",
+            "method": "POST",
+            "path": "/ratings/songs/:songId",
+            "auth": true,
+            "description": "Create or update song rating",
+            "pathParams": {
+              "songId": "number (required)"
+            },
+            "bodyParams": {
+              "songId": "number (required)",
+              "rating": "string (required, values: 'Like', 'Dislike')"
+            },
+            "example": {
+              "songId": 123,
+              "rating": "Like"
+            }
+          },
+          {
+            "name": "Update Rating",
+            "method": "POST",
+            "path": "/ratings/songs/:songId/update",
+            "auth": true,
+            "description": "Update song rating",
+            "pathParams": {
+              "songId": "number (required)"
+            },
+            "bodyParams": {
+              "rating": "string (required, values: 'Like', 'Dislike')"
+            },
+            "example": {
+              "rating": "Dislike"
+            }
+          },
+          {
+            "name": "Delete Rating",
+            "method": "DELETE",
+            "path": "/ratings/songs/:songId",
+            "auth": true,
+            "description": "Delete song rating",
+            "pathParams": {
+              "songId": "number (required)"
+            },
+            "example": "/ratings/songs/123"
+          },
+          {
+            "name": "Get User Rating",
+            "method": "GET",
+            "path": "/ratings/songs/:songId/me",
+            "auth": true,
+            "description": "Get user's rating for a song",
+            "pathParams": {
+              "songId": "number (required)"
+            },
+            "example": "/ratings/songs/123/me"
+          },
+          {
+            "name": "Get User Ratings",
+            "method": "GET",
+            "path": "/ratings/me",
+            "auth": true,
+            "description": "Get user's ratings",
+            "queryParams": {
+              "page": "string (optional, default: '1')",
+              "limit": "string (optional, default: '20')",
+              "rating": "string (optional, values: 'Like', 'Dislike')",
+              "sortBy": "string (optional, default: 'ratedAt', values: 'ratedAt', 'songTitle')",
+              "sortOrder": "string (optional, default: 'desc', values: 'asc', 'desc')"
+            },
+            "example": "/ratings/me?page=1&limit=20"
+          },
+          {
+            "name": "Get Liked Songs",
+            "method": "GET",
+            "path": "/ratings/me/liked-songs",
+            "auth": true,
+            "description": "Get user's liked songs",
+            "queryParams": {
+              "page": "number (required)",
+              "limit": "number (required)"
+            },
+            "example": "/ratings/me/liked-songs?page=1&limit=20"
+          },
+          {
+            "name": "Get Song Rating Stats",
+            "method": "GET",
+            "path": "/ratings/songs/:songId/stats",
+            "auth": false,
+            "description": "Get song rating statistics",
+            "pathParams": {
+              "songId": "number (required)"
+            },
+            "example": "/ratings/songs/123/stats"
+          },
+          {
+            "name": "Get User Rating Stats",
+            "method": "GET",
+            "path": "/ratings/me/stats",
+            "auth": true,
+            "description": "Get user's rating statistics",
+            "queryParams": {},
+            "example": "/ratings/me/stats"
+          }
+        ]
+      },
+      "upload": {
+        "description": "File Upload APIs",
+        "endpoints": [
+          {
+            "name": "Generate Presigned URL",
+            "method": "POST",
+            "path": "/upload/presigned-url",
+            "auth": true,
+            "description": "Generate presigned URL for file upload to S3",
+            "bodyParams": {
+              "resource": "string (optional, default: 'uploads', values: 'uploads', 'products', 'categories', 'avatars')",
+              "entityId": "string (optional)",
+              "fileName": "string (required)",
+              "contentType": "string (optional)",
+              "variant": "string (optional, default: 'original')"
+            },
+            "example": {
+              "fileName": "song.mp3",
+              "resource": "uploads",
+              "contentType": "audio/mpeg"
+            }
+          },
+          {
+            "name": "Generate Image Upload URL",
+            "method": "POST",
+            "path": "/upload/image/presigned-url",
+            "auth": true,
+            "description": "Generate presigned URL for image upload",
+            "bodyParams": {
+              "resource": "string (optional, default: 'avatars')",
+              "entityId": "string (optional)",
+              "fileName": "string (required)",
+              "contentType": "string (optional)"
+            },
+            "example": {
+              "fileName": "avatar.jpg",
+              "resource": "avatars"
+            }
+          }
+        ]
+      },
+      "statistics": {
+        "description": "Statistics APIs (Admin)",
+        "endpoints": [
+          {
+            "name": "Get Dashboard Overview",
+            "method": "GET",
+            "path": "/statistics/dashboard",
+            "auth": true,
+            "description": "Get dashboard overview statistics",
+            "queryParams": {},
+            "example": "/statistics/dashboard"
+          },
+          {
+            "name": "Get Daily Statistics",
+            "method": "GET",
+            "path": "/statistics/daily",
+            "auth": true,
+            "description": "Get daily statistics",
+            "queryParams": {
+              "startDate": "string (required, format: YYYY-MM-DD)",
+              "endDate": "string (required, format: YYYY-MM-DD)"
+            },
+            "example": "/statistics/daily?startDate=2024-01-01&endDate=2024-12-31"
+          },
+          {
+            "name": "Get Trending Songs",
+            "method": "GET",
+            "path": "/statistics/trending",
+            "auth": true,
+            "description": "Get trending songs statistics",
+            "queryParams": {
+              "periodType": "string (optional, default: 'Weekly', values: 'Daily', 'Weekly', 'Monthly')",
+              "limit": "string (optional, default: '10')"
+            },
+            "example": "/statistics/trending?periodType=Weekly&limit=20"
+          },
+          {
+            "name": "Get Revenue Statistics",
+            "method": "GET",
+            "path": "/statistics/revenue",
+            "auth": true,
+            "description": "Get revenue statistics",
+            "queryParams": {
+              "startDate": "string (required, format: YYYY-MM-DD)",
+              "endDate": "string (required, format: YYYY-MM-DD)",
+              "groupBy": "string (optional, default: 'day', values: 'day', 'week', 'month')"
+            },
+            "example": "/statistics/revenue?startDate=2024-01-01&endDate=2024-12-31&groupBy=month"
+          },
+          {
+            "name": "Get User Engagement Statistics",
+            "method": "GET",
+            "path": "/statistics/engagement",
+            "auth": true,
+            "description": "Get user engagement statistics",
+            "queryParams": {
+              "startDate": "string (required, format: YYYY-MM-DD)",
+              "endDate": "string (required, format: YYYY-MM-DD)"
+            },
+            "example": "/statistics/engagement?startDate=2024-01-01&endDate=2024-12-31"
+          },
+          {
+            "name": "Update Daily Statistics",
+            "method": "POST",
+            "path": "/statistics/update-daily",
+            "auth": true,
+            "description": "Update daily statistics (Admin only)",
+            "queryParams": {},
+            "example": "/statistics/update-daily"
+          }
+        ]
+      },
+      "users": {
+        "description": "User Management APIs",
+        "endpoints": [
+          {
+            "name": "Get All Users",
+            "method": "GET",
+            "path": "/users",
+            "auth": false,
+            "description": "Get paginated list of users",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 10)",
+              "role": "string (optional, values: 'Admin', 'Listener', 'Label')",
+              "status": "string (optional, values: 'Active', 'Inactive', 'Banned', 'Suspended')",
+              "search": "string (optional)"
+            },
+            "example": "/users?page=1&limit=20&role=Listener"
+          },
+          {
+            "name": "Create User",
+            "method": "POST",
+            "path": "/users",
+            "auth": true,
+            "description": "Create new user (Admin only)",
+            "bodyParams": {
+              "email": "string (required, email format)",
+              "fullName": "string (required, min: 1, max: 255)",
+              "password": "string (required, min: 8, max: 255)",
+              "roleId": "number (optional, default: 6)",
+              "dateOfBirth": "string (optional)",
+              "gender": "string (optional, values: 'Male', 'Female', 'Other')"
+            },
+            "example": {
+              "email": "user@example.com",
+              "fullName": "John Doe",
+              "password": "password123"
+            }
+          },
+          {
+            "name": "Update User",
+            "method": "PATCH",
+            "path": "/users/:id",
+            "auth": true,
+            "description": "Update user information (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "fullName": "string (optional)",
+              "dateOfBirth": "string (optional)",
+              "gender": "string (optional)"
+            },
+            "example": {
+              "fullName": "Updated Name"
+            }
+          },
+          {
+            "name": "Update User Status",
+            "method": "PATCH",
+            "path": "/users/:id/status",
+            "auth": true,
+            "description": "Update user account status (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "accountStatus": "string (required, values: 'Active', 'Inactive', 'Banned', 'Suspended')"
+            },
+            "example": {
+              "accountStatus": "Active"
+            }
+          },
+          {
+            "name": "Update User Role",
+            "method": "PATCH",
+            "path": "/users/:id/role",
+            "auth": true,
+            "description": "Update user role (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "roleId": "number (required)"
+            },
+            "example": {
+              "roleId": 6
+            }
+          },
+          {
+            "name": "Delete User",
+            "method": "DELETE",
+            "path": "/users/:id",
+            "auth": true,
+            "description": "Delete user (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/users/123"
+          }
+        ]
+      },
+      "media": {
+        "description": "Media Playback APIs",
+        "endpoints": [
+          {
+            "name": "Get Playback Track",
+            "method": "GET",
+            "path": "/playback/track/:songId",
+            "auth": false,
+            "description": "Get playback URL for song",
+            "pathParams": {
+              "songId": "string (required)"
+            },
+            "queryParams": {
+              "quality": "string (optional)"
+            },
+            "example": "/playback/track/123"
+          },
+          {
+            "name": "Presign Master Asset",
+            "method": "POST",
+            "path": "/media/master/presign",
+            "auth": true,
+            "description": "Generate presigned URL for master asset",
+            "bodyParams": {
+              "songId": "number (required)",
+              "fileName": "string (required)",
+              "tenant": "string (optional)"
+            },
+            "example": "/media/master/presign"
+          },
+          {
+            "name": "Complete Ingest",
+            "method": "POST",
+            "path": "/internal/ingest/complete",
+            "auth": false,
+            "description": "Complete media ingest (Internal use)",
+            "headers": {
+              "x-ingest-token": "string (required)"
+            },
+            "bodyParams": {
+              "songId": "number (required)",
+              "renditions": "array (required)"
+            },
+            "example": "/internal/ingest/complete"
+          }
+        ]
+      },
+      "songs": {
+        "description": "Song Management APIs",
+        "endpoints": [
+          {
+            "name": "Create Song",
+            "method": "POST",
+            "path": "/songs",
+            "auth": true,
+            "description": "Create new song",
+            "bodyParams": {
+              "title": "string (required, min: 1, max: 255)",
+              "description": "string (optional)",
+              "duration": "number (required, min: 0)",
+              "language": "string (optional, max: 50)",
+              "lyrics": "string (optional)",
+              "albumId": "number (optional)",
+              "genreId": "number (optional)",
+              "artists": "array (required, min: 1)",
+              "artists[].artistId": "number (required)",
+              "artists[].role": "string (optional, default: 'MainArtist', values: 'MainArtist', 'FeaturedArtist', 'Composer', 'Producer')"
+            },
+            "example": {
+              "title": "New Song",
+              "duration": 180,
+              "artists": [
+                {
+                  "artistId": 1,
+                  "role": "MainArtist"
+                }
+              ]
+            }
+          },
+          {
+            "name": "Update Song",
+            "method": "PUT",
+            "path": "/songs/:id",
+            "auth": true,
+            "description": "Update song metadata",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "title": "string (optional)",
+              "description": "string (optional)",
+              "duration": "number (optional)",
+              "language": "string (optional)",
+              "lyrics": "string (optional)",
+              "albumId": "number (optional)",
+              "genreId": "number (optional)",
+              "isActive": "boolean (optional)"
+            },
+            "example": {
+              "title": "Updated Title"
+            }
+          },
+          {
+            "name": "Update Song Artists",
+            "method": "PUT",
+            "path": "/songs/:id/artists",
+            "auth": true,
+            "description": "Update song artists",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "artists": "array (required, min: 1)"
+            },
+            "example": {
+              "artists": [
+                {
+                  "artistId": 1,
+                  "role": "MainArtist"
+                }
+              ]
+            }
+          },
+          {
+            "name": "Delete Song",
+            "method": "DELETE",
+            "path": "/songs/:id",
+            "auth": true,
+            "description": "Delete song",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/songs/123"
+          }
+        ]
+      },
+      "genres": {
+        "description": "Genre Management APIs",
+        "endpoints": [
+          {
+            "name": "Create Genre",
+            "method": "POST",
+            "path": "/genres",
+            "auth": true,
+            "description": "Create new genre",
+            "example": "/genres"
+          },
+          {
+            "name": "Update Genre",
+            "method": "PATCH",
+            "path": "/genres/:id",
+            "auth": true,
+            "description": "Update genre",
+            "pathParams": {
+              "id": "string (required)"
+            },
+            "example": "/genres/1"
+          },
+          {
+            "name": "Delete Genre",
+            "method": "DELETE",
+            "path": "/genres/:id",
+            "auth": true,
+            "description": "Delete genre",
+            "pathParams": {
+              "id": "string (required)"
+            },
+            "example": "/genres/1"
+          }
+        ]
+      },
+      "copyrightReports": {
+        "description": "Copyright Report Management APIs",
+        "endpoints": [
+          {
+            "name": "Create Copyright Report",
+            "method": "POST",
+            "path": "/copyright-reports",
+            "auth": true,
+            "description": "Submit a copyright infringement report",
+            "bodyParams": {
+              "reportedSongId": "number (required)",
+              "reason": "string (required)",
+              "description": "string (optional)",
+              "contactEmail": "string (optional, email format)"
+            },
+            "example": {
+              "reportedSongId": 123,
+              "reason": "Unauthorized use of copyrighted material"
+            }
+          },
+          {
+            "name": "Get My Copyright Reports",
+            "method": "GET",
+            "path": "/copyright-reports/my-reports",
+            "auth": true,
+            "description": "Get user's copyright reports",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20)"
+            },
+            "example": "/copyright-reports/my-reports?page=1&limit=20"
+          },
+          {
+            "name": "Get My Copyright Report by ID",
+            "method": "GET",
+            "path": "/copyright-reports/my-reports/:id",
+            "auth": true,
+            "description": "Get specific copyright report by user",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/copyright-reports/my-reports/123"
+          },
+          {
+            "name": "Get All Copyright Reports",
+            "method": "GET",
+            "path": "/copyright-reports",
+            "auth": true,
+            "description": "Get all copyright reports (Admin only)",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20)",
+              "status": "string (optional)"
+            },
+            "example": "/copyright-reports?page=1&limit=20"
+          },
+          {
+            "name": "Get Copyright Report Statistics",
+            "method": "GET",
+            "path": "/copyright-reports/stats",
+            "auth": true,
+            "description": "Get copyright report statistics (Admin only)",
+            "queryParams": {},
+            "example": "/copyright-reports/stats"
+          },
+          {
+            "name": "Get Copyright Report by ID",
+            "method": "GET",
+            "path": "/copyright-reports/:id",
+            "auth": true,
+            "description": "Get copyright report by ID (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/copyright-reports/123"
+          },
+          {
+            "name": "Update Report Status",
+            "method": "PATCH",
+            "path": "/copyright-reports/:id/status",
+            "auth": true,
+            "description": "Update copyright report status (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "status": "string (required)",
+              "adminNotes": "string (optional)"
+            },
+            "example": {
+              "status": "Resolved",
+              "adminNotes": "Issue resolved"
+            }
+          },
+          {
+            "name": "Delete Copyright Report",
+            "method": "DELETE",
+            "path": "/copyright-reports/:id",
+            "auth": true,
+            "description": "Delete copyright report (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/copyright-reports/123"
+          }
+        ]
+      },
+      "advertisements": {
+        "description": "Advertisement Management APIs",
+        "endpoints": [
+          {
+            "name": "Create Advertisement",
+            "method": "POST",
+            "path": "/advertisements",
+            "auth": true,
+            "description": "Create new advertisement (Admin only)",
+            "bodyParams": {
+              "title": "string (required)",
+              "content": "string (required)",
+              "mediaUrl": "string (optional)",
+              "targetUrl": "string (optional)",
+              "placement": "string (required)",
+              "startDate": "string (optional, ISO format)",
+              "endDate": "string (optional, ISO format)",
+              "isActive": "boolean (optional, default: true)"
+            },
+            "example": {
+              "title": "New Album Release",
+              "content": "Check out our new album",
+              "placement": "banner"
+            }
+          },
+          {
+            "name": "Get All Advertisements",
+            "method": "GET",
+            "path": "/advertisements",
+            "auth": true,
+            "description": "Get all advertisements (Admin only)",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20)",
+              "status": "string (optional)",
+              "placement": "string (optional)"
+            },
+            "example": "/advertisements?page=1&limit=20"
+          },
+          {
+            "name": "Get Advertisement Statistics",
+            "method": "GET",
+            "path": "/advertisements/stats",
+            "auth": true,
+            "description": "Get overall ad statistics (Admin only)",
+            "queryParams": {
+              "startDate": "string (optional, ISO format)",
+              "endDate": "string (optional, ISO format)"
+            },
+            "example": "/advertisements/stats"
+          },
+          {
+            "name": "Get Advertisement by ID",
+            "method": "GET",
+            "path": "/advertisements/:id",
+            "auth": true,
+            "description": "Get advertisement by ID (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/advertisements/123"
+          },
+          {
+            "name": "Get Advertisement Statistics by ID",
+            "method": "GET",
+            "path": "/advertisements/:id/stats",
+            "auth": true,
+            "description": "Get advertisement statistics (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "queryParams": {
+              "startDate": "string (optional, ISO format)",
+              "endDate": "string (optional, ISO format)"
+            },
+            "example": "/advertisements/123/stats"
+          },
+          {
+            "name": "Update Advertisement",
+            "method": "PUT",
+            "path": "/advertisements/:id",
+            "auth": true,
+            "description": "Update advertisement (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "title": "string (optional)",
+              "content": "string (optional)",
+              "mediaUrl": "string (optional)",
+              "targetUrl": "string (optional)",
+              "placement": "string (optional)",
+              "startDate": "string (optional)",
+              "endDate": "string (optional)",
+              "isActive": "boolean (optional)"
+            },
+            "example": {
+              "title": "Updated Title"
+            }
+          },
+          {
+            "name": "Toggle Advertisement Status",
+            "method": "PATCH",
+            "path": "/advertisements/:id/toggle",
+            "auth": true,
+            "description": "Toggle advertisement active status (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/advertisements/123/toggle"
+          },
+          {
+            "name": "Delete Advertisement",
+            "method": "DELETE",
+            "path": "/advertisements/:id",
+            "auth": true,
+            "description": "Delete advertisement (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/advertisements/123"
+          },
+          {
+            "name": "Get Active Advertisements",
+            "method": "GET",
+            "path": "/advertisements/active/list",
+            "auth": false,
+            "description": "Get active advertisements (Public)",
+            "queryParams": {
+              "placement": "string (optional)"
+            },
+            "example": "/advertisements/active/list"
+          },
+          {
+            "name": "Record Advertisement Impression",
+            "method": "POST",
+            "path": "/advertisements/impressions",
+            "auth": false,
+            "description": "Track advertisement impression (Public)",
+            "bodyParams": {
+              "advertisementId": "number (required)",
+              "userId": "number (optional)",
+              "deviceInfo": "string (optional)"
+            },
+            "example": {
+              "advertisementId": 123
+            }
+          },
+          {
+            "name": "Track Advertisement Click",
+            "method": "POST",
+            "path": "/advertisements/impressions/click",
+            "auth": false,
+            "description": "Track advertisement click (Public)",
+            "bodyParams": {
+              "impressionId": "number (required)"
+            },
+            "example": {
+              "impressionId": 123
+            }
+          }
+        ]
+      },
+      "roles": {
+        "description": "Role Management APIs (Admin)",
+        "endpoints": [
+          {
+            "name": "Create Role",
+            "method": "POST",
+            "path": "/role",
+            "auth": true,
+            "description": "Create new role (Admin only)",
+            "bodyParams": {
+              "roleName": "string (required)",
+              "description": "string (optional)",
+              "permissions": "array (optional, array of permission IDs)"
+            },
+            "example": {
+              "roleName": "Moderator",
+              "description": "Content moderator role"
+            }
+          },
+          {
+            "name": "Get All Roles",
+            "method": "GET",
+            "path": "/role",
+            "auth": true,
+            "description": "Get all roles (Admin only)",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20)"
+            },
+            "example": "/role?page=1&limit=20"
+          },
+          {
+            "name": "Get Role by ID",
+            "method": "GET",
+            "path": "/role/:id",
+            "auth": true,
+            "description": "Get role by ID (Admin only)",
+            "pathParams": {
+              "id": "string (required)"
+            },
+            "example": "/role/1"
+          },
+          {
+            "name": "Update Role",
+            "method": "PATCH",
+            "path": "/role/:id",
+            "auth": true,
+            "description": "Update role (Admin only)",
+            "pathParams": {
+              "id": "string (required)"
+            },
+            "bodyParams": {
+              "roleName": "string (optional)",
+              "description": "string (optional)",
+              "permissions": "array (optional)"
+            },
+            "example": {
+              "roleName": "Updated Role Name"
+            }
+          },
+          {
+            "name": "Delete Role",
+            "method": "DELETE",
+            "path": "/role/:id",
+            "auth": true,
+            "description": "Delete role (Admin only)",
+            "pathParams": {
+              "id": "string (required)"
+            },
+            "example": "/role/1"
+          }
+        ]
+      },
+      "permissions": {
+        "description": "Permission Management APIs (Admin)",
+        "endpoints": [
+          {
+            "name": "Get All Permissions",
+            "method": "GET",
+            "path": "/permission",
+            "auth": true,
+            "description": "Get all permissions (Admin only)",
+            "queryParams": {
+              "page": "number (optional, default: 1)",
+              "limit": "number (optional, default: 20)"
+            },
+            "example": "/permission?page=1&limit=20"
+          },
+          {
+            "name": "Get Permission by ID",
+            "method": "GET",
+            "path": "/permission/:id",
+            "auth": true,
+            "description": "Get permission by ID (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/permission/1"
+          },
+          {
+            "name": "Create Permission",
+            "method": "POST",
+            "path": "/permission",
+            "auth": true,
+            "description": "Create new permission (Admin only)",
+            "bodyParams": {
+              "permissionName": "string (required)",
+              "description": "string (optional)"
+            },
+            "example": {
+              "permissionName": "manage_users",
+              "description": "Can manage users"
+            }
+          },
+          {
+            "name": "Update Permission",
+            "method": "PUT",
+            "path": "/permission/:id",
+            "auth": true,
+            "description": "Update permission (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "bodyParams": {
+              "permissionName": "string (optional)",
+              "description": "string (optional)"
+            },
+            "example": {
+              "permissionName": "updated_permission"
+            }
+          },
+          {
+            "name": "Delete Permission",
+            "method": "DELETE",
+            "path": "/permission/:id",
+            "auth": true,
+            "description": "Delete permission (Admin only)",
+            "pathParams": {
+              "id": "number (required)"
+            },
+            "example": "/permission/1"
+          }
+        ]
+      }
+    },
+    "notes": {
+      "authentication": "Most endpoints require Bearer token in Authorization header: 'Authorization: Bearer <token>'",
+      "baseURL": "Change baseURL in this file to match your API server URL",
+      "pathParams": "Replace :paramName with actual values in the path (e.g., /songs/123)",
+      "queryParams": "Append query parameters to URL with ?key=value&key2=value2",
+      "bodyParams": "Send in request body as JSON for POST/PUT/PATCH requests",
+      "responseFormat": "All responses follow standard format with data/error structure",
+      "pagination": "Most list endpoints support pagination with 'page' and 'limit' query parameters",
+      "filtering": "Many endpoints support filtering via query parameters",
+      "sorting": "List endpoints often support 'sort' and 'order' query parameters"
+    }
+  }
