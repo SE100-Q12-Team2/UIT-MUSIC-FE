@@ -115,13 +115,18 @@ export interface TrendingSongsResponse {
   items: TrendingSong[];
 }
 
+export interface TrendingSongsQuery {
+  limit?: number; // optional, default: 10, max: 50
+  genreId?: number; // optional
+}
+
 export const songService = {
   getSongs: async (filters?: SongFilters): Promise<SongsResponse> => {
     return api.get<SongsResponse>('/songs', { params: filters });
   },
 
-  getTrendingSongs: async (): Promise<TrendingSongsResponse> => {
-    return api.get<TrendingSongsResponse>('/songs/trending');
+  getTrendingSongs: async (query?: TrendingSongsQuery): Promise<TrendingSongsResponse> => {
+    return api.get<TrendingSongsResponse>('/songs/trending', { params: query });
   },
 
   getSongById: async (id: number): Promise<Song> => {
@@ -153,10 +158,10 @@ export const useSongs = (filters?: SongFilters) => {
   });
 };
 
-export const useTrendingSongs = () => {
+export const useTrendingSongs = (query?: TrendingSongsQuery) => {
   return useQuery({
-    queryKey: ['songs', 'trending'],
-    queryFn: () => songService.getTrendingSongs(),
+    queryKey: ['songs', 'trending', query],
+    queryFn: () => songService.getTrendingSongs(query),
     enabled: true,
   });
 };

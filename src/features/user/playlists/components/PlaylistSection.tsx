@@ -36,8 +36,6 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
             trackCount={playlist.trackCount}
             playlist={playlist}
             onPlaylistClick={onPlaylistClick}
-            onAddToExisting={onAddToExisting}
-            onAddToNew={onAddToNew}
           />
         ))}
       </div>

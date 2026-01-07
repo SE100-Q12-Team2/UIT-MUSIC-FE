@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAdminUsers, useUpdateUserStatus, useDeleteUser } from '@/core/services/admin.service';
 import { Search, Filter, ArrowUpDown, ChevronDown, Check, Mail, MoreHorizontal, Eye, Edit, Ban, Trash2, Shield } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
@@ -16,8 +17,11 @@ import '@/styles/admin-users-management.css';
 type SortOption = 'Latest' | 'Oldest' | 'A-Z' | 'Z-A';
 type StatusFilter = 'All' | 'Active' | 'Suspended' | 'Inactive';
 type PlanFilter = 'All' | 'Premium' | 'Free';
+type TabType = 'users' | 'labels' | 'reports';
 
 const AdminUsersPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<TabType>('users');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
   const [planFilter, setPlanFilter] = useState<PlanFilter>('All');

@@ -27,21 +27,34 @@ export interface FollowsResponse {
 }
 
 export interface FollowsQuery {
-  userId: number;
+  userId?: number | string; // optional, can be number or string
+  targetType?: 'Artist' | 'Label'; // optional
+  limit?: number; // optional, default: 20, max: 100
+  page?: number; // optional, default: 1
+  sort?: 'followedAt' | 'name'; // optional, default: 'followedAt'
+  order?: 'asc' | 'desc'; // optional, default: 'desc'
 }
 
 const followService = {
-  getFollows: async (query: FollowsQuery): Promise<FollowsResponse> => {
+  getFollows: async (query?: FollowsQuery): Promise<FollowsResponse> => {
     return api.get<FollowsResponse>('/follows', { params: query });
   },
 };
 
 // React Query hook for user follows
-export const useFollows = (query: FollowsQuery) => {
+export const useFollows = (query?: FollowsQuery) => {
   return useQuery({
-    queryKey: ['follows', query.userId],
+    queryKey: ['follows', query],
     queryFn: () => followService.getFollows(query),
-    enabled: !!query.userId && query.userId > 0,
+    enabled: 
+      // If no query provided, allow (API supports query without userId)
+      !query || 
+      // If query exists but userId is undefined (not provided), allow (API supports optional userId)
+      query.userId === undefined ||
+      // If userId is a valid number (> 0), allow
+      (typeof query.userId === 'number' && query.userId > 0) || 
+      // If userId is a valid non-empty string (not '0'), allow
+      (typeof query.userId === 'string' && query.userId.trim() !== '' && query.userId !== '0'),
   });
 };
 

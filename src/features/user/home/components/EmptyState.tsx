@@ -1,8 +1,8 @@
 import React from 'react';
-import { Music2, Sparkles, ListMusic } from 'lucide-react';
+import { Music2, Sparkles, ListMusic, Users, Disc, TrendingUp, Clock } from 'lucide-react';
 
 interface EmptyStateProps {
-  icon?: 'music' | 'sparkles' | 'list';
+  icon?: 'music' | 'sparkles' | 'list' | 'users' | 'disc' | 'trending-up' | 'clock';
   title: string;
   description?: string;
   action?: {
@@ -15,6 +15,10 @@ const iconMap = {
   music: Music2,
   sparkles: Sparkles,
   list: ListMusic,
+  users: Users,
+  disc: Disc,
+  'trending-up': TrendingUp,
+  clock: Clock,
 };
 
 const EmptyState: React.FC<EmptyStateProps> = ({ 
