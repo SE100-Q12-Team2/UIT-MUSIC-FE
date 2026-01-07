@@ -1,9 +1,10 @@
-import { Headphones, Download, AudioLines } from "lucide-react";
+import { Headphones, Download, AudioLines, Loader2 } from "lucide-react";
 import { SubscriptionPlan } from "@/types/subscription.types";
 
 interface SubscriptionCardProps {
   plan: SubscriptionPlan;
   onSubscribe?: (planId: number) => void;
+  isSubscribing?: boolean;
 }
 
 // Map feature text to icons
@@ -35,16 +36,38 @@ const getTagline = (planName: string): string => {
 
 // Format price for display
 const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat("vi-VN").format(price);
+  return price.toFixed(2);
+};
+
+// Extract features from plan
+const getFeatures = (plan: SubscriptionPlan): string[] => {
+  // Handle different response formats
+  if (Array.isArray(plan.features)) {
+    return plan.features as string[];
+  }
+  if (plan.features?.feature && Array.isArray(plan.features.feature)) {
+    return plan.features.feature;
+  }
+  // Default features if none provided
+  return [
+    "Ad-free listening",
+    "Offline downloads",
+    "High-quality audio"
+  ];
 };
 
 const SubscriptionCard = ({
   plan,
   onSubscribe,
+  isSubscribing = false,
 }: SubscriptionCardProps) => {
   const handleSubscribe = () => {
-    onSubscribe?.(plan.id);
+    if (!isSubscribing) {
+      onSubscribe?.(plan.id);
+    }
   };
+
+  const features = getFeatures(plan);
 
   return (
     <div className="subscription-card">
@@ -68,7 +91,7 @@ const SubscriptionCard = ({
 
       {/* Features */}
       <ul className="plan-features">
-        {plan.features?.feature?.map((feature, index) => (
+        {features.map((feature, index) => (
           <li key={index} className="plan-feature">
             {getFeatureIcon(feature)}
             <span className="plan-feature__text">
@@ -82,8 +105,16 @@ const SubscriptionCard = ({
       <button
         className="subscribe-btn"
         onClick={handleSubscribe}
+        disabled={isSubscribing}
       >
-        Subscribe
+        {isSubscribing ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Processing...</span>
+          </>
+        ) : (
+          "Subscribe"
+        )}
       </button>
     </div>
   );

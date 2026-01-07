@@ -1,12 +1,12 @@
 import { UseFormSetError, FieldValues, Path } from "react-hook-form";
 import { toast } from "sonner";
 
-interface ValidationError {
+export interface ValidationError {
   path: string;
   message: string;
 }
 
-interface ApiError {
+export interface ApiError {
   errors?: unknown;
   message?: ValidationError[] | string;
   status?: number;
