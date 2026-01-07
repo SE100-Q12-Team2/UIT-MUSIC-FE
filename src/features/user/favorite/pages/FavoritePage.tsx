@@ -384,66 +384,6 @@ const FavoritePage: React.FC = () => {
           ) : null}
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="favorite-footer">
-        <div className="favorite-footer__content">
-          <div className="favorite-footer__brand">
-            <div className="favorite-footer__logo">
-              <div className="favorite-footer__logo-icon">
-                <Play size={32} fill="white" />
-              </div>
-              <span className="favorite-footer__logo-text">VioTune</span>
-            </div>
-            <h3 className="favorite-footer__welcome">Welcome To VioTune!</h3>
-            <p className="favorite-footer__tagline">
-              At Echo Stream, We Are Passionate About Bringing Music Closer To You.
-            </p>
-          </div>
-
-          <div className="favorite-footer__links">
-            <div className="favorite-footer__column">
-              <h4 className="favorite-footer__column-title">Main Links</h4>
-              <a href="#" className="favorite-footer__link">About Us</a>
-              <a href="#" className="favorite-footer__link">Contact Us</a>
-              <a href="#" className="favorite-footer__link">FAQ</a>
-              <a href="#" className="favorite-footer__link">Privacy Policy</a>
-            </div>
-
-            <div className="favorite-footer__column">
-              <h4 className="favorite-footer__column-title">Categories</h4>
-              <a href="#" className="favorite-footer__link">Music Genre</a>
-              <a href="#" className="favorite-footer__link">Popular Playlists</a>
-              <a href="#" className="favorite-footer__link">New Albums</a>
-            </div>
-
-            <div className="favorite-footer__column">
-              <h4 className="favorite-footer__column-title">Main Links</h4>
-              <a href="#" className="favorite-footer__link">About Us</a>
-              <a href="#" className="favorite-footer__link">Contact Us</a>
-              <a href="#" className="favorite-footer__link">FAQ</a>
-              <a href="#" className="favorite-footer__link">Privacy Policy</a>
-            </div>
-          </div>
-
-          <div className="favorite-footer__newsletter">
-            <h4 className="favorite-footer__newsletter-title">Follow Us</h4>
-            <div className="favorite-footer__social">
-              <button className="favorite-footer__social-btn">f</button>
-              <button className="favorite-footer__social-btn">t</button>
-              <button className="favorite-footer__social-btn">in</button>
-            </div>
-            <div className="favorite-footer__subscribe">
-              <input 
-                type="email" 
-                placeholder="Example@gmail.com"
-                className="favorite-footer__email-input"
-              />
-              <button className="favorite-footer__subscribe-btn">Subscribe</button>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
