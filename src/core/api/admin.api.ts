@@ -74,6 +74,126 @@ export interface UpdateCopyrightReportStatusRequest {
   status: 'Pending' | 'Under Review' | 'Resolved' | 'Rejected';
 }
 
+// Songs API types
+export interface SongArtist {
+  artistId: number;
+  songId: number;
+  role: string;
+  artist: {
+    id: number;
+    artistName: string;
+    profileImage: string;
+  };
+}
+
+export interface AdminSong {
+  id: number;
+  title: string;
+  description: string;
+  duration: number;
+  language: string;
+  lyrics: string;
+  albumId: number;
+  genreId: number;
+  labelId: number;
+  uploadDate: string;
+  isActive: boolean;
+  copyrightStatus: string;
+  playCount: number;
+  isFavorite: boolean;
+  songArtists: SongArtist[];
+  album: {
+    id: number;
+    albumTitle: string;
+    coverImage: string;
+  } | null;
+  genre: {
+    id: number;
+    genreName: string;
+  } | null;
+  label: {
+    id: number;
+    labelName: string;
+  } | null;
+  asset: {
+    id: number;
+    bucket: string;
+    keyMaster: string;
+  } | null;
+}
+
+export interface AdminSongsResponse {
+  items: AdminSong[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// Albums API types
+export interface AlbumSong {
+  id: number;
+  title: string;
+  duration: number;
+  playCount: number;
+  uploadDate: string;
+  songArtists: {
+    role: string;
+    artist: {
+      id: number;
+      artistName: string;
+      profileImage: string;
+    };
+  }[];
+}
+
+export interface AdminAlbum {
+  id: number;
+  albumTitle: string;
+  albumDescription: string;
+  coverImage: string;
+  releaseDate: string;
+  labelId: number;
+  totalTracks: number;
+  createdAt: string;
+  updatedAt: string;
+  label: {
+    id: number;
+    labelName: string;
+    hasPublicProfile: boolean;
+  } | null;
+  songs: AlbumSong[];
+  _count: {
+    songs: number;
+  };
+}
+
+export interface AdminAlbumsResponse {
+  items: AdminAlbum[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// Genres API types
+export interface AdminGenre {
+  id: number;
+  genreName: string;
+  description: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminGenresResponse {
+  data: AdminGenre[];
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  limit: number;
+}
+
 export const adminApi = {
   // Get all users for admin
   getUsers: async (page = 1, limit = 20, search?: string): Promise<AdminUsersResponse> => {
@@ -127,6 +247,32 @@ export const adminApi = {
   // Update copyright report status
   updateCopyrightReportStatus: async (id: number, data: UpdateCopyrightReportStatusRequest): Promise<CopyrightReport> => {
     return api.patch<CopyrightReport>(`/admin/copyright-reports/${id}/status`, data);
+  },
+
+  // Get all songs for admin
+  getSongs: async (page = 1, limit = 10, search?: string): Promise<AdminSongsResponse> => {
+    return api.get<AdminSongsResponse>('/songs', {
+      params: { page, limit, search },
+    });
+  },
+
+  // Get all albums for admin
+  getAlbums: async (page = 1, limit = 12, search?: string): Promise<AdminAlbumsResponse> => {
+    return api.get<AdminAlbumsResponse>('/albums', {
+      params: { page, limit, search },
+    });
+  },
+
+  // Get all genres for admin
+  getGenres: async (page = 1, limit = 12, search?: string): Promise<AdminGenresResponse> => {
+    return api.get<AdminGenresResponse>('/genres', {
+      params: { page, limit, search },
+    });
+  },
+
+  // Create a new genre
+  createGenre: async (data: { genreName: string; description?: string | null }): Promise<AdminGenre> => {
+    return api.post<AdminGenre>('/genres', data);
   },
 };
 
