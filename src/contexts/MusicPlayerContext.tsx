@@ -32,6 +32,7 @@ interface MusicPlayerContextType {
   addToQueue: (song: Song) => void;
   removeFromQueue: (index: number) => void;
   clearQueue: () => void;
+  setFetchPlaybackUrl: (callback: (songId: number) => Promise<string | null>) => void;
 }
 
 const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(undefined);
@@ -59,10 +60,11 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isShuffled, setIsShuffled] = useState(false);
   const [isRepeated, setIsRepeated] = useState(false);
+  const fetchPlaybackUrlCallbackRef = useRef<((songId: number) => Promise<string | null>) | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const next = React.useCallback(() => {
+  const next = React.useCallback(async () => {
     if (queue.length === 0) return;
 
     let nextIndex = currentIndex + 1;
@@ -75,13 +77,26 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
       const song = queue[nextIndex];
       if (audioRef.current) {
         setCurrentSong(song);
-        // Get audio URL from API: asset.keyMaster
         const songWithAudio = song as SongWithAudioUrl;
-        const audioUrl = songWithAudio.audioUrl || (song.asset?.keyMaster 
-          ? `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`
-          : '');
+        let audioUrl = songWithAudio.audioUrl;
         
+        if (!audioUrl && fetchPlaybackUrlCallbackRef.current) {
+          try {
+            const fetchedUrl = await fetchPlaybackUrlCallbackRef.current(song.id);
+            if (fetchedUrl) {
+              audioUrl = fetchedUrl;
+            }
+          } catch (error) {
+            console.error('Error fetching playback URL:', error);
+          }
+        }
+        
+        // Fallback to asset.keyMaster if still no URL
+        if (!audioUrl && song.asset?.keyMaster) {
+          audioUrl = `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`;
+        }        
         if (!audioUrl) {
+          console.error('No audio URL available for song:', song.id);
           return;
         }
         
@@ -128,6 +143,10 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
     // Ensure audioRef is initialized
     if (!audioRef.current) {
       audioRef.current = new Audio();
+    }
+    
+    if (audioRef.current && !audioRef.current.paused) {
+      audioRef.current.pause();
     }
     
     if (newQueue) {
@@ -183,7 +202,7 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
   };
 
 
-  const previous = React.useCallback(() => {
+  const previous = React.useCallback(async () => {
     if (queue.length === 0) return;
 
     let prevIndex = currentIndex - 1;
@@ -196,13 +215,28 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
       const song = queue[prevIndex];
       if (audioRef.current) {
         setCurrentSong(song);
-        // Get audio URL from API: asset.keyMaster
         const songWithAudio = song as SongWithAudioUrl;
-        const audioUrl = songWithAudio.audioUrl || (song.asset?.keyMaster 
-          ? `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`
-          : '');
+        let audioUrl = songWithAudio.audioUrl;
+        
+        if (!audioUrl && fetchPlaybackUrlCallbackRef.current) {
+          try {
+            const fetchedUrl = await fetchPlaybackUrlCallbackRef.current(song.id);
+            if (fetchedUrl) {
+              audioUrl = fetchedUrl;
+            }
+          } catch (error) {
+            console.error('Error fetching playback URL:', error);
+          }
+        }
+        
+        // Fallback to asset.keyMaster if still no URL
+        if (!audioUrl && song.asset?.keyMaster) {
+          audioUrl = `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`;
+        }
+        
         
         if (!audioUrl) {
+          console.error('No audio URL available for song:', song.id);
           return;
         }
         
@@ -255,6 +289,10 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
     setCurrentIndex(0);
   };
 
+  const setFetchPlaybackUrl = (callback: (songId: number) => Promise<string | null>) => {
+    fetchPlaybackUrlCallbackRef.current = callback;
+  };
+
   return (
     <MusicPlayerContext.Provider
       value={{
@@ -282,6 +320,7 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
         addToQueue,
         removeFromQueue,
         clearQueue,
+        setFetchPlaybackUrl,
       }}
     >
       {children}

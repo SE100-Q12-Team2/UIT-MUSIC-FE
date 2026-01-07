@@ -21,20 +21,30 @@ interface BrowseTrackItemProps {
   track: BrowseTrack;
   onClick?: (track: BrowseTrack) => void;
   onMoreClick?: (track: BrowseTrack) => void;
+  onPlayTrack?: (trackId: number) => void;
 }
 
 const BrowseTrackItem: React.FC<BrowseTrackItemProps> = ({
   track,
   onClick,
   onMoreClick,
+  onPlayTrack,
 }) => {
   const handleMoreClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onMoreClick?.(track);
   };
 
+  const handleTrackClick = () => {
+    if (onPlayTrack) {
+      onPlayTrack(track.id);
+    } else if (onClick) {
+      onClick(track);
+    }
+  };
+
   return (
-    <div className="browse-track-item" onClick={() => onClick?.(track)}>
+    <div className="browse-track-item" onClick={handleTrackClick}>
       <img
         src={track.coverImage}
         alt={track.title}
