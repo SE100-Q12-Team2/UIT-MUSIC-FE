@@ -26,9 +26,9 @@ const RoleBasedRedirect: React.FC = () => {
     const currentPath = location.pathname;
 
     // Check if user is Label (either by roleId === 3 or role.name === 'Label')
-    const isLabel = roleId === 3 || roleName === 'Label';
+    const isLabel = roleId === 2 || roleName === 'Label';
 
-    const isAdmin = roleId === 2 || roleName === 'Admin';
+    const isAdmin = roleId === 3 || roleName === 'Admin';
     
     // Redirect based on role
     if (isLabel) {

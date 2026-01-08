@@ -34,7 +34,7 @@ const ProtectedRoute = ({
   if (requireAdmin) {
     // Gộp tất cả điều kiện check admin của bạn (ID = 2 hoặc tên là Admin/ADMIN)
     const isAdmin = 
-      user?.roleId === 2 || 
+      user?.roleId === 3 || 
       user?.role?.name?.toUpperCase() === "ADMIN";
 
     if (!isAdmin) {
