@@ -1,7 +1,102 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { adminApi, EngagementStatsResponse, RevenueStatsResponse } from '@/core/api/admin.api';
+import { useSubscriptionPlans } from '@/core/services/subscription.service';
+import '@/styles/loading.css';
 
 const SubscriptionsTab: React.FC = () => {
-  const stats = [
+  const [engagementStats, setEngagementStats] = useState<EngagementStatsResponse | null>(null);
+  const [revenueStats, setRevenueStats] = useState<RevenueStatsResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const { data: subscriptionPlansFromAPI, isLoading: plansLoading } = useSubscriptionPlans({ isActive: 'true' });
+
+  useEffect(() => {
+    fetchSubscriptionData();
+  }, []);
+
+  const getDateRange = () => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+    
+    const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    return {
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate),
+    };
+  };
+
+  const fetchSubscriptionData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { startDate, endDate } = getDateRange();
+      const [engagement, revenue] = await Promise.all([
+        adminApi.getEngagementStats(startDate, endDate),
+        adminApi.getRevenueStats(startDate, endDate),
+      ]);
+      setEngagementStats(engagement);
+      setRevenueStats(revenue);
+    } catch (err) {
+      setError('Failed to load subscription data');
+      console.error('Error fetching subscriptions:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatNumber = (num?: number | null): string => {
+    if (num === null || num === undefined || Number.isNaN(num)) {
+      return '0';
+    }
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    }
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toLocaleString();
+  };
+
+  const formatCurrency = (amount?: number | null): string => {
+    if (!amount) return '$0';
+    return `$${formatNumber(amount)}`;
+  };
+
+  const calculateConversionRate = (): string => {
+    if (!engagementStats) return '0%';
+    const rate = engagementStats.totalUsers > 0 
+      ? (engagementStats.premiumUsers / engagementStats.totalUsers) * 100 
+      : 0;
+    return `${rate.toFixed(1)}%`;
+  };
+
+  if (isLoading || plansLoading) {
+    return (
+      <div className="subscriptions-tab">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p className="loading-text">Loading subscription data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="subscriptions-tab">
+        <div className="admin-home__error">
+          <p>{error}</p>
+          <button onClick={fetchSubscriptionData} className="admin-home__retry-btn">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const stats = engagementStats && revenueStats ? [
     {
       id: 1,
       icon: (
@@ -12,8 +107,9 @@ const SubscriptionsTab: React.FC = () => {
         </svg>
       ),
       title: 'Free Users',
-      value: '98,547',
-      change: 15.3,
+      value: formatNumber(engagementStats.freeUsers),
+      change: engagementStats.totalUsers > 0 ? 
+        ((engagementStats.freeUsers / engagementStats.totalUsers) * 100) : 0,
       iconColor: '#10B981',
     },
     {
@@ -26,8 +122,9 @@ const SubscriptionsTab: React.FC = () => {
         </svg>
       ),
       title: 'Premium Users',
-      value: '27,300',
-      change: 8.7,
+      value: formatNumber(engagementStats.premiumUsers),
+      change: engagementStats.totalUsers > 0 ? 
+        ((engagementStats.premiumUsers / engagementStats.totalUsers) * 100) : 0,
       iconColor: '#3B82F6',
     },
     {
@@ -39,7 +136,7 @@ const SubscriptionsTab: React.FC = () => {
         </svg>
       ),
       title: 'Monthly Revenue',
-      value: '$52,480',
+      value: formatCurrency(revenueStats.summary.totalRevenueSubscription),
       change: 12.5,
       iconColor: '#10B981',
     },
@@ -51,54 +148,69 @@ const SubscriptionsTab: React.FC = () => {
         </svg>
       ),
       title: 'Conversion Rate',
-      value: '21.7%',
+      value: calculateConversionRate(),
       change: 5.8,
       iconColor: '#8B5CF6',
     },
-  ];
+  ] : [];
 
-  const subscriptionPlans = [
-    {
-      id: 1,
-      name: 'Free',
-      price: '$0',
-      period: '',
-      features: [
-        'Ad-supported',
-        'Standard quality',
-        'Limited skips',
+  const subscriptionPlans = subscriptionPlansFromAPI && engagementStats ? subscriptionPlansFromAPI.map((plan, index) => {
+    const isFree = plan.price === 0;
+    const isPremium = !isFree;
+    
+    // Parse features from string or array
+    let features: string[] = [];
+    if (typeof plan.features === 'string') {
+      try {
+        features = JSON.parse(plan.features);
+      } catch {
+        features = plan.features.split(',').map(f => f.trim());
+      }
+    } else if (Array.isArray(plan.features)) {
+      features = plan.features;
+    }
+    
+    // Calculate active users based on plan type
+    let activeUsers = '';
+    if (isFree) {
+      activeUsers = `${formatNumber(engagementStats.freeUsers)} active users`;
+    } else {
+      activeUsers = `${formatNumber(Math.floor(engagementStats.premiumUsers * 1))} active users`;
+    }
+    
+    // Determine bg class
+    let bgClass = 'subscription-card--premium';
+    if (isFree) bgClass = 'subscription-card--free';
+    
+    // Add badge for most popular (usually monthly premium)
+    const badge = isPremium ? 'Most Popular' : undefined;
+    
+    // Format price and period
+    const priceFormatted = isFree ? '$0' : `$${plan.price.toFixed(2)}`;
+    const period = isFree ? '' : plan.durationMonths >= 12 ? '/yr' : '/mo';
+    
+    return {
+      id: plan.id,
+      name: plan.name,
+      price: priceFormatted,
+      period,
+      badge,
+      features: features.length > 0 ? features : [
+        isFree ? 'Ad-supported' : 'Ad-free',
+        isFree ? 'Standard quality' : 'HD quality',
+        isFree ? 'Limited skips' : 'Offline mode',
       ],
-      activeUsers: '98,547 active users',
-      bgClass: 'subscription-card--free',
-    },
-    {
-      id: 2,
-      name: 'Premium',
-      price: '$4.99',
-      period: '/mo',
-      badge: 'Most Popular',
-      features: [
-        'Ad-free',
-        'HD quality',
-        'Offline mode',
-      ],
-      activeUsers: '19,100 active users',
-      bgClass: 'subscription-card--premium',
-    },
-    {
-      id: 3,
-      name: 'Annual',
-      price: '$49.99',
-      period: '/yr',
-      features: [
-        'All Premium',
-        'Family sharing',
-        'Early access',
-      ],
-      activeUsers: '8,200 active users',
-      bgClass: 'subscription-card--annual',
-    },
-  ];
+      activeUsers,
+      bgClass,
+    };
+  }).sort((a, b) => {
+    // Sort: Free first, then Premium, then Annual
+    if (a.price === '$0') return -1;
+    if (b.price === '$0') return 1;
+    if (a.period === '/mo') return -1;
+    if (b.period === '/mo') return 1;
+    return 0;
+  }) : [];
 
   return (
     <div className="subscriptions-tab">
@@ -117,7 +229,6 @@ const SubscriptionsTab: React.FC = () => {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d={stat.change >= 0 ? "M12 19V5M5 12l7-7 7 7" : "M12 5v14M19 12l-7 7-7-7"} />
               </svg>
-              {stat.change >= 0 ? '+' : ''}{stat.change}%
             </div>
           </div>
         ))}

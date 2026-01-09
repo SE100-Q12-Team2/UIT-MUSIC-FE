@@ -1,7 +1,104 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { adminApi, EngagementStatsResponse, DailyStatsResponse } from '@/core/api/admin.api';
+import '@/styles/loading.css';
 
 const AnalyticsTab: React.FC = () => {
-  const stats = [
+  const [engagementStats, setEngagementStats] = useState<EngagementStatsResponse | null>(null);
+  const [dailyStats, setDailyStats] = useState<DailyStatsResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, []);
+
+  const getDateRange = () => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+    
+    const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    return {
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate),
+    };
+  };
+
+  const fetchAnalyticsData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { startDate, endDate } = getDateRange();
+      const [engagement, daily] = await Promise.all([
+        adminApi.getEngagementStats(startDate, endDate),
+        adminApi.getDailyStats(startDate, endDate),
+      ]);
+      setEngagementStats(engagement);
+      setDailyStats(daily);
+    } catch (err) {
+      setError('Failed to load analytics data');
+      console.error('Error fetching analytics:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatNumber = (num?: number | null): string => {
+    if (num === null || num === undefined || Number.isNaN(num)) {
+      return '0';
+    }
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    }
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toLocaleString();
+  };
+
+  const formatTime = (seconds?: number | null): string => {
+    if (!seconds) return '0 min';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      return `${hours}h`;
+    }
+    return `${minutes} min`;
+  };
+
+  const calculateSkipRate = (): string => {
+    if (!dailyStats?.summary) return '0%';
+    // Estimate skip rate based on plays vs unique listeners ratio
+    const ratio = dailyStats.summary.totalPlays / dailyStats.summary.totalUniqueListeners;
+    const skipRate = Math.max(0, Math.min(100, (1 - (ratio / 10)) * 100));
+    return `${skipRate.toFixed(1)}%`;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="analytics-tab">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p className="loading-text">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="analytics-tab">
+        <div className="admin-home__error">
+          <p>{error}</p>
+          <button onClick={fetchAnalyticsData} className="admin-home__retry-btn">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const stats = engagementStats && dailyStats ? [
     {
       id: 1,
       icon: (
@@ -12,8 +109,9 @@ const AnalyticsTab: React.FC = () => {
         </svg>
       ),
       title: 'Total Streams',
-      value: '8.4M',
-      change: 15.3,
+      value: formatNumber(dailyStats.summary.totalPlays),
+      change: dailyStats.summary.avgDailyPlays > 0 ? 
+        ((dailyStats.summary.totalPlays / dailyStats.summary.avgDailyPlays - 30) / 30 * 100) : 0,
       iconColor: '#10B981',
     },
     {
@@ -22,13 +120,14 @@ const AnalyticsTab: React.FC = () => {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <circle cx="23 21v-2a4 4 0 0 0-3-3.87" />
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       ),
       title: 'Active Users',
-      value: '42,384',
-      change: 8.7,
+      value: formatNumber(engagementStats.activeUsers),
+      change: engagementStats.totalUsers > 0 ? 
+        ((engagementStats.activeUsers / engagementStats.totalUsers) * 100) : 0,
       iconColor: '#3B82F6',
     },
     {
@@ -40,8 +139,8 @@ const AnalyticsTab: React.FC = () => {
         </svg>
       ),
       title: 'Avg. Session',
-      value: '24 min',
-      change: 13.2,
+      value: formatTime(engagementStats.avgPlayTimePerUser),
+      change: engagementStats.avgSessionsPerUser,
       iconColor: '#8B5CF6',
     },
     {
@@ -52,18 +151,21 @@ const AnalyticsTab: React.FC = () => {
         </svg>
       ),
       title: 'Skip Rate',
-      value: '12.5%',
+      value: calculateSkipRate(),
       change: -2.1,
       iconColor: '#F59E0B',
     },
-  ];
+  ] : [];
 
-  const topGenres = [
-    { id: 1, name: 'V-Pop', streams: '3.8M', percentage: 45 },
-    { id: 2, name: 'Ballad', streams: '2.4M', percentage: 28 },
-    { id: 3, name: 'R&B', streams: '1.3M', percentage: 15 },
-    { id: 4, name: 'EDM', streams: '900K', percentage: 11 },
-  ];
+  const topGenres = engagementStats?.topGenres ? (() => {
+    const totalPlays = engagementStats.topGenres.reduce((sum, g) => sum + g.playCount, 0);
+    return engagementStats.topGenres.slice(0, 4).map((genre) => ({
+      id: genre.genreId,
+      name: genre.genreName,
+      streams: formatNumber(genre.playCount),
+      percentage: totalPlays > 0 ? Math.round((genre.playCount / totalPlays) * 100) : 0,
+    }));
+  })() : [];
 
   return (
     <div className="analytics-tab">
@@ -82,7 +184,6 @@ const AnalyticsTab: React.FC = () => {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d={stat.change >= 0 ? "M12 19V5M5 12l7-7 7 7" : "M12 5v14M19 12l-7 7-7-7"} />
               </svg>
-              {stat.change >= 0 ? '+' : ''}{stat.change}%
             </div>
           </div>
         ))}

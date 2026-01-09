@@ -308,6 +308,42 @@ export interface AdminGenresResponse {
   limit: number;
 }
 
+// Advertisements API types
+export interface Advertisement {
+  id: number;
+  adName: string;
+  adType: 'Audio' | 'Video' | 'Banner';
+  filePath: string;
+  duration: number;
+  targetAudience: {
+    ageRange: {
+      min: number;
+      max: number;
+    };
+    gender: 'Male' | 'Female' | 'All';
+    subscriptionType: 'Free' | 'Premium' | 'All';
+    genres: number[];
+    countries: string[];
+  };
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  createdAt: string;
+  _count: {
+    impressions: number;
+  };
+}
+
+export interface AdvertisementsResponse {
+  data: Advertisement[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export const adminApi = {
   // Get all users for admin
   getUsers: async (page = 1, limit = 20, search?: string): Promise<AdminUsersResponse> => {
@@ -415,6 +451,13 @@ export const adminApi = {
   getTrendingStats: async (periodType: 'Daily' | 'Weekly' | 'Monthly' = 'Daily'): Promise<TrendingStatsResponse> => {
     return api.get<TrendingStatsResponse>('/statistics/trending', {
       params: { periodType },
+    });
+  },
+
+  // Get advertisements for admin
+  getAdvertisements: async (page = 1, limit = 10): Promise<AdvertisementsResponse> => {
+    return api.get<AdvertisementsResponse>('/advertisements', {
+      params: { page, limit },
     });
   },
 };
