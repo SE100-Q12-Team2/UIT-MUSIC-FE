@@ -74,6 +74,120 @@ export interface UpdateCopyrightReportStatusRequest {
   status: 'Pending' | 'Under Review' | 'Resolved' | 'Rejected';
 }
 
+// Statistics API types
+export interface DashboardStatsResponse {
+  users: {
+    total: number;
+    active: number;
+    premium: number;
+    newToday: number;
+  };
+  content: {
+    totalSongs: number;
+    totalAlbums: number;
+    totalArtists: number;
+    totalPlaylists: number;
+  };
+  engagement: {
+    totalPlays: number;
+    totalPlayTime: number;
+    avgPlaysPerUser: number;
+  };
+  revenue: {
+    todaySubscription: number;
+    todayAds: number;
+    monthSubscription: number;
+    monthAds: number;
+    totalMonth: number;
+  };
+}
+
+export interface DailyStatItem {
+  statDate: string;
+  totalPlays: number;
+  uniqueListeners: number;
+  premiumUsersCount: number;
+  newRegistrations: number;
+  adImpressions: number;
+  revenueSubscription: number;
+  revenueAds: number;
+  createdAt: string;
+}
+
+export interface DailyStatsResponse {
+  data: DailyStatItem[];
+  summary: {
+    totalPlays: number;
+    totalUniqueListeners: number;
+    totalRevenue: number;
+    avgDailyPlays: number;
+  };
+}
+
+export interface TopGenre {
+  genreId: number;
+  genreName: string;
+  playCount: number;
+}
+
+export interface EngagementStatsResponse {
+  totalUsers: number;
+  activeUsers: number;
+  premiumUsers: number;
+  freeUsers: number;
+  avgSessionsPerUser: number;
+  avgPlayTimePerUser: number;
+  topGenres: TopGenre[];
+}
+
+export interface RevenueDataItem {
+  period: string;
+  revenueSubscription: number;
+  revenueAds: number;
+  totalRevenue: number;
+  newSubscriptions: number;
+}
+
+export interface RevenueStatsResponse {
+  data: RevenueDataItem[];
+  summary: {
+    totalRevenueSubscription: number;
+    totalRevenueAds: number;
+    totalRevenue: number;
+    totalNewSubscriptions: number;
+  };
+}
+
+export interface TrendingSongArtist {
+  artistId: number;
+  artistName: string;
+  role: string;
+}
+
+export interface TrendingSong {
+  id: number;
+  songId: number;
+  periodType: string;
+  periodStart: string;
+  periodEnd: string;
+  playCount: number;
+  rankPosition: number;
+  song: {
+    id: number;
+    title: string;
+    duration: number;
+    coverImage: string;
+    artists: TrendingSongArtist[];
+  };
+}
+
+export interface TrendingStatsResponse {
+  periodType: string;
+  periodStart: string;
+  periodEnd: string;
+  songs: TrendingSong[];
+}
+
 // Songs API types
 export interface SongArtist {
   artistId: number;
@@ -273,6 +387,35 @@ export const adminApi = {
   // Create a new genre
   createGenre: async (data: { genreName: string; description?: string | null }): Promise<AdminGenre> => {
     return api.post<AdminGenre>('/genres', data);
+  },
+
+  // Statistics APIs
+  getDashboardStats: async (): Promise<DashboardStatsResponse> => {
+    return api.get<DashboardStatsResponse>('/statistics/dashboard');
+  },
+
+  getDailyStats: async (startDate?: string, endDate?: string): Promise<DailyStatsResponse> => {
+    return api.get<DailyStatsResponse>('/statistics/daily', {
+      params: { startDate, endDate },
+    });
+  },
+
+  getEngagementStats: async (startDate?: string, endDate?: string): Promise<EngagementStatsResponse> => {
+    return api.get<EngagementStatsResponse>('/statistics/engagement', {
+      params: { startDate, endDate },
+    });
+  },
+
+  getRevenueStats: async (startDate?: string, endDate?: string): Promise<RevenueStatsResponse> => {
+    return api.get<RevenueStatsResponse>('/statistics/revenue', {
+      params: { startDate, endDate },
+    });
+  },
+
+  getTrendingStats: async (periodType: 'Daily' | 'Weekly' | 'Monthly' = 'Daily'): Promise<TrendingStatsResponse> => {
+    return api.get<TrendingStatsResponse>('/statistics/trending', {
+      params: { periodType },
+    });
   },
 };
 

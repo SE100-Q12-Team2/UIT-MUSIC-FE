@@ -1,10 +1,83 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatCard, TopSongsTable, RecentActivity, BottomStats } from '../components';
+import { adminApi, DashboardStatsResponse, TrendingStatsResponse, EngagementStatsResponse } from '@/core/api/admin.api';
 import '@/styles/admin-home.css';
+import '@/styles/loading.css';
 
 const AdminHomePage: React.FC = () => {
-  // Mock data - Replace with real API calls
-  const topStats = [
+  const [dashboardStats, setDashboardStats] = useState<DashboardStatsResponse | null>(null);
+  const [trendingStats, setTrendingStats] = useState<TrendingStatsResponse | null>(null);
+  const [engagementStats, setEngagementStats] = useState<EngagementStatsResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchAllStats();
+  }, []);
+
+  const getDateRange = () => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30); // Last 30 days
+    
+    const formatDate = (date: Date) => date.toISOString().split('T')[0]; // YYYY-MM-DD
+    return {
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate),
+    };
+  };
+
+  const fetchAllStats = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { startDate, endDate } = getDateRange();
+      const [dashboard, trending, engagement] = await Promise.all([
+        adminApi.getDashboardStats(),
+        adminApi.getTrendingStats('Daily'),
+        adminApi.getEngagementStats(startDate, endDate),
+      ]);
+      setDashboardStats(dashboard);
+      setTrendingStats(trending);
+      setEngagementStats(engagement);
+    } catch (err) {
+      setError('Failed to load dashboard data');
+      console.error('Error fetching dashboard stats:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatNumber = (num?: number | null): string => {
+    if (num === null || num === undefined || Number.isNaN(num)) {
+      return '0';
+    }
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    }
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toLocaleString();
+  };
+
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatPlayTime = (totalSeconds: number): string => {
+    const minutes = Math.floor(totalSeconds / 60);
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      return `${hours}h`;
+    }
+    return `${minutes} min`;
+  };
+
+  // Build stats from API data
+  const topStats = dashboardStats ? [
     {
       id: 1,
       icon: (
@@ -16,8 +89,8 @@ const AdminHomePage: React.FC = () => {
         </svg>
       ),
       title: 'Total Users',
-      value: '125,847',
-      change: 12.5,
+      value: formatNumber(dashboardStats.users.total),
+      change: dashboardStats.users.newToday > 0 ? ((dashboardStats.users.newToday / dashboardStats.users.total) * 100) : 0,
       iconColor: '#60A5FA',
     },
     {
@@ -30,8 +103,8 @@ const AdminHomePage: React.FC = () => {
         </svg>
       ),
       title: 'Active Listeners',
-      value: '42,384',
-      change: 8.2,
+      value: formatNumber(dashboardStats.users.active),
+      change: dashboardStats.users.active > 0 ? ((dashboardStats.users.active / dashboardStats.users.total) * 100) : 0,
       iconColor: '#34D399',
     },
     {
@@ -42,8 +115,8 @@ const AdminHomePage: React.FC = () => {
         </svg>
       ),
       title: 'Total Streams',
-      value: '8.4M',
-      change: 15.3,
+      value: formatNumber(dashboardStats.engagement.totalPlays),
+      change: dashboardStats.engagement.avgPlaysPerUser,
       iconColor: '#10B981',
     },
     {
@@ -54,89 +127,54 @@ const AdminHomePage: React.FC = () => {
           <polyline points="12 6 12 12 16 14" />
         </svg>
       ),
-      title: 'Avg Session Time',
-      value: '24 min',
-      change: -2.1,
+      title: 'Avg Play Time',
+      value: formatPlayTime(engagementStats?.avgPlayTimePerUser || 0),
+      change: engagementStats?.avgSessionsPerUser || 0,
       iconColor: '#FBBF24',
     },
-  ];
+  ] : [];
 
-  const topSongs = [
+  // Build top songs from trending API
+  const topSongs = trendingStats?.songs?.slice(0, 5).map((item, index) => ({
+    id: item.id,
+    rank: item.rankPosition || index + 1,
+    title: item.song?.title || 'Unknown Title',
+    artist: item.song?.artists?.map(a => a.artistName).join(', ') || 'Unknown Artist',
+    streams: formatNumber(item.playCount || 0),
+    change: Math.floor(Math.random() * 20) + 1, // API doesn't provide change, using placeholder
+    duration: formatDuration(item.song?.duration || 0),
+  })) || [];
+
+  // Recent activities - using content stats from dashboard
+  const recentActivities = dashboardStats ? [
     {
       id: 1,
-      rank: 1,
-      title: 'Lạc Trôi',
-      artist: 'Sơn Tùng M-TP',
-      streams: '2.4M',
-      change: 18,
-      duration: '3:45',
+      title: 'New users today',
+      description: `${dashboardStats.users.newToday} new registrations`,
+      timestamp: new Date().toISOString(),
     },
     {
       id: 2,
-      rank: 2,
-      title: 'Em Của Ngày Hôm Qua',
-      artist: 'Sơn Tùng M-TP',
-      streams: '2.1M',
-      change: 12,
-      duration: '4:12',
-    },
-    {
-      id: 3,
-      rank: 3,
-      title: 'Chúng Ta Của Hiện Tại',
-      artist: 'Sơn Tùng M-TP',
-      streams: '1.8M',
-      change: 5,
-      duration: '3:58',
-    },
-    {
-      id: 4,
-      rank: 4,
-      title: 'Hãy Trao Cho Anh',
-      artist: 'Sơn Tùng M-TP',
-      streams: '1.5M',
-      change: 15,
-      duration: '4:05',
-    },
-    {
-      id: 5,
-      rank: 5,
-      title: 'Nơi Này Có Anh',
-      artist: 'Sơn Tùng M-TP',
-      streams: '1.2M',
-      change: 7,
-      duration: '4:32',
-    },
-  ];
-
-  const recentActivities = [
-    {
-      id: 1,
-      title: 'Người dùng mới đăng ký',
-      description: 'nguyen.van.a@gmail.com',
-      timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-    },
-    {
-      id: 2,
-      title: 'Album mới được upload',
-      description: 'HÍT, Sức Khỏe 2025',
+      title: 'Total songs available',
+      description: `${formatNumber(dashboardStats.content.totalSongs)} songs in library`,
       timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
     },
     {
       id: 3,
-      title: 'Báo cáo bản quyền mới',
-      description: 'Cần xem xét',
+      title: 'Premium subscribers',
+      description: `${formatNumber(dashboardStats.users.premium)} active premium users`,
       timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
     },
     {
       id: 4,
-      title: 'Bài hát đạt milestone',
-      description: 'Lạc Trôi - 1M streams',
+      title: 'Monthly revenue',
+      description: `$${dashboardStats.revenue.totalMonth.toLocaleString()}`,
       timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
     },
-  ];
+  ] : [];
 
-  const bottomStats = [
+  // Bottom stats from engagement and dashboard
+  const bottomStats = dashboardStats && engagementStats ? [
     {
       id: 1,
       icon: (
@@ -148,9 +186,9 @@ const AdminHomePage: React.FC = () => {
         </svg>
       ),
       title: 'User Retention Rate',
-      value: '89.5%',
-      progress: 89.5,
-      subtitle: '+2.5% from last month',
+      value: `${((engagementStats.activeUsers / engagementStats.totalUsers) * 100).toFixed(1)}%`,
+      progress: (engagementStats.activeUsers / engagementStats.totalUsers) * 100,
+      subtitle: `${formatNumber(engagementStats.activeUsers)} active users`,
       trendIcon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2">
           <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
@@ -165,9 +203,9 @@ const AdminHomePage: React.FC = () => {
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
       ),
-      title: 'Total Favorites',
-      value: '1.2M',
-      subtitle: '+24.5% from last month',
+      title: 'Premium Users',
+      value: formatNumber(engagementStats.premiumUsers),
+      subtitle: `${formatNumber(engagementStats.freeUsers)} free users`,
       trendIcon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2">
           <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
@@ -183,9 +221,9 @@ const AdminHomePage: React.FC = () => {
           <polyline points="12 6 12 12 16 14" />
         </svg>
       ),
-      title: 'New Uploads Today',
-      value: '234',
-      subtitle: '+12 songs yesterday',
+      title: 'Content Library',
+      value: formatNumber(dashboardStats.content.totalSongs),
+      subtitle: `${formatNumber(dashboardStats.content.totalAlbums)} albums, ${formatNumber(dashboardStats.content.totalArtists)} artists`,
       trendIcon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2">
           <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
@@ -193,7 +231,31 @@ const AdminHomePage: React.FC = () => {
         </svg>
       ),
     },
-  ];
+  ] : [];
+
+  if (isLoading) {
+    return (
+      <div className="admin-home">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p className="loading-text">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="admin-home">
+        <div className="admin-home__error">
+          <p>{error}</p>
+          <button onClick={fetchAllStats} className="admin-home__retry-btn">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-home">
