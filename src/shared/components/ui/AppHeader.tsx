@@ -8,7 +8,6 @@ import logoWithName from '@/assets/logo-name-under.svg';
 import searchIcon from '@/assets/search.svg';
 import notificationIcon from '@/assets/notification.svg';
 import settingsIcon from '@/assets/settings.svg';
-import profileImg from '@/assets/artist-1.jpg';
 import '@/styles/app-header.css';
 
 import {
@@ -19,14 +18,20 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
+import { useProfile } from '@/core/services/profile.service';
 import { toast } from 'sonner';
 import { ROUTES } from '@/core/constants/routes';
 
 const AppHeader: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const { data: profile, isLoading: isLoadingProfile } = useProfile();
 
   const { logout } = useAuth();
   const navigate = useNavigate();
+  
+  const displayName = profile?.fullName || 'User';
+  const displayEmail = profile?.email || '';
+  const avatarUrl = profile?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=728AAB&color=fff&size=200`;
   
   const handleLogout = async() => {
     await logout();
@@ -64,21 +69,21 @@ const AppHeader: React.FC = () => {
 
       {/* RIGHT */}
       <div className="app-header__right">
-        <button className="app-header__icon-btn">
+        {/* <button className="app-header__icon-btn">
           <img src={notificationIcon} alt="Notifications" />
         </button>
 
         <Link to="/settings" className="app-header__icon-btn">
           <img src={settingsIcon} alt="Settings" />
-        </Link>
+        </Link> */}
 
         {/* PROFILE DROPDOWN */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="app-header__profile-btn">
               <img
-                src={profileImg}
-                alt="Profile"
+                src={avatarUrl}
+                alt={displayName}
                 className="h-9 w-9 rounded-full object-cover ring-2 ring-white/10 hover:ring-white/30 transition"
               />
             </button>
@@ -100,9 +105,9 @@ const AppHeader: React.FC = () => {
           >
             {/* USER INFO */}
             <div className="px-3 py-2">
-              <p className="text-sm font-medium leading-none">Johan Tuấn Lộc</p>
+              <p className="text-sm font-medium leading-none">{displayName}</p>
               <p className="text-xs text-white/60 truncate">
-                listener@viotune.app
+                {displayEmail}
               </p>
             </div>
 

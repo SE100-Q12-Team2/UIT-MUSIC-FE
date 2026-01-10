@@ -57,7 +57,7 @@ const LabelAlbumManagementPage: React.FC = () => {
   const { data: albumsResponse, isLoading: isLoadingAlbums } = useLabelAlbums(
     label?.id as any,
     1,
-    200
+    50
   );
 
   const useMock = !user?.id || !label?.id;
