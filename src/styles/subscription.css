@@ -353,6 +353,15 @@
   margin-bottom: 1.5rem;
 }
 
+.form-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primary-30);
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(72, 115, 174, 0.3);
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

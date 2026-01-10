@@ -344,6 +344,46 @@ export interface AdvertisementsResponse {
   };
 }
 
+export interface CreateAdvertisementRequest {
+  adName: string;
+  adType: 'Audio' | 'Video' | 'Banner';
+  filePath?: string;
+  duration?: number;
+  targetAudience?: {
+    ageRange?: {
+      min?: number;
+      max?: number;
+    };
+    gender?: 'Male' | 'Female' | 'Other' | 'All';
+    subscriptionType?: 'Free' | 'Premium' | 'All';
+    genres?: number[];
+    countries?: string[];
+  };
+  startDate: string;
+  endDate: string;
+  isActive?: boolean;
+}
+
+export interface UpdateAdvertisementRequest {
+  adName?: string;
+  adType?: 'Audio' | 'Video' | 'Banner';
+  filePath?: string;
+  duration?: number;
+  targetAudience?: {
+    ageRange?: {
+      min?: number;
+      max?: number;
+    };
+    gender?: 'Male' | 'Female' | 'Other' | 'All';
+    subscriptionType?: 'Free' | 'Premium' | 'All';
+    genres?: number[];
+    countries?: string[];
+  };
+  startDate?: string;
+  endDate?: string;
+  isActive?: boolean;
+}
+
 // Subscription Stats API types
 export interface PlanDistribution {
   planId: number;
@@ -498,6 +538,21 @@ export const adminApi = {
     });
   },
 
+  // Create advertisement
+  createAdvertisement: async (data: CreateAdvertisementRequest): Promise<Advertisement> => {
+    return api.post<Advertisement>('/advertisements', data);
+  },
+
+  // Update advertisement
+  updateAdvertisement: async (id: number, data: UpdateAdvertisementRequest): Promise<Advertisement> => {
+    return api.put<Advertisement>(`/advertisements/${id}`, data);
+  },
+
+  // Delete advertisement
+  deleteAdvertisement: async (id: number): Promise<void> => {
+    return api.delete(`/advertisements/${id}`);
+  },
+
   // Get subscription plans stats
   getSubscriptionStats: async (): Promise<SubscriptionStatsResponse> => {
     return api.get<SubscriptionStatsResponse>('/subscription-plans/stats');
@@ -506,6 +561,11 @@ export const adminApi = {
   // Update subscription plan
   updateSubscriptionPlan: async (id: number, data: UpdateSubscriptionPlanRequest): Promise<SubscriptionPlanResponse> => {
     return api.patch<SubscriptionPlanResponse>(`/subscription-plans/${id}`, data);
+  },
+
+  // Create subscription plan
+  createSubscriptionPlan: async (data: UpdateSubscriptionPlanRequest): Promise<SubscriptionPlanResponse> => {
+    return api.post<SubscriptionPlanResponse>('/subscription-plans', data);
   },
 
   // Delete subscription plan
