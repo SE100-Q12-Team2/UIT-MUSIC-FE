@@ -344,6 +344,43 @@ export interface AdvertisementsResponse {
   };
 }
 
+// Subscription Stats API types
+export interface PlanDistribution {
+  planId: number;
+  planName: string;
+  subscriberCount: number;
+  percentage: number;
+}
+
+export interface SubscriptionStatsResponse {
+  totalPlans: number;
+  activePlans: number;
+  inactivePlans: number;
+  totalSubscribers: number;
+  averagePrice: number;
+  planDistribution: PlanDistribution[];
+}
+
+export interface UpdateSubscriptionPlanRequest {
+  planName?: string;
+  durationMonths?: number;
+  price?: number;
+  features?: {
+    [key: string]: string;
+  };
+  isActive?: boolean;
+}
+
+export interface SubscriptionPlanResponse {
+  id: number;
+  planName: string;
+  durationMonths: number;
+  price: number;
+  features: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export const adminApi = {
   // Get all users for admin
   getUsers: async (page = 1, limit = 20, search?: string): Promise<AdminUsersResponse> => {
@@ -459,6 +496,21 @@ export const adminApi = {
     return api.get<AdvertisementsResponse>('/advertisements', {
       params: { page, limit },
     });
+  },
+
+  // Get subscription plans stats
+  getSubscriptionStats: async (): Promise<SubscriptionStatsResponse> => {
+    return api.get<SubscriptionStatsResponse>('/subscription-plans/stats');
+  },
+
+  // Update subscription plan
+  updateSubscriptionPlan: async (id: number, data: UpdateSubscriptionPlanRequest): Promise<SubscriptionPlanResponse> => {
+    return api.patch<SubscriptionPlanResponse>(`/subscription-plans/${id}`, data);
+  },
+
+  // Delete subscription plan
+  deleteSubscriptionPlan: async (id: number): Promise<void> => {
+    return api.delete(`/subscription-plans/${id}`);
   },
 };
 

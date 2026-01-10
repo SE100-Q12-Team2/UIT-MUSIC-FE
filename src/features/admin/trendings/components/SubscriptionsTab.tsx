@@ -1,43 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { adminApi, EngagementStatsResponse, RevenueStatsResponse } from '@/core/api/admin.api';
+import { adminApi, SubscriptionStatsResponse, UpdateSubscriptionPlanRequest, SubscriptionPlanResponse } from '@/core/api/admin.api';
 import { useSubscriptionPlans } from '@/core/services/subscription.service';
 import '@/styles/loading.css';
+import '@/styles/subscription.css';
 
 const SubscriptionsTab: React.FC = () => {
-  const [engagementStats, setEngagementStats] = useState<EngagementStatsResponse | null>(null);
-  const [revenueStats, setRevenueStats] = useState<RevenueStatsResponse | null>(null);
+  const [subscriptionStats, setSubscriptionStats] = useState<SubscriptionStatsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingPlan, setEditingPlan] = useState<{ id: number; name: string; price: number; duration: number; features: string; isActive: boolean } | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
-  const { data: subscriptionPlansFromAPI, isLoading: plansLoading } = useSubscriptionPlans({ isActive: 'true' });
+  const { data: subscriptionPlansFromAPI, isLoading: plansLoading, refetch: refetchPlans } = useSubscriptionPlans({ isActive: 'true' });
 
   useEffect(() => {
     fetchSubscriptionData();
   }, []);
 
-  const getDateRange = () => {
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 30);
-    
-    const formatDate = (date: Date) => date.toISOString().split('T')[0];
-    return {
-      startDate: formatDate(startDate),
-      endDate: formatDate(endDate),
-    };
-  };
-
   const fetchSubscriptionData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const { startDate, endDate } = getDateRange();
-      const [engagement, revenue] = await Promise.all([
-        adminApi.getEngagementStats(startDate, endDate),
-        adminApi.getRevenueStats(startDate, endDate),
-      ]);
-      setEngagementStats(engagement);
-      setRevenueStats(revenue);
+      const stats = await adminApi.getSubscriptionStats();
+      setSubscriptionStats(stats);
     } catch (err) {
       setError('Failed to load subscription data');
       console.error('Error fetching subscriptions:', err);
@@ -64,12 +51,102 @@ const SubscriptionsTab: React.FC = () => {
     return `$${formatNumber(amount)}`;
   };
 
-  const calculateConversionRate = (): string => {
-    if (!engagementStats) return '0%';
-    const rate = engagementStats.totalUsers > 0 
-      ? (engagementStats.premiumUsers / engagementStats.totalUsers) * 100 
-      : 0;
-    return `${rate.toFixed(1)}%`;
+  const handleEditClick = (plan: any) => {
+    setEditingPlan({
+      id: plan.id,
+      name: plan.name,
+      price: parseFloat(plan.price.replace('$', '')),
+      duration: plan.period === '/mo' ? 1 : plan.period === '/yr' ? 12 : 0,
+      features: JSON.stringify(plan.features),
+      isActive: true,
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingPlan) return;
+    
+    setIsSaving(true);
+    try {
+      let featuresObj: { [key: string]: string } = {};
+      
+      // Parse features from JSON string or array
+      try {
+        const parsed = JSON.parse(editingPlan.features);
+        if (Array.isArray(parsed)) {
+          // Convert array to object
+          parsed.forEach((feature, index) => {
+            featuresObj[`feature${index + 1}`] = feature;
+          });
+        } else if (typeof parsed === 'object') {
+          featuresObj = parsed;
+        }
+      } catch {
+        // If parsing fails, treat as comma-separated string
+        const featuresArray = editingPlan.features.split(',').map(f => f.trim());
+        featuresArray.forEach((feature, index) => {
+          featuresObj[`feature${index + 1}`] = feature;
+        });
+      }
+
+      const updateData: UpdateSubscriptionPlanRequest = {
+        planName: editingPlan.name,
+        durationMonths: editingPlan.duration,
+        price: editingPlan.price,
+        features: featuresObj,
+        isActive: editingPlan.isActive,
+      };
+
+      await adminApi.updateSubscriptionPlan(editingPlan.id, updateData);
+      
+      // Refresh data
+      await Promise.all([
+        fetchSubscriptionData(),
+        refetchPlans(),
+      ]);
+      
+      setIsEditModalOpen(false);
+      setEditingPlan(null);
+      showNotification('success', 'Subscription plan updated successfully!');
+    } catch (err) {
+      console.error('Error updating subscription plan:', err);
+      showNotification('error', 'Failed to update subscription plan. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditModalOpen(false);
+    setEditingPlan(null);
+  };
+
+  const handleDeleteClick = async (planId: number, planName: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${planName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await adminApi.deleteSubscriptionPlan(planId);
+      
+      // Refresh data
+      await Promise.all([
+        fetchSubscriptionData(),
+        refetchPlans(),
+      ]);
+      
+      showNotification('success', `Subscription plan "${planName}" deleted successfully!`);
+    } catch (err) {
+      console.error('Error deleting subscription plan:', err);
+      showNotification('error', 'Failed to delete subscription plan. Please try again.');
+    }
+  };
+
+  const showNotification = (type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => {
+      setNotification(null);
+    }, 5000);
   };
 
   if (isLoading || plansLoading) {
@@ -96,21 +173,19 @@ const SubscriptionsTab: React.FC = () => {
     );
   }
 
-  const stats = engagementStats && revenueStats ? [
+  const stats = subscriptionStats ? [
     {
       id: 1,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M9 18V5l12-2v13" />
-          <circle cx="6" cy="18" r="3" />
-          <circle cx="18" cy="16" r="3" />
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
         </svg>
       ),
-      title: 'Free Users',
-      value: formatNumber(engagementStats.freeUsers),
-      change: engagementStats.totalUsers > 0 ? 
-        ((engagementStats.freeUsers / engagementStats.totalUsers) * 100) : 0,
-      iconColor: '#10B981',
+      title: 'Total Plans',
+      value: subscriptionStats.totalPlans.toString(),
+      change: 0,
+      iconColor: '#8B5CF6',
     },
     {
       id: 2,
@@ -121,40 +196,43 @@ const SubscriptionsTab: React.FC = () => {
           <circle cx="18" cy="16" r="3" />
         </svg>
       ),
-      title: 'Premium Users',
-      value: formatNumber(engagementStats.premiumUsers),
-      change: engagementStats.totalUsers > 0 ? 
-        ((engagementStats.premiumUsers / engagementStats.totalUsers) * 100) : 0,
-      iconColor: '#3B82F6',
+      title: 'Active Plans',
+      value: subscriptionStats.activePlans.toString(),
+      change: subscriptionStats.totalPlans > 0 ? 
+        ((subscriptionStats.activePlans / subscriptionStats.totalPlans) * 100) : 0,
+      iconColor: '#10B981',
     },
     {
       id: 3,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ),
+      title: 'Total Subscribers',
+      value: formatNumber(subscriptionStats.totalSubscribers),
+      change: 15.2,
+      iconColor: '#3B82F6',
+    },
+    {
+      id: 4,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="12" y1="1" x2="12" y2="23" />
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
       ),
-      title: 'Monthly Revenue',
-      value: formatCurrency(revenueStats.summary.totalRevenueSubscription),
-      change: 12.5,
-      iconColor: '#10B981',
-    },
-    {
-      id: 4,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        </svg>
-      ),
-      title: 'Conversion Rate',
-      value: calculateConversionRate(),
+      title: 'Average Price',
+      value: formatCurrency(subscriptionStats.averagePrice),
       change: 5.8,
-      iconColor: '#8B5CF6',
+      iconColor: '#10B981',
     },
   ] : [];
 
-  const subscriptionPlans = subscriptionPlansFromAPI && engagementStats ? subscriptionPlansFromAPI.map((plan, index) => {
+  const subscriptionPlans = subscriptionPlansFromAPI && subscriptionStats ? subscriptionPlansFromAPI.map((plan) => {
     const isFree = plan.price === 0;
     const isPremium = !isFree;
     
@@ -170,20 +248,17 @@ const SubscriptionsTab: React.FC = () => {
       features = plan.features;
     }
     
-    // Calculate active users based on plan type
-    let activeUsers = '';
-    if (isFree) {
-      activeUsers = `${formatNumber(engagementStats.freeUsers)} active users`;
-    } else {
-      activeUsers = `${formatNumber(Math.floor(engagementStats.premiumUsers * 1))} active users`;
-    }
+    // Get subscriber count from stats
+    const planDist = subscriptionStats.planDistribution.find(p => p.planId === plan.id);
+    const subscriberCount = planDist?.subscriberCount || 0;
     
     // Determine bg class
     let bgClass = 'subscription-card--premium';
     if (isFree) bgClass = 'subscription-card--free';
     
-    // Add badge for most popular (usually monthly premium)
-    const badge = isPremium ? 'Most Popular' : undefined;
+    // Add badge for most popular (highest subscriber count)
+    const maxSubscribers = Math.max(...subscriptionStats.planDistribution.map(p => p.subscriberCount));
+    const badge = subscriberCount === maxSubscribers && subscriberCount > 0 ? 'Most Popular' : undefined;
     
     // Format price and period
     const priceFormatted = isFree ? '$0' : `$${plan.price.toFixed(2)}`;
@@ -200,8 +275,9 @@ const SubscriptionsTab: React.FC = () => {
         isFree ? 'Standard quality' : 'HD quality',
         isFree ? 'Limited skips' : 'Offline mode',
       ],
-      activeUsers,
+      activeUsers: `${formatNumber(subscriberCount)} subscribers`,
       bgClass,
+      rawPlan: plan,
     };
   }).sort((a, b) => {
     // Sort: Free first, then Premium, then Annual
@@ -272,14 +348,20 @@ const SubscriptionsTab: React.FC = () => {
             </ul>
             <div className="subscription-card__users">{plan.activeUsers}</div>
             <div className="subscription-card__actions">
-              <button className="subscription-card__edit-btn">
+              <button 
+                className="subscription-card__edit-btn"
+                onClick={() => handleEditClick(plan)}
+              >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
                 Edit
               </button>
-              <button className="subscription-card__delete-btn">
+              <button 
+                className="subscription-card__delete-btn"
+                onClick={() => handleDeleteClick(plan.id, plan.name)}
+              >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -289,6 +371,141 @@ const SubscriptionsTab: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Edit Subscription Modal */}
+      {isEditModalOpen && editingPlan && (
+        <div className="modal-overlay" onClick={handleCancelEdit}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Edit Subscription Plan</h2>
+              <button className="modal-close-btn" onClick={handleCancelEdit}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">Plan Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={editingPlan.name}
+                  onChange={(e) => setEditingPlan({ ...editingPlan, name: e.target.value })}
+                  placeholder="Enter plan name"
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Duration (months)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={editingPlan.duration}
+                    onChange={(e) => setEditingPlan({ ...editingPlan, duration: parseInt(e.target.value) || 0 })}
+                    placeholder="Enter duration"
+                    min="0"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Price ($)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={editingPlan.price}
+                    onChange={(e) => setEditingPlan({ ...editingPlan, price: parseFloat(e.target.value) || 0 })}
+                    placeholder="Enter price"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Features (comma-separated or JSON array)</label>
+                <textarea
+                  className="form-textarea"
+                  value={editingPlan.features}
+                  onChange={(e) => setEditingPlan({ ...editingPlan, features: e.target.value })}
+                  placeholder='["Ad-free", "HD quality", "Offline mode"] or Ad-free, HD quality, Offline mode'
+                  rows={4}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={editingPlan.isActive}
+                    onChange={(e) => setEditingPlan({ ...editingPlan, isActive: e.target.checked })}
+                  />
+                  <span className="form-checkbox-label">Active</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="modal-btn modal-btn--cancel" 
+                onClick={handleCancelEdit}
+                disabled={isSaving}
+              >
+                Cancel
+              </button>
+              <button 
+                className="modal-btn modal-btn--save" 
+                onClick={handleSaveEdit}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <>
+                    <div className="spinner" style={{ width: '14px', height: '14px', marginRight: '8px' }}></div>
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Toast */}
+      {notification && (
+        <div className={`notification-toast notification-toast--${notification.type}`}>
+          <div className="notification-toast__icon">
+            {notification.type === 'success' ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
+            )}
+          </div>
+          <div className="notification-toast__content">
+            <p className="notification-toast__message">{notification.message}</p>
+          </div>
+          <button 
+            className="notification-toast__close"
+            onClick={() => setNotification(null)}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
