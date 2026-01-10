@@ -28,8 +28,8 @@ export const adminService = {
       }
       
       return {
-        items: filteredUsers,
-        total: filteredUsers.length,
+        data: filteredUsers,
+        totalItems: filteredUsers.length,
         page,
         limit,
         totalPages: Math.ceil(filteredUsers.length / limit),
@@ -120,13 +120,13 @@ export const useUpdateUserStatus = () => {
     },
     onError: (error: any, variables) => {
       // Fallback to mock data if API fails
-      const users = queryClient.getQueryData<AdminUsersResponse>(['admin-users'])?.items || MOCK_ADMIN_USERS;
-      const updatedUsers = users.map(user => 
+      const users = queryClient.getQueryData<AdminUsersResponse>(['admin-users'])?.data || MOCK_ADMIN_USERS;
+      const updatedUsers = users.map((user: AdminUser) => 
         user.id === variables.id ? { ...user, accountStatus: variables.data.accountStatus } : user
       );
       queryClient.setQueryData(['admin-users'], (old: any) => ({
         ...old,
-        items: updatedUsers,
+        data: updatedUsers,
       }));
       toast.success(`User status updated to ${variables.data.accountStatus} (using mock data)`);
     },
@@ -147,12 +147,12 @@ export const useDeleteUser = () => {
     },
     onError: (error: any, id) => {
       // Fallback to mock data if API fails
-      const users = queryClient.getQueryData<AdminUsersResponse>(['admin-users'])?.items || MOCK_ADMIN_USERS;
+      const users = queryClient.getQueryData<AdminUsersResponse>(['admin-users'])?.data || MOCK_ADMIN_USERS;
       const updatedUsers = users.filter(user => user.id !== id);
       queryClient.setQueryData(['admin-users'], (old: any) => ({
         ...old,
-        items: updatedUsers,
-        total: updatedUsers.length,
+        data: updatedUsers,
+        totalItems: updatedUsers.length,
       }));
       toast.success('User deleted successfully (using mock data)');
     },

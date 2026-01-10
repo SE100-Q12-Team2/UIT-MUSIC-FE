@@ -14,6 +14,7 @@ import {
 import { AdminUser } from '@/core/api/admin.api';
 import '@/styles/admin-users-management.css';
 
+/// TODO: Pagination for users list
 type SortOption = 'Latest' | 'Oldest' | 'A-Z' | 'Z-A';
 type StatusFilter = 'All' | 'Active' | 'Suspended' | 'Inactive';
 type PlanFilter = 'All' | 'Premium' | 'Free';
@@ -46,7 +47,7 @@ const AdminUsersPage: React.FC = () => {
 
   // Filter and sort users
   const filteredAndSortedUsers = useMemo(() => {
-    const items = usersResponse?.items || [];
+    const items = usersResponse?.data || [];
     let filtered = items;
 
     // Search filter
@@ -98,7 +99,7 @@ const AdminUsersPage: React.FC = () => {
     }
 
     return filtered;
-  }, [usersResponse?.items, searchQuery, statusFilter, planFilter, sortBy]);
+  }, [usersResponse?.data, searchQuery, statusFilter, planFilter, sortBy]);
 
   // Sort options
   const sortOptions: SortOption[] = ['Latest', 'Oldest', 'A-Z', 'Z-A'];

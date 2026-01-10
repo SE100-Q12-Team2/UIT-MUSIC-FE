@@ -9,9 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AdminLabel } from '@/core/api/admin.api';
 import '@/styles/admin-labels-management.css';
-
+/// TODO: Pagination for labels list
 const AdminLabelsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -100,7 +99,7 @@ const AdminLabelsPage: React.FC = () => {
                         <DropdownMenuItem 
                           onClick={() => {
                             updateLabelStatusMutation.mutate({
-                              id: label.id,
+                              id: label.userId,
                               data: { status: 'Suspended' }
                             });
                           }}
@@ -114,7 +113,7 @@ const AdminLabelsPage: React.FC = () => {
                         <DropdownMenuItem 
                           onClick={() => {
                             updateLabelStatusMutation.mutate({
-                              id: label.id,
+                              id: label.userId,
                               data: { status: 'Active' }
                             });
                           }}
@@ -127,7 +126,7 @@ const AdminLabelsPage: React.FC = () => {
                       <DropdownMenuItem 
                         onClick={() => {
                           if (window.confirm(`Are you sure you want to delete label "${label.labelName}"?`)) {
-                            deleteLabelMutation.mutate(label.id);
+                            deleteLabelMutation.mutate(label.userId);
                           }
                         }}
                         variant="destructive"
@@ -141,17 +140,19 @@ const AdminLabelsPage: React.FC = () => {
                 </div>
                 <div className="admin-labels-management__card-body">
                   <h3 className="admin-labels-management__card-name">{label.labelName}</h3>
-                  <span className={`admin-labels-management__status-badge admin-labels-management__status-badge--${label.status.toLowerCase()}`}>
-                    {label.status}
-                  </span>
+                  {label.status && (
+                    <span className={`admin-labels-management__status-badge admin-labels-management__status-badge--${label.status.toLowerCase()}`}>
+                      {label.status}
+                    </span>
+                  )}
                 </div>
                 <div className="admin-labels-management__card-footer">
                   <div className="admin-labels-management__stat">
-                    <span className="admin-labels-management__stat-value">{label.albumCount}</span>
+                    <span className="admin-labels-management__stat-value">{label._count.albums}</span>
                     <span className="admin-labels-management__stat-label">Albums</span>
                   </div>
                   <div className="admin-labels-management__stat">
-                    <span className="admin-labels-management__stat-value">{label.songCount}</span>
+                    <span className="admin-labels-management__stat-value">{label._count.songs}</span>
                     <span className="admin-labels-management__stat-label">Songs</span>
                   </div>
                 </div>

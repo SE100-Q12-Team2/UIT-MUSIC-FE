@@ -4,9 +4,16 @@ export interface AdminUser {
   id: number;
   email: string;
   fullName: string;
+  dateOfBirth?: string;
+  gender?: 'Male' | 'Female' | 'Other';
   accountStatus: 'Active' | 'Inactive' | 'Banned' | 'Suspended';
-  profileImage: string | null;
-  role: {
+  roleId: number;
+  createdById?: number;
+  updatedById?: number;
+  createdAt: string;
+  updatedAt?: string;
+  profileImage?: string | null;
+  role?: {
     id: number;
     name: string;
   };
@@ -17,12 +24,11 @@ export interface AdminUser {
       name: string;
     };
   }[];
-  createdAt: string;
 }
 
 export interface AdminUsersResponse {
-  items: AdminUser[];
-  total: number;
+  data: AdminUser[];
+  totalItems: number;
   page: number;
   limit: number;
   totalPages: number;
@@ -30,11 +36,23 @@ export interface AdminUsersResponse {
 
 export interface AdminLabel {
   id: number;
+  userId: number;
   labelName: string;
-  status: 'Active' | 'Inactive' | 'Suspended';
-  albumCount: number;
-  songCount: number;
+  description?: string;
+  website?: string;
+  contactEmail?: string;
+  hasPublicProfile: boolean;
   createdAt: string;
+  user: {
+    id: number;
+    email: string;
+    fullName: string;
+  };
+  _count: {
+    albums: number;
+    songs: number;
+  };
+  status: 'Active' | 'Inactive' | 'Suspended' | 'Banned';
 }
 
 export interface AdminLabelsResponse {
@@ -67,7 +85,7 @@ export interface UpdateUserStatusRequest {
 }
 
 export interface UpdateLabelStatusRequest {
-  status: 'Active' | 'Inactive' | 'Suspended';
+  status: 'Active' | 'Inactive' | 'Suspended' | 'Banned';
 }
 
 export interface UpdateCopyrightReportStatusRequest {
@@ -422,10 +440,16 @@ export interface SubscriptionPlanResponse {
 }
 
 export const adminApi = {
-  // Get all users for admin
-  getUsers: async (page = 1, limit = 20, search?: string): Promise<AdminUsersResponse> => {
-    return api.get<AdminUsersResponse>('/admin/users', {
-      params: { page, limit, search },
+  // Get all users
+  getUsers: async (
+    page = 1,
+    limit = 20,
+    search?: string,
+    role?: 'Admin' | 'Listener' | 'Label',
+    status?: 'Active' | 'Inactive' | 'Banned' | 'Suspended'
+  ): Promise<AdminUsersResponse> => {
+    return api.get<AdminUsersResponse>('/users', {
+      params: { page, limit, search, role, status },
     });
   },
 
@@ -444,26 +468,64 @@ export const adminApi = {
     return api.delete(`/admin/users/${id}`);
   },
 
-  // Get all labels for admin
-  getLabels: async (page = 1, limit = 20, search?: string): Promise<AdminLabelsResponse> => {
-    return api.get<AdminLabelsResponse>('/admin/labels', {
-      params: { page, limit, search },
+  // Get label by user ID
+  getLabelByUserId: async (userId: number): Promise<AdminLabel> => {
+    return api.get<AdminLabel>(`/record-labels/user/${userId}`);
+  },
+
+  // Get all labels for admin (fetch all users with Label role)
+  getLabels: async (page = 1, limit = 100, search?: string): Promise<AdminLabelsResponse> => {
+    const usersResponse = await api.get<AdminUsersResponse>('/users', {
+      params: { page, limit, search, role: 'Label' },
     });
+    
+    // Fetch label details for each user
+    const labelsWithDetails = await Promise.all(
+      usersResponse.data.map(async (user) => {
+        try {
+          const label = await adminApi.getLabelByUserId(user.id);
+          // Add status from user account status
+          return {
+            ...label,
+            status: user.accountStatus,
+          };
+        } catch (error) {
+          // If label not found, return null
+          return null;
+        }
+      })
+    );
+    
+    // Filter out null values
+    const validLabels = labelsWithDetails.filter((label): label is AdminLabel => label !== null);
+    
+    return {
+      items: validLabels,
+      total: usersResponse.totalItems,
+      page: usersResponse.page,
+      limit: usersResponse.limit,
+      totalPages: usersResponse.totalPages,
+    };
   },
 
-  // Get label by ID
-  getLabelById: async (id: number): Promise<AdminLabel> => {
-    return api.get<AdminLabel>(`/admin/labels/${id}`);
+  // Get label by ID (using userId)
+  getLabelById: async (userId: number): Promise<AdminLabel> => {
+    return adminApi.getLabelByUserId(userId);
   },
 
-  // Update label status
-  updateLabelStatus: async (id: number, data: UpdateLabelStatusRequest): Promise<AdminLabel> => {
-    return api.patch<AdminLabel>(`/admin/labels/${id}/status`, data);
+  // Update label status (updates the user's account status)
+  updateLabelStatus: async (userId: number, data: UpdateLabelStatusRequest): Promise<AdminLabel> => {
+    // Update user account status
+    await api.patch(`/admin/users/${userId}/status`, {
+      accountStatus: data.status,
+    });
+    // Return the updated label
+    return adminApi.getLabelByUserId(userId);
   },
 
-  // Delete label
-  deleteLabel: async (id: number): Promise<void> => {
-    return api.delete(`/admin/labels/${id}`);
+  // Delete label (deletes the user account)
+  deleteLabel: async (userId: number): Promise<void> => {
+    return api.delete(`/admin/users/${userId}`);
   },
 
   // Get copyright reports for admin
