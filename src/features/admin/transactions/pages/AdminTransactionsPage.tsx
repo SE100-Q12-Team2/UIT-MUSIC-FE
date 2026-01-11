@@ -5,30 +5,9 @@ import {
   useRefundTransaction,
   Transaction,
 } from '@/core/services/transaction.service';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Search, RefreshCw, DollarSign, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import '@/styles/admin-home.css';
 import '@/styles/loading.css';
 
 export const AdminTransactionsPage: React.FC = () => {
@@ -42,6 +21,8 @@ export const AdminTransactionsPage: React.FC = () => {
     limit: 20,
     status: statusFilter === 'all' ? undefined : (statusFilter as Transaction['status']),
   });
+
+  console.log('Transactions Data:', transactionsData);
 
   const { data: stats } = useTransactionStats();
   const refundTransaction = useRefundTransaction();
@@ -64,173 +45,199 @@ export const AdminTransactionsPage: React.FC = () => {
   });
 
   const getStatusBadge = (status: Transaction['status']) => {
-    const variants = {
-      Pending: { variant: 'secondary' as const, icon: Clock, color: 'text-yellow-500' },
-      Completed: { variant: 'default' as const, icon: CheckCircle, color: 'text-green-500' },
-      Failed: { variant: 'destructive' as const, icon: XCircle, color: 'text-red-500' },
-      Refunded: { variant: 'outline' as const, icon: RefreshCw, color: 'text-blue-500' },
+    const statusConfig = {
+      Pending: { label: 'Đang xử lý', color: '#FBBF24' },
+      Completed: { label: 'Thành công', color: '#34D399' },
+      Failed: { label: 'Thất bại', color: '#EF4444' },
+      Refunded: { label: 'Đã hoàn', color: '#60A5FA' },
     };
-    const config = variants[status];
-    const Icon = config.icon;
+    
+    const config = statusConfig[status];
+    
+    if (!config) {
+      return (
+        <span className="admin-table__status" style={{ backgroundColor: 'rgba(156, 163, 175, 0.2)', color: '#9CA3AF' }}>
+          {status || 'Unknown'}
+        </span>
+      );
+    }
+    
     return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        <Icon className={`h-3 w-3 ${config.color}`} />
-        {status}
-      </Badge>
+      <span className="admin-table__status" style={{ backgroundColor: `${config.color}20`, color: config.color }}>
+        {config.label}
+      </span>
     );
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount?: number | null) => {
+    if (amount === null || amount === undefined || isNaN(amount)) {
+      return '0 đ';
+    }
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND',
     }).format(amount);
   };
 
+  const formatNumber = (num?: number | null) => {
+    if (num === null || num === undefined || isNaN(num)) {
+      return '0';
+    }
+    return num.toLocaleString('vi-VN');
+  };
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="admin-home">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="admin-home__header">
         <div>
-          <h1 className="text-3xl font-bold">Quản lý Giao dịch</h1>
-          <p className="text-muted-foreground">Theo dõi và quản lý tất cả giao dịch thanh toán</p>
+          <h1 className="admin-home__title">Quản lý Giao dịch</h1>
+          <p className="admin-home__subtitle">Theo dõi và quản lý tất cả giao dịch thanh toán</p>
         </div>
-        <Button variant="outline" onClick={() => refetch()}>
-          <RefreshCw className="h-4 w-4 mr-2" />
+        <button className="admin-home__refresh-btn" onClick={() => refetch()}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg>
           Làm mới
-        </Button>
+        </button>
       </div>
 
       {/* Statistics Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <DollarSign className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Tổng doanh thu</p>
-                <p className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-green-500/10 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-500" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Thành công</p>
-                <p className="text-2xl font-bold">{stats.successfulTransactions}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-yellow-500/10 rounded-lg">
-                <Clock className="h-6 w-6 text-yellow-500" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Đang xử lý</p>
-                <p className="text-2xl font-bold">{stats.pendingTransactions}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-red-500/10 rounded-lg">
-                <XCircle className="h-6 w-6 text-red-500" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Thất bại</p>
-                <p className="text-2xl font-bold">{stats.failedTransactions}</p>
-              </div>
-            </div>
-          </Card>
+      <div className="admin-home__top-stats">
+        <div className="stat-card">
+          <div className="stat-card__icon" style={{ color: '#10B981' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+          </div>
+          <div className="stat-card__content">
+            <div className="stat-card__value">{formatCurrency(stats?.totalRevenue)}</div>
+            <div className="stat-card__title">Tổng doanh thu</div>
+          </div>
         </div>
-      )}
+
+        <div className="stat-card">
+          <div className="stat-card__icon" style={{ color: '#34D399' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <div className="stat-card__content">
+            <div className="stat-card__value">{formatNumber(stats?.successfulTransactions)}</div>
+            <div className="stat-card__title">Thành công</div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card__icon" style={{ color: '#FBBF24' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div className="stat-card__content">
+            <div className="stat-card__value">{formatNumber(stats?.pendingTransactions)}</div>
+            <div className="stat-card__title">Đang xử lý</div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card__icon" style={{ color: '#EF4444' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+          </div>
+          <div className="stat-card__content">
+            <div className="stat-card__value">{formatNumber(stats?.failedTransactions)}</div>
+            <div className="stat-card__title">Thất bại</div>
+          </div>
+        </div>
+      </div>
 
       {/* Filters */}
-      <Card className="p-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Tìm kiếm theo ID, User ID hoặc mô tả..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Lọc theo trạng thái" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả</SelectItem>
-              <SelectItem value="Pending">Đang xử lý</SelectItem>
-              <SelectItem value="Completed">Thành công</SelectItem>
-              <SelectItem value="Failed">Thất bại</SelectItem>
-              <SelectItem value="Refunded">Đã hoàn tiền</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="admin-home__filters">
+        <div className="admin-home__search">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo ID, User ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="admin-home__search-input"
+          />
         </div>
-      </Card>
+        <select 
+          value={statusFilter} 
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="admin-home__filter-select"
+        >
+          <option value="all">Tất cả trạng thái</option>
+          <option value="Pending">Đang xử lý</option>
+          <option value="Completed">Thành công</option>
+          <option value="Failed">Thất bại</option>
+          <option value="Refunded">Đã hoàn tiền</option>
+        </select>
+      </div>
 
       {/* Transactions Table */}
-      <Card>
+      <div className="admin-table-container">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="loading-spinner"></div>
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p className="loading-text">Đang tải dữ liệu...</p>
           </div>
         ) : filteredTransactions && filteredTransactions.length > 0 ? (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b">
-                  <tr className="text-left">
-                    <th className="p-4 font-semibold">ID</th>
-                    <th className="p-4 font-semibold">User ID</th>
-                    <th className="p-4 font-semibold">Số tiền</th>
-                    <th className="p-4 font-semibold">Phương thức</th>
-                    <th className="p-4 font-semibold">Trạng thái</th>
-                    <th className="p-4 font-semibold">Thời gian</th>
-                    <th className="p-4 font-semibold">Hành động</th>
+            <div className="admin-table-wrapper">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>User ID</th>
+                    <th>Số tiền</th>
+                    <th>Phương thức</th>
+                    <th>Trạng thái</th>
+                    <th>Thời gian</th>
+                    <th>Hành động</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTransactions.map((transaction) => (
-                    <tr key={transaction.id} className="border-b hover:bg-accent/50 transition-colors">
-                      <td className="p-4 font-mono text-sm">#{transaction.id}</td>
-                      <td className="p-4">
-                        <span className="font-mono text-sm">#{transaction.userId}</span>
-                      </td>
-                      <td className="p-4 font-semibold">{formatCurrency(transaction.amount)}</td>
-                      <td className="p-4 max-w-[200px] truncate">
+                    <tr key={transaction.id}>
+                      <td><span className="admin-table__id">#{transaction.id}</span></td>
+                      <td><span className="admin-table__id">#{transaction.userId}</span></td>
+                      <td className="admin-table__amount">{formatCurrency(transaction.amount)}</td>
+                      <td className="admin-table__method">
                         {transaction.paymentMethod?.methodName || `Method #${transaction.paymentMethodId}`}
                       </td>
-                      <td className="p-4">{getStatusBadge(transaction.status)}</td>
-                      <td className="p-4 text-sm text-muted-foreground">
+                      <td>{getStatusBadge(transaction.status)}</td>
+                      <td className="admin-table__time">
                         {formatDistanceToNow(new Date(transaction.createdAt), {
                           addSuffix: true,
                           locale: vi,
                         })}
                       </td>
-                      <td className="p-4">
+                      <td>
                         {transaction.status === 'Completed' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
+                          <button
+                            className="admin-table__action-btn"
                             onClick={() => setRefundingId(transaction.id)}
                             disabled={refundTransaction.isPending}
                           >
-                            <RefreshCw className="h-3 w-3 mr-1" />
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="23 4 23 10 17 10" />
+                              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                            </svg>
                             Hoàn tiền
-                          </Button>
+                          </button>
                         )}
                       </td>
                     </tr>
@@ -241,60 +248,72 @@ export const AdminTransactionsPage: React.FC = () => {
 
             {/* Pagination */}
             {transactionsData && transactionsData.totalPages > 1 && (
-              <div className="p-4 border-t flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
+              <div className="admin-table__pagination">
+                <span className="admin-table__pagination-info">
                   Trang {page} / {transactionsData.totalPages} - Tổng {transactionsData.total} giao dịch
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
+                </span>
+                <div className="admin-table__pagination-controls">
+                  <button
+                    className="admin-table__pagination-btn"
                     disabled={page === 1}
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                   >
                     Trước
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
+                  </button>
+                  <button
+                    className="admin-table__pagination-btn"
                     disabled={page === transactionsData.totalPages}
                     onClick={() => setPage((p) => p + 1)}
                   >
                     Sau
-                  </Button>
+                  </button>
                 </div>
               </div>
             )}
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <DollarSign className="h-12 w-12 text-muted-foreground mb-2" />
-            <p className="text-lg font-medium">Không tìm thấy giao dịch</p>
-            <p className="text-sm text-muted-foreground">Chưa có giao dịch nào phù hợp với bộ lọc</p>
+          <div className="admin-table__empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+            <p className="admin-table__empty-title">Không tìm thấy giao dịch</p>
+            <p className="admin-table__empty-subtitle">Chưa có giao dịch nào phù hợp với bộ lọc</p>
           </div>
         )}
-      </Card>
+      </div>
 
-      {/* Refund Dialog */}
-      <AlertDialog open={refundingId !== null} onOpenChange={() => setRefundingId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận hoàn tiền</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc chắn muốn hoàn tiền cho giao dịch #{refundingId}? Hành động này không thể hoàn tác.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => refundingId && handleRefund(refundingId, 'Admin refund')}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Xác nhận hoàn tiền
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Refund Modal */}
+      {refundingId !== null && (
+        <div className="admin-modal-overlay" onClick={() => setRefundingId(null)}>
+          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal__header">
+              <h3 className="admin-modal__title">Xác nhận hoàn tiền</h3>
+              <button className="admin-modal__close" onClick={() => setRefundingId(null)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div className="admin-modal__body">
+              <p>Bạn có chắc chắn muốn hoàn tiền cho giao dịch #{refundingId}?</p>
+              <p className="admin-modal__warning">Hành động này không thể hoàn tác.</p>
+            </div>
+            <div className="admin-modal__footer">
+              <button className="admin-modal__btn admin-modal__btn--cancel" onClick={() => setRefundingId(null)}>
+                Hủy
+              </button>
+              <button 
+                className="admin-modal__btn admin-modal__btn--danger"
+                onClick={() => refundingId && handleRefund(refundingId, 'Admin refund')}
+              >
+                Xác nhận hoàn tiền
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

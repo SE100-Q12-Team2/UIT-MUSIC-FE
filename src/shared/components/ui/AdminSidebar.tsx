@@ -51,6 +51,13 @@ const adminNavItems: NavItem[] = [
     activeIcon: folderClickIcon, 
     path: '/admin/songs' 
   },
+  { 
+    id: 'transactions', 
+    label: 'Transactions', 
+    icon: folderIcon, 
+    activeIcon: folderClickIcon, 
+    path: '/admin/transactions' 
+  },
 ];
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ onExpandChange }) => {
