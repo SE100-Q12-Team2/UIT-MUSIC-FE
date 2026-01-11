@@ -1,10 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { Search, Bell, Settings } from 'lucide-react';
+import { Search, Settings } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
+import { NotificationCenter } from '@/shared/components/NotificationCenter';
 import logoWithName from '@/assets/logo-w-name.svg';
 
 const AppHeader: React.FC = () => {
@@ -42,14 +43,7 @@ const AppHeader: React.FC = () => {
 
       {/* Right: Actions and User */}
       <div className="flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-gray-400 hover:text-white rounded-full"
-          title="Notifications"
-        >
-          <Bell size={20} />
-        </Button>
+        <NotificationCenter />
         <Button 
           variant="ghost" 
           size="icon" 

@@ -3,6 +3,7 @@ import { useMusicPlayer } from '@/contexts/MusicPlayerContext';
 import { formatTime } from '@/shared/utils/formatTime';
 import { cn } from '@/lib/utils';
 import { usePageBackground } from '@/shared/hooks/usePageBackground';
+import { AdDisplay } from '@/shared/components/AdDisplay';
 import backgroundSettings from '@/assets/background-settings.png';
 import '@/styles/player-page.css';
 
@@ -194,6 +195,11 @@ const PlayerPage: React.FC = () => {
                 <p className="text-gray-500">No lyrics available</p>
               </div>
             )}
+          </div>
+
+          {/* Advertisement */}
+          <div className="mt-6">
+            <AdDisplay placement="Player" />
           </div>
         </div>
       </div>

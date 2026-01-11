@@ -37,6 +37,11 @@ import CreateAlbumPage from "@/features/label/albums/pages/CreateAlbumPage";
 // admin pages
 import AdminDashboardPage from "@/features/admin/pages/AdminDashboardPage";
 import AdminHomePage from "@/features/admin/home/pages/AdminHomePage";
+import AdminTransactionsPage from "@/features/admin/transactions/pages/AdminTransactionsPage";
+import AdminPaymentMethodsPage from "@/features/admin/payment-methods/pages/AdminPaymentMethodsPage";
+
+// user pages
+import SongDetailPage from "@/features/user/songs/pages/SongDetailPage";
 
 // others
 import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
@@ -141,6 +146,16 @@ export const router = createBrowserRouter([
               </ProtectedRoute>
             ),
           },
+          {
+            path: "songs/:id",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad>
+                  <SongDetailPage />
+                </LazyLoad>
+              </ProtectedRoute>
+            ),
+          },
         ],
       },
 
@@ -234,6 +249,22 @@ export const router = createBrowserRouter([
             element: (
               <LazyLoad>
                 <ResourceScreen/>
+              </LazyLoad>
+            ),
+          },
+          {
+            path: "transactions",
+            element: (
+              <LazyLoad>
+                <AdminTransactionsPage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: "payment-methods",
+            element: (
+              <LazyLoad>
+                <AdminPaymentMethodsPage />
               </LazyLoad>
             ),
           },

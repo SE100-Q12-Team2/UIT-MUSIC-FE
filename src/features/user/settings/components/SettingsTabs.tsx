@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type SettingsTab = 'profile' | 'details' | 'contact' | 'faq';
+export type SettingsTab = 'profile' | 'details' | 'preferences' | 'devices' | 'contact' | 'faq';
 
 interface SettingsTabsProps {
   activeTab: SettingsTab;
@@ -10,6 +10,8 @@ interface SettingsTabsProps {
 const tabs: { id: SettingsTab; label: string }[] = [
   { id: 'profile', label: 'Profile' },
   { id: 'details', label: 'Details' },
+  { id: 'preferences', label: 'Preferences' },
+  { id: 'devices', label: 'Devices' },
   { id: 'contact', label: 'Contact Us' },
   { id: 'faq', label: 'FAQ' },
 ];

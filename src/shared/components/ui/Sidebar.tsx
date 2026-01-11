@@ -12,6 +12,7 @@ import subscriptionIcon from '@/assets/subscription-icon.svg';
 import subscriptionClickIcon from '@/assets/subscription-click-icon.svg';
 import qaIcon from '@/assets/qa-icon.svg';
 import qaClickIcon from '@/assets/qa-click-icon.svg';
+import { AdDisplay } from '@/shared/components/AdDisplay';
 import '@/styles/sidebar.css';
 
 interface NavItem {
@@ -108,6 +109,13 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
             </li>
           ))}
         </ul>
+
+        {/* Advertisement */}
+        {isExpanded && (
+          <div className="px-2 py-4">
+            <AdDisplay placement="Sidebar" />
+          </div>
+        )}
       </nav>
     </aside>
   );

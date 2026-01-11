@@ -15,6 +15,7 @@ import HomeFloatingButtonToggle from '@/features/user/home/components/FloatingTo
 import HomeMiniPlayer from '@/features/user/home/components/HomeMiniPlayer';
 import SongRow from '@/features/user/home/components/SongRow';
 import { SectionProps } from '@/features/user/home/types/home.types';
+import { AdDisplay } from '@/shared/components/AdDisplay';
 
 
 /* ---------------- Section ---------------- */
@@ -91,6 +92,11 @@ const Home = () => {
             </div>
           </section>
         ) : null}
+
+        {/* Advertisement Banner */}
+        <div className="px-8 pb-6">
+          <AdDisplay placement="Homepage" />
+        </div>
 
         <Section title="Playlists Tailored For You">
           {loadingStates.dailyMix ? (

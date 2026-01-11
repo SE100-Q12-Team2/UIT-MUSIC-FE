@@ -106,8 +106,8 @@ export const subscriptionService = {
   },
 
   // User Subscriptions
-  subscribe: async (planId: number, autoRenew: boolean = false): Promise<void> => {
-    return api.post<void>('/user-subscriptions', { planId, autoRenew });
+  subscribe: async (planId: number, autoRenew: boolean = false): Promise<UserSubscription> => {
+    return api.post<UserSubscription>('/user-subscriptions', { planId, autoRenew });
   },
 
   getMySubscriptions: async (query?: UserSubscriptionsQuery): Promise<UserSubscriptionsResponse> => {
@@ -117,9 +117,12 @@ export const subscriptionService = {
   getActiveSubscription: async (): Promise<UserSubscription | null> => {
     try {
       return await api.get<UserSubscription>('/user-subscriptions/active');
-    } catch (error) {
+    } catch (error: any) {
       // If no active subscription, return null
-      return null;
+      if (error.response?.status === 404) {
+        return null;
+      }
+      throw error;
     }
   },
 
@@ -135,12 +138,12 @@ export const subscriptionService = {
     return api.patch<UserSubscription>(`/user-subscriptions/${id}`, data);
   },
 
-  cancelSubscription: async (id: number): Promise<void> => {
-    return api.post<void>(`/user-subscriptions/${id}/cancel`);
+  cancelSubscription: async (id: number): Promise<UserSubscription> => {
+    return api.patch<UserSubscription>(`/user-subscriptions/${id}/cancel`);
   },
 
-  renewSubscription: async (id: number): Promise<void> => {
-    return api.post<void>(`/user-subscriptions/${id}/renew`);
+  renewSubscription: async (id: number): Promise<UserSubscription> => {
+    return api.patch<UserSubscription>(`/user-subscriptions/${id}/renew`);
   },
 
   // Transactions
