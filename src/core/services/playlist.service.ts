@@ -159,16 +159,17 @@ export const usePlaylist = (id: string) => {
         copyrightStatus: 'Clear' as const,
         playCount: 0,
         isFavorite: false,
-        songArtists: playlistSong.songArtists.map(sa => ({
-          artistId: sa.artist.id,
+        contributors: playlistSong.songArtists.map(sa => ({
+          labelId: sa.artist.id,
           songId: playlistSong.id,
-          role: 'MainArtist' as const,
-          artist: {
+          role: 'MainArtist',
+          label: {
             id: sa.artist.id,
             artistName: sa.artist.artistName,
-            profileImage: '',
+            labelName: sa.artist.artistName,
           },
         })),
+        favorites: [],
         album: playlistSong.album ? {
           id: playlistSong.album.id,
           albumTitle: playlistSong.album.albumTitle,

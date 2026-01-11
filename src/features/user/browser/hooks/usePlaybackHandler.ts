@@ -46,19 +46,19 @@ export const usePlaybackHandler = ({ trendingSongs }: UsePlaybackHandlerProps) =
       description: song.description || '',
       language: song.language || '',
       lyrics: song.lyrics || '',
-      copyrightStatus: (song.copyrightStatus === 'Violation' ? 'Disputed' : song.copyrightStatus) as 'Clear' | 'Pending' | 'Disputed',
+      copyrightStatus: song.copyrightStatus as any,
       audioUrl,
-      isFavorite: song.favorites?.length > 0 || false,
-      songArtists: song.contributors?.map(c => ({
-        artistId: c.labelId,
+      contributors: song.contributors?.map((c: any) => ({
+        labelId: c.labelId,
         songId: song.id,
-        role: c.role as 'MainArtist' | 'FeaturedArtist' | 'Composer' | 'Producer',
-        artist: {
-          id: c.labelId,
+        role: c.role,
+        label: {
+          id: c.label.id,
           artistName: c.label.labelName,
-          profileImage: '',
+          labelName: c.label.labelName,
         },
       })) || [],
+      // contributors already exists in song, no need to recreate
     };
   }, []);
 
@@ -69,17 +69,16 @@ export const usePlaybackHandler = ({ trendingSongs }: UsePlaybackHandlerProps) =
       description: s.description || '',
       language: s.language || '',
       lyrics: s.lyrics || '',
-      copyrightStatus: (s.copyrightStatus === 'Violation' ? 'Disputed' : s.copyrightStatus) as 'Clear' | 'Pending' | 'Disputed',
+      copyrightStatus: s.copyrightStatus as any,
       audioUrl: s.id === currentSongId ? audioUrl : undefined,
-      isFavorite: s.favorites?.length > 0 || false,
-      songArtists: s.contributors?.map(c => ({
-        artistId: c.labelId,
+      contributors: s.contributors?.map((c: any) => ({
+        labelId: c.labelId,
         songId: s.id,
-        role: c.role as 'MainArtist' | 'FeaturedArtist' | 'Composer' | 'Producer',
-        artist: {
-          id: c.labelId,
+        role: c.role,
+        label: {
+          id: c.label.id,
           artistName: c.label.labelName,
-          profileImage: '',
+          labelName: c.label.labelName,
         },
       })) || [],
     })) || [];

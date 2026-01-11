@@ -118,8 +118,8 @@ export const SongDetailPage: React.FC = () => {
   }
 
   // Get main artist
-  const mainArtist = song.songArtists.find(sa => sa.role === 'MainArtist')?.artist;
-  const artistName = mainArtist?.artistName || 'Unknown Artist';
+  const mainArtist = song.contributors.find(sa => sa.role === 'MainArtist');
+  const artistName = mainArtist?.label.artistName || 'Unknown Artist';
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -239,13 +239,13 @@ export const SongDetailPage: React.FC = () => {
               <span className="text-muted-foreground">Ca sĩ chính:</span>
               <span className="font-medium">{artistName}</span>
             </div>
-            {song.songArtists.filter(sa => sa.role === 'FeaturedArtist').length > 0 && (
+            {song.contributors.filter(sa => sa.role === 'FeaturedArtist').length > 0 && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Nghệ sĩ tham gia:</span>
                 <span className="font-medium">
-                  {song.songArtists
+                  {song.contributors
                     .filter(sa => sa.role === 'FeaturedArtist')
-                    .map(sa => sa.artist.artistName)
+                    .map(sa => sa.label.artistName)
                     .join(', ')}
                 </span>
               </div>

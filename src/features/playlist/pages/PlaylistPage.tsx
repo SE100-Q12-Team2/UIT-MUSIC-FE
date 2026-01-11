@@ -114,7 +114,7 @@ const PlaylistPage: React.FC = () => {
                   <div className="min-w-0 flex-1">
                     <div className="text-white font-medium truncate">{song.title}</div>
                     <div className="text-sm text-gray-400 truncate">
-                      {song.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist'}
+                      {song.contributors?.map((c: any) => c.label?.artistName || c.label?.labelName).filter(Boolean).join(', ') || 'Unknown Artist'}
                     </div>
                   </div>
                 </div>

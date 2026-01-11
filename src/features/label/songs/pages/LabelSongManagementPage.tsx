@@ -168,16 +168,17 @@ const LabelSongManagementPage: React.FC = () => {
       copyrightStatus: song.copyrightStatus,
       playCount: song.playCount,
       isFavorite: song.isFavorite,
-      songArtists: song.songArtists.map((sa) => ({
-        artistId: sa.artistId,
+      contributors: song.songArtists.map((sa) => ({
+        labelId: sa.artistId,
         songId: sa.songId,
         role: sa.role,
-        artist: {
+        label: {
           id: sa.artist.id,
           artistName: sa.artist.artistName,
-          profileImage: sa.artist.profileImage,
+          labelName: sa.artist.artistName,
         },
       })),
+      favorites: [],
       album: {
         id: song.album.id,
         albumTitle: song.album.albumTitle,
@@ -213,19 +214,20 @@ const LabelSongManagementPage: React.FC = () => {
           labelId: s.labelId,
           uploadDate: s.uploadDate,
           isActive: s.isActive,
-          copyrightStatus: s.copyrightStatus,
+          copyrightStatus: s.copyrightStatus as any,
           playCount: s.playCount,
           isFavorite: s.isFavorite,
-          songArtists: s.songArtists.map((sa) => ({
-            artistId: sa.artistId,
+          contributors: s.songArtists.map((sa) => ({
+            labelId: sa.artistId,
             songId: sa.songId,
             role: sa.role,
-            artist: {
+            label: {
               id: sa.artist.id,
               artistName: sa.artist.artistName,
-              profileImage: sa.artist.profileImage,
+              labelName: sa.artist.artistName,
             },
           })),
+          favorites: [],
           album: {
             id: s.album.id,
             albumTitle: s.album.albumTitle,

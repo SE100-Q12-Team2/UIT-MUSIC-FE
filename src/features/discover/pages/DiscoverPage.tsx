@@ -62,7 +62,7 @@ const DiscoverPage: React.FC = () => {
                   </div>
                   <h3 className="text-white font-medium truncate">{song.title}</h3>
                   <p className="text-sm text-gray-400 truncate">
-                    {song.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist'}
+                    {song.contributors?.map((c: any) => c.label?.artistName || c.label?.labelName).filter(Boolean).join(', ') || 'Unknown Artist'}
                   </p>
                 </div>
               ))}

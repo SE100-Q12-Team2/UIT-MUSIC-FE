@@ -109,7 +109,7 @@ const transformRecentlyPlayedToBanner = (song: RecentlyPlayedSong, index: number
 
 const transformTrendingSongToUI = (song: TrendingSong): SongData => {
   // TrendingSong contributors have label with labelName, not artistName
-  const artists = song.contributors?.map((contributor) => contributor.label.labelName).join(', ') || 'Unknown Artist';
+  const artists = song.contributors?.map((contributor: any) => contributor.label.labelName).join(', ') || 'Unknown Artist';
   const durationInSeconds = song.duration || 0;
   const minutes = Math.floor(durationInSeconds / 60);
   const seconds = durationInSeconds % 60;

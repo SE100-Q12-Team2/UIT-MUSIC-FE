@@ -283,14 +283,16 @@ const SubscriptionsTab: React.FC = () => {
     const isFree = plan.price === 0;
     // Parse features from string or array
     let features: string[] = [];
-    if (typeof plan.features === 'string') {
-      try {
-        features = JSON.parse(plan.features);
-      } catch {
-        features = plan.features.split(',').map(f => f.trim());
+    if (plan.features) {
+      if (typeof plan.features === 'string') {
+        try {
+          features = JSON.parse(plan.features);
+        } catch {
+          features = (plan.features as string).split(',').map((f: string) => f.trim());
+        }
+      } else if (Array.isArray(plan.features)) {
+        features = plan.features;
       }
-    } else if (Array.isArray(plan.features)) {
-      features = plan.features;
     }
     
     // Get subscriber count from stats
@@ -311,7 +313,7 @@ const SubscriptionsTab: React.FC = () => {
     
     return {
       id: plan.id,
-      name: plan.name,
+      name: plan.planName || 'Unknown Plan',
       price: priceFormatted,
       period,
       badge,

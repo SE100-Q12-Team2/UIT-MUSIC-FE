@@ -110,8 +110,8 @@ const PlayerPage: React.FC = () => {
             // Get cover image from API: album.coverImage
             const songCoverUrl = song.album?.coverImage || '';
             const songTitle = song.title;
-            // Get artist from API: songArtists array
-            const songArtist = song.songArtists?.map((sa) => sa.artist?.artistName || (sa as { artistName?: string }).artistName).join(', ') || 'Unknown Artist';
+            // Get artist from API: contributors array
+            const songArtist = song.contributors?.map((c: any) => c.label?.artistName || c.label?.labelName).filter(Boolean).join(', ') || 'Unknown Artist';
             const songDuration = formatTime(song.duration);
             const isCurrent = index === currentIndex;
             const albumTitle = song.album?.albumTitle || '';

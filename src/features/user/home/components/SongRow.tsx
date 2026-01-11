@@ -23,7 +23,7 @@ const SongRow: React.FC<SongRowProps> = ({ song }) => {
   const songWithCover = song as unknown as SongWithCoverUrl;
   const apiSong = song as ApiSong;
   const coverUrl = songWithCover.coverUrl || apiSong.album?.coverImage || 'https://via.placeholder.com/100';
-  const artist = songWithCover.artist || apiSong.songArtists?.map((sa) => sa.artist?.artistName).join(', ') || 'Unknown Artist';
+  const artist = songWithCover.artist || apiSong.contributors?.map((c: any) => c.label?.artistName || c.label?.labelName).filter(Boolean).join(', ') || 'Unknown Artist';
   
   // Fix: ensure album is always a string, not an object
   // Check both songWithCover.album and apiSong.album for object type

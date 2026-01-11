@@ -47,7 +47,7 @@ const FavoritePage: React.FC = () => {
   // Fetch record label info for the first favorite song (for About Songer section)
   const firstSong = songs?.[0];
   const { data: recordLabel, isLoading: loadingLabel } = useRecordLabel(
-    firstSong?.labelId
+    firstSong?.labelId ?? undefined
   );
 
   // Component to render favorite button with check status
@@ -92,9 +92,10 @@ const FavoritePage: React.FC = () => {
   };
 
   // Component to fetch and display artist name from labelId
-  const ArtistName: React.FC<{ labelId: number }> = ({ labelId }) => {
-    const { data: label, isLoading } = useRecordLabel(labelId);
+  const ArtistName: React.FC<{ labelId: number | null }> = ({ labelId }) => {
+    const { data: label, isLoading } = useRecordLabel(labelId ?? 0);
     
+    if (!labelId) return <span>Unknown Artist</span>;
     if (isLoading) return <span>Loading...</span>;
     return <span>{label?.labelName || "Unknown Artist"}</span>;
   };

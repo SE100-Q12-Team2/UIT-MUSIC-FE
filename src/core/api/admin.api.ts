@@ -431,10 +431,11 @@ export interface UpdateSubscriptionPlanRequest {
 
 export interface SubscriptionPlanResponse {
   id: number;
+  name?: string;
   planName: string;
   durationMonths: number;
   price: number;
-  features: string;
+  features?: string | string[];
   isActive: boolean;
   createdAt: string;
 }
