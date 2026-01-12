@@ -4,10 +4,12 @@ import "@/styles/favorite.css";
 import { usePageBackground } from "@/shared/hooks/usePageBackground";
 import { useAuth } from "@/shared/hooks/auth/useAuth";
 import { useFavoriteSongs, useCheckFavorite, useToggleFavorite } from "@/core/services/favorite.service";
+import { useCheckFollow, useToggleFollow } from "@/core/services/follow.service";
 import { useSongsByIds } from "@/core/services/song.service";
 import { useRecordLabel } from "@/core/services/label.service";
 import { useDiscoverWeekly, usePersonalizedRecommendations } from "@/core/services/recommendation.service";
 import { Heart, MoreVertical, Play, Music2 } from "lucide-react";
+import { toast } from 'sonner';
 
 import favoriteBg from "@/assets/background-playlist.jpg";
 import favoriteBanner from "@/assets/background_fv.png";
@@ -18,12 +20,7 @@ const FavoritePage: React.FC = () => {
   usePageBackground(favoriteBg);
   const { user } = useAuth();
   
-  const [isFollowing, setIsFollowing] = useState(false);
   const [showAllSuggestions, setShowAllSuggestions] = useState(false);
-
-  const handleToggleFollow = () => {
-    setIsFollowing((prev) => !prev);
-  };
 
   // Fetch favorite song IDs
   const { data: favoritesData, isLoading: loadingFavorites } = useFavoriteSongs(user?.id);
@@ -49,6 +46,35 @@ const FavoritePage: React.FC = () => {
   const { data: recordLabel, isLoading: loadingLabel } = useRecordLabel(
     firstSong?.labelId ?? undefined
   );
+
+  const labelId = recordLabel?.id;
+  const { data: followStatus } = useCheckFollow(
+    user?.id,
+    'Label',
+    labelId
+  );
+  const isFollowing = followStatus?.isFollowing || false;
+  const toggleFollow = useToggleFollow();
+
+  const handleToggleFollow = async () => {
+    if (!user?.id || !labelId) {
+      toast.error('Please login to follow');
+      return;
+    }
+
+    try {
+      await toggleFollow.mutateAsync({
+        userId: user.id,
+        targetType: 'Label',
+        targetId: labelId,
+        isFollowing,
+      });
+      toast.success(isFollowing ? 'Unfollowed successfully' : 'Followed successfully');
+    } catch (error) {
+      console.error('Failed to toggle follow:', error);
+      toast.error('Failed to update follow status');
+    }
+  };
 
   // Component to render favorite button with check status
   const FavoriteButton: React.FC<{ songId: number }> = ({ songId }) => {
@@ -217,8 +243,9 @@ const FavoritePage: React.FC = () => {
                   type="button"
                   className={`about-songer__follow ${isFollowing ? "is-following" : ""}`}
                   onClick={handleToggleFollow}
+                  disabled={toggleFollow.isPending}
                 >
-                  {isFollowing ? "Following" : "Follow"}
+                  {toggleFollow.isPending ? 'Loading...' : (isFollowing ? "Following" : "Follow")}
                 </button>
               </>
             ) : (
@@ -234,8 +261,9 @@ const FavoritePage: React.FC = () => {
                   type="button"
                   className={`about-songer__follow ${isFollowing ? "is-following" : ""}`}
                   onClick={handleToggleFollow}
+                  disabled={toggleFollow.isPending || !labelId}
                 >
-                  {isFollowing ? "Following" : "Follow"}
+                  {toggleFollow.isPending ? 'Loading...' : (isFollowing ? "Following" : "Follow")}
                 </button>
               </>
             )}

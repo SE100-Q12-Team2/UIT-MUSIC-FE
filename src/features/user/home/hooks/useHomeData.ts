@@ -139,8 +139,8 @@ const transformGenreToUI = (genre: Genre): GenreData => {
 const transformFollowToArtist = (follow: FollowItem): ArtistData => {
   return {
     id: follow.target.id.toString(),
-    name: follow.target.artistName,
-    imageUrl: follow.target.profileImage || `https://picsum.photos/seed/artist-${follow.target.id}/300/300`,
+    name: follow.target.labelName,
+    imageUrl: follow.target.imageUrl || `https://picsum.photos/seed/artist-${follow.target.id}/300/300`,
   };
 };
 
@@ -163,8 +163,7 @@ export function useHomeData() {
   const { data: trendingSongsData, isLoading: trendingSongsLoading } = useTrendingSongs({ limit: 20 });
   const { data: genresData, isLoading: genresLoading } = useGenres({ page: 1, limit: 20 });
   const { data: followsData, isLoading: followsLoading } = useFollows({ 
-    userId: user?.id, 
-    targetType: 'Artist',
+    userId: user?.id,
     limit: 20 
   });
   const { data: albumsData, isLoading: albumsLoading } = useAlbums({ page: 1, limit: 20, order: 'latest' });
@@ -271,9 +270,7 @@ export function useHomeData() {
       return [];
     }
     try {
-      // Filter only Artist type follows
-      const artistFollows = followsData.data.filter(follow => follow.targetType === 'Artist');
-      return artistFollows.slice(0, 5).map(transformFollowToArtist);
+      return followsData.data.slice(0, 5).map(transformFollowToArtist);
     } catch (error) {
       console.error('❌ Error transforming followed artists:', error);
       return [];

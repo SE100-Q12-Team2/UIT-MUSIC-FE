@@ -45,6 +45,7 @@ import SongDetailPage from "@/features/user/songs/pages/SongDetailPage";
 import PlaylistPage from "@/features/playlist/pages/PlaylistPage";
 import { AlbumPage, AllAlbumsPage } from "@/features/user/album/pages";
 import SeeAllPage from "@/features/user/home/pages/SeeAllPage";
+import { ArtistDetailPage } from "@/features/user/artist/pages";
 
 // others
 import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
@@ -204,7 +205,7 @@ export const router = createBrowserRouter([
             element: (
               <ProtectedRoute>
                 <LazyLoad>
-                  <BrowserPage />
+                  <ArtistDetailPage />
                 </LazyLoad>
               </ProtectedRoute>
             ),

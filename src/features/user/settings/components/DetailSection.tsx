@@ -26,14 +26,14 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ follow }) => {
     if (follow.targetType === 'Label' && labelData) {
       return labelData.labelName;
     }
-    return follow.target.artistName;
+    return follow.target.labelName;
   }, [follow, labelData]);
 
   const displayAvatar = useMemo(() => {
     if (follow.targetType === 'Label' && labelData) {
       return labelData.imageUrl || '/default-artist.jpg';
     }
-    return follow.target.profileImage || '/default-artist.jpg';
+    return follow.target.imageUrl || '/default-artist.jpg';
   }, [follow, labelData]);
 
   return (
