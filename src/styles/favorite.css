@@ -210,6 +210,8 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  position: relative;
+  z-index: 10;
 }
 
 /* Icon Buttons */
@@ -224,19 +226,41 @@
   justify-content: center;
   cursor: pointer;
   opacity: 0.7;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   color: rgba(255, 255, 255, 0.7);
+  position: relative;
+}
+
+.favorite-icon-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.15);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .favorite-icon-btn:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+.favorite-icon-btn:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.favorite-icon-btn:active {
+  transform: scale(0.95);
 }
 
 .favorite-icon-btn:disabled {
   cursor: wait;
   opacity: 0.4;
+  pointer-events: none;
 }
 
 /* Sidebar Cards */
@@ -383,6 +407,8 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  position: relative;
+  z-index: 10;
 }
 
 /* Sections */
@@ -865,3 +891,50 @@
     padding: 32px 16px 20px;
   }
 }
+
+/* ==================== Play Overlay ==================== */
+.favorite-track {
+  cursor: pointer;
+  position: relative;
+}
+
+.favorite-track:hover {
+  background: rgba(30, 50, 88, 0.52);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.favorite-track.is-playing {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.favorite-track__cover {
+  position: relative;
+}
+
+.favorite-track__play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: #fff;
+}
+
+.favorite-track:hover .favorite-track__play-overlay {
+  opacity: 1;
+}
+
+.favorite-track.is-playing .favorite-track__title {
+  color: #3b82f6;
+}
+
+
+

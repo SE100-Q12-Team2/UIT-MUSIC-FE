@@ -138,11 +138,8 @@ export const useToggleFavorite = () => {
         queryKey: ['favorites', 'check', variables.userId, variables.songId] 
       });
       
-      // Only refetch the full list when ADDING a favorite (not when removing)
-      if (data.action === 'add') {
-        queryClient.invalidateQueries({ queryKey: ['favorites', 'songs', variables.userId] });
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user.favorites });
-      }
+      queryClient.invalidateQueries({ queryKey: ['favorites', 'songs', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user.favorites });
     },
   });
 };

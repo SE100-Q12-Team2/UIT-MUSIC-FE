@@ -5,10 +5,11 @@ import { usePageBackground } from "@/shared/hooks/usePageBackground";
 import { useAuth } from "@/shared/hooks/auth/useAuth";
 import { useFavoriteSongs, useCheckFavorite, useToggleFavorite } from "@/core/services/favorite.service";
 import { useCheckFollow, useToggleFollow } from "@/core/services/follow.service";
-import { useSongsByIds } from "@/core/services/song.service";
+import { useSongsByIds, Song } from "@/core/services/song.service";
 import { useRecordLabel } from "@/core/services/label.service";
 import { useDiscoverWeekly, usePersonalizedRecommendations } from "@/core/services/recommendation.service";
-import { Heart, MoreVertical, Play, Music2 } from "lucide-react";
+import { useMusicPlayer } from "@/contexts/MusicPlayerContext";
+import { Heart, Play, Music2 } from "lucide-react";
 import { toast } from 'sonner';
 
 import favoriteBg from "@/assets/background-playlist.jpg";
@@ -19,6 +20,7 @@ import trackCover6 from "@/assets/Track Cover_6.png";
 const FavoritePage: React.FC = () => {
   usePageBackground(favoriteBg);
   const { user } = useAuth();
+  const { play, currentSong } = useMusicPlayer();
   
   const [showAllSuggestions, setShowAllSuggestions] = useState(false);
 
@@ -172,16 +174,27 @@ const FavoritePage: React.FC = () => {
                   const seconds = song.duration % 60;
                   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
                   const coverImage = song.album?.coverImage || trackCover6;
+                  const isCurrentSong = currentSong?.id === song.id;
+
+                  const handlePlaySong = () => {
+                    play(song as unknown as Song);
+                  };
 
                   return (
                     <article 
                       key={song.id} 
-                      className="favorite-track"
+                      className={`favorite-track ${isCurrentSong ? 'is-playing' : ''}`}
                       style={{ animationDelay: `${index * 0.05}s` }}
+                      onClick={handlePlaySong}
                     >
                       <div className="favorite-track__name">
                         <div className="favorite-track__cover">
                           <img src={coverImage} alt={song.title} />
+                          {!isCurrentSong && (
+                            <div className="favorite-track__play-overlay">
+                              <Play size={16} fill="currentColor" />
+                            </div>
+                          )}
                         </div>
                         <div className="favorite-track__meta">
                           <div className="favorite-track__title">{song.title}</div>
@@ -198,9 +211,6 @@ const FavoritePage: React.FC = () => {
 
                       <div className="favorite-track__actions" onClick={(e) => e.stopPropagation()}>
                         <FavoriteButton songId={song.id} />
-                        <button className="favorite-icon-btn" type="button">
-                          <MoreVertical size={18} />
-                        </button>
                       </div>
                     </article>
                   );
@@ -274,31 +284,34 @@ const FavoritePage: React.FC = () => {
             <h3 className="favorite-card__title">Other Song</h3>
 
             <div className="other-songs__list">
-              {songs && songs.slice(0, 3).map((song) => {
-                const coverImage = song.album?.coverImage || trackCover6;
-                
-                return (
-                  <article key={song.id} className="other-songs__item">
-                    <div className="other-songs__cover">
-                      <img src={coverImage} alt={song.title} />
-                    </div>
-
-                    <div className="other-songs__meta">
-                      <div className="other-songs__title">{song.title}</div>
-                      <div className="other-songs__artist">
-                        <ArtistName labelId={song.labelId} />
+              {loadingYouMightLike ? (
+                <div className="favorite-loading">Loading...</div>
+              ) : youMightLike && youMightLike.length > 0 ? (
+                youMightLike.slice(0, 3).map((song) => {
+                  const coverImage = song.album?.coverImage || trackCover6;
+                  
+                  return (
+                    <article key={song.id} className="other-songs__item">
+                      <div className="other-songs__cover">
+                        <img src={coverImage} alt={song.title} />
                       </div>
-                    </div>
 
-                    <div className="other-songs__actions">
-                      <FavoriteButton songId={song.id} />
-                      <button className="favorite-icon-btn" type="button">
-                        <MoreVertical size={16} />
-                      </button>
-                    </div>
-                  </article>
-                );
-              })}
+                      <div className="other-songs__meta">
+                        <div className="other-songs__title">{song.title}</div>
+                        <div className="other-songs__artist">
+                          <ArtistName labelId={song.labelId!} />
+                        </div>
+                      </div>
+
+                      <div className="other-songs__actions">
+                        <FavoriteButton songId={song.id} />
+                      </div>
+                    </article>
+                  );
+                })
+              ) : (
+                <div className="favorite-loading">No recommendations available</div>
+              )}
             </div>
           </section>
         </aside>
@@ -331,6 +344,7 @@ const FavoritePage: React.FC = () => {
                   key={song.id} 
                   className="favorite-suggestion-card"
                   style={{ animationDelay: `${index * 0.08}s` }}
+                  onClick={() => play(song as unknown as Song)}
                 >
                   <div className="favorite-suggestion-card__cover">
                     <img src={coverImage} alt={song.title} />
