@@ -17,21 +17,25 @@ import HomeMiniPlayer from '@/features/user/home/components/HomeMiniPlayer';
 import SongRow from '@/features/user/home/components/SongRow';
 import { SectionProps } from '@/features/user/home/types/home.types';
 import { AdDisplay } from '@/shared/components/AdDisplay';
+import { PopupAd } from '@/shared/components/PopupAd';
 
 
 /* ---------------- Section ---------------- */
-const Section = ({ title, actionText = 'See All', children }: SectionProps) => (
+const Section = ({ title, actionText = 'See All', onActionClick, children }: SectionProps) => (
   <div className="px-8 py-6">
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
         {title}
       </h2>
-      <Button
-        variant="link"
-        className="text-gray-400 hover:text-white uppercase font-medium tracking-wider text-xs h-auto p-0"
-      >
-        {actionText}
-      </Button>
+      {onActionClick && (
+        <Button
+          variant="link"
+          className="text-gray-400 hover:text-white uppercase font-medium tracking-wider text-xs h-auto p-0"
+          onClick={onActionClick}
+        >
+          {actionText}
+        </Button>
+      )}
     </div>
     {children}
   </div>
@@ -57,10 +61,6 @@ const Home = () => {
   } = useHomeData();
 
   // Navigation handlers
-  const handlePlaylistClick = (id: string) => {
-    navigate(`/playlist/${id}`);
-  };
-
   const handleAlbumClick = (id: string) => {
     navigate(`/album/${id}`);
   };
@@ -83,8 +83,15 @@ const Home = () => {
     }
   };
 
+  const handleSeeAll = (section: string) => {
+    navigate(`/see-all/${section}`);
+  };
+
   return (
     <div className="w-full min-h-screen flex bg-linear-to-b from-vio-900 via-[#0a0a16] to-[#05050a] overflow-x-hidden">
+      {/* Popup Advertisement */}
+      <PopupAd showDelay={5000} sessionOnly={true} />
+      
       {/* ================= Main Content ================= */}
       <div
         className={`flex flex-col pb-0 transition-all duration-300 ${
@@ -128,7 +135,7 @@ const Home = () => {
           <AdDisplay placement="Homepage" />
         </div>
 
-        <Section title="Playlists Tailored For You">
+        <Section title="Playlists Tailored For You" onActionClick={() => handleSeeAll('tailored-playlists')}>
           {loadingStates.dailyMix ? (
             <MusicCardGridSkeleton count={5} />
           ) : tailoredPlaylists.length > 0 ? (
@@ -153,7 +160,7 @@ const Home = () => {
           )}
         </Section>
 
-        <Section title="Your Personal Music Space">
+        <Section title="Your Personal Music Space" onActionClick={() => handleSeeAll('personal-space')}>
           {loadingStates.personalized ? (
             <MusicCardGridSkeleton count={5} />
           ) : personalSpace.length > 0 ? (
@@ -178,7 +185,7 @@ const Home = () => {
           )}
         </Section>
 
-        <Section title="Updates From Followed Artists">
+        <Section title="Updates From Followed Artists" onActionClick={() => handleSeeAll('recent-albums')}>
           {loadingStates.albums ? (
             <MusicCardGridSkeleton count={4} />
           ) : recentAlbums.length > 0 ? (
@@ -216,22 +223,20 @@ const Home = () => {
           )}
         </Section>
 
-        <Section title="Daily Pick">
+        <Section title="Daily Pick" onActionClick={() => handleSeeAll('daily-pick')}>
           {loadingStates.discoverWeekly ? (
-            <SongListSkeleton count={5} />
+            <MusicCardGridSkeleton count={5} />
           ) : dailyPickSongs.length > 0 ? (
-            <div className="bg-[#13132b]/30 rounded-xl border border-white/5 overflow-hidden">
-              {dailyPickSongs.map((song, idx) => (
-                <div
-                  key={song.id}
-                  className={
-                    idx !== dailyPickSongs.length - 1
-                      ? 'border-b border-white/5'
-                      : ''
-                  }
-                >
-                  <SongRow song={song} />
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {dailyPickSongs.map((item) => (
+                <MusicCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  coverUrl={item.coverUrl}
+                  onClick={() => handleAlbumClick(item.id)}
+                />
               ))}
             </div>
           ) : (
@@ -285,7 +290,7 @@ const Home = () => {
         </Section>
 
         {/* Discover Series */}
-        <Section title="Discover The Magic Of Series Musics With Viotune">
+        <Section title="Discover The Magic Of Series Musics With Viotune" onActionClick={() => handleSeeAll('discover-series')}>
           {loadingStates.dailyMix ? (
             <div className="flex gap-4 overflow-x-auto pb-2">
               {[...Array(5)].map((_, idx) => (
@@ -351,7 +356,7 @@ const Home = () => {
         </Section>
 
         {/* Albums You Were Listening To */}
-        <Section title="Albums You Were Listening To">
+        <Section title="Albums You Were Listening To" onActionClick={() => handleSeeAll('you-recently-seen')}>
           {loadingStates.albums ? (
             <MusicCardGridSkeleton count={4} />
           ) : recentAlbums.length > 0 ? (

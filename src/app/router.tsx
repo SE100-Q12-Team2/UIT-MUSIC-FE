@@ -43,7 +43,8 @@ import AdminPaymentMethodsPage from "@/features/admin/payment-methods/pages/Admi
 // user pages
 import SongDetailPage from "@/features/user/songs/pages/SongDetailPage";
 import PlaylistPage from "@/features/playlist/pages/PlaylistPage";
-import AlbumPage from "@/features/user/album/pages/AlbumPage";
+import { AlbumPage, AllAlbumsPage } from "@/features/user/album/pages";
+import SeeAllPage from "@/features/user/home/pages/SeeAllPage";
 
 // others
 import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
@@ -174,6 +175,26 @@ export const router = createBrowserRouter([
               <ProtectedRoute>
                 <LazyLoad>
                   <AlbumPage />
+                </LazyLoad>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "see-all/:section",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad>
+                  <SeeAllPage />
+                </LazyLoad>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "albums/all",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad>
+                  <AllAlbumsPage />
                 </LazyLoad>
               </ProtectedRoute>
             ),

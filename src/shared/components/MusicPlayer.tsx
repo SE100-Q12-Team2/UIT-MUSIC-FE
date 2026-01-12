@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Play, Pause, SkipBack, SkipForward, Repeat, Shuffle, 
   Volume2, VolumeX, List, Maximize2, Minimize2,
@@ -11,6 +11,7 @@ import { formatTime } from '@/shared/utils/formatTime';
 import { cn } from '@/lib/utils';
 
 const MusicPlayer: React.FC = () => {
+  const [imageError, setImageError] = useState(false);
   const {
     currentSong,
     isPlaying,
@@ -47,13 +48,15 @@ const MusicPlayer: React.FC = () => {
           {/* Left: Track Info */}
           <div className="flex items-center gap-4 w-[25%] min-w-[250px]">
             <div 
-              className="w-16 h-16 rounded-lg overflow-hidden bg-secondary relative group cursor-pointer flex-shrink-0"
+              className="w-16 h-16 rounded-lg overflow-hidden bg-vio-900/50 relative group cursor-pointer shrink-0"
               onClick={toggleExpanded}
             >
               <img 
-                src={currentSong.album?.coverImage || 'https://via.placeholder.com/100'} 
+                src={imageError ? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentSong.title)}&background=7c3aed&color=fff&size=100` : (currentSong.album?.coverImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentSong.title)}&background=7c3aed&color=fff&size=100`)}
                 className="w-full h-full object-cover" 
                 alt={currentSong.title}
+                onError={() => setImageError(true)}
+                loading="lazy"
               />
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/30 transition-opacity">
                 <Maximize2 size={18} className="text-white"/>
@@ -64,7 +67,7 @@ const MusicPlayer: React.FC = () => {
                 {currentSong.title}
               </h4>
               <p className="text-xs text-gray-400 hover:underline cursor-pointer truncate">
-                {currentSong.contributors?.map((c: any) => c.label?.artistName || c.label?.labelName).filter(Boolean).join(', ') || 'Unknown Artist'}
+                {currentSong.contributors?.map((c: { label?: { artistName?: string; labelName?: string | null } }) => c.label?.artistName || c.label?.labelName || '').filter(Boolean).join(', ') || 'Unknown Artist'}
               </p>
             </div>
           </div>
@@ -175,11 +178,13 @@ const MusicPlayer: React.FC = () => {
           <div className="flex-1 flex items-center justify-center px-8 py-12">
             <div className="max-w-4xl w-full flex flex-col items-center gap-8">
               {/* Album Art */}
-              <div className="relative w-80 h-80 rounded-2xl overflow-hidden shadow-2xl">
+              <div className="relative w-80 h-80 rounded-2xl overflow-hidden shadow-2xl bg-vio-900/50">
                 <img 
-                  src={currentSong.album?.coverImage || 'https://via.placeholder.com/400'} 
+                  src={imageError ? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentSong.title)}&background=7c3aed&color=fff&size=400` : (currentSong.album?.coverImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentSong.title)}&background=7c3aed&color=fff&size=400`)}
                   className="w-full h-full object-cover" 
                   alt={currentSong.title}
+                  onError={() => setImageError(true)}
+                  loading="lazy"
                 />
               </div>
 
@@ -187,7 +192,7 @@ const MusicPlayer: React.FC = () => {
               <div className="text-center">
                 <h3 className="text-3xl font-bold text-white mb-2">{currentSong.title}</h3>
                 <p className="text-lg text-gray-400">
-                  {currentSong.contributors?.map((c: any) => c.label?.artistName || c.label?.labelName).filter(Boolean).join(', ') || 'Unknown Artist'}
+                  {currentSong.contributors?.map((c: { label?: { artistName?: string; labelName?: string | null } }) => c.label?.artistName || c.label?.labelName || '').filter(Boolean).join(', ') || 'Unknown Artist'}
                 </p>
                 {currentSong.album && (
                   <p className="text-sm text-gray-500 mt-1">{currentSong.album.albumTitle}</p>

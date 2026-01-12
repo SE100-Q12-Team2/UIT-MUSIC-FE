@@ -1,9 +1,12 @@
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { useMusicPlayer } from '@/contexts/MusicPlayerContext';
 import { formatTime } from '@/shared/utils/formatTime';
 import { cn } from '@/lib/utils';
 import { usePageBackground } from '@/shared/hooks/usePageBackground';
 import { AdDisplay } from '@/shared/components/AdDisplay';
+import { useAddToFavorites, useRemoveFromFavorites } from '@/core/services/favorite.service';
+import { useAuth } from '@/shared/hooks/auth/useAuth';
+import { toast } from 'sonner';
 import backgroundSettings from '@/assets/background-settings.png';
 import '@/styles/player-page.css';
 
@@ -20,10 +23,28 @@ const PlayerPage: React.FC = () => {
     queue,
     currentIndex,
     play,
+    togglePlayPause,
   } = useMusicPlayer();
+
+  const { user } = useAuth();
+  const addToFavorites = useAddToFavorites();
+  const removeFromFavorites = useRemoveFromFavorites();
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Use label background (same as settings)
   usePageBackground(backgroundSettings);
+
+  useEffect(() => {
+    if (currentSong) {
+      const songWithLike = currentSong as typeof currentSong & { isLiked?: boolean };
+      if (typeof songWithLike.isLiked === 'boolean') {
+        setIsLiked(songWithLike.isLiked);
+      }
+    }
+    setImageError(false);
+  }, [currentSong]);
 
   const songListRef = useRef<HTMLDivElement>(null);
   const activeSongRef = useRef<HTMLDivElement>(null);
@@ -97,8 +118,50 @@ const PlayerPage: React.FC = () => {
   // Get album name from API
   const albumName = displaySong.album?.albumTitle || '';
 
-  // Get cover image from API: album.coverImage
-  const coverImage = displaySong.album?.coverImage || '';
+  const getCoverImage = () => {
+    if (imageError) {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(displaySong.title)}&background=7c3aed&color=fff&size=400&bold=true`;
+    }
+    return displaySong.album?.coverImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displaySong.title)}&background=7c3aed&color=fff&size=400&bold=true`;
+  };
+  
+  const coverImage = getCoverImage();
+
+  const handleLikeClick = async () => {
+    if (!user?.id || !displaySong) {
+      toast.error('Please login to add to favorites');
+      return;
+    }
+
+    if (isSubmitting) return;
+
+    const songId = typeof displaySong.id === 'string' ? parseInt(displaySong.id) : displaySong.id;
+    
+    try {
+      setIsSubmitting(true);
+      
+      if (isLiked) {
+        await removeFromFavorites.mutateAsync({ 
+          userId: user.id, 
+          songId 
+        });
+        setIsLiked(false);
+        toast.success('Removed from favorites');
+      } else {
+        await addToFavorites.mutateAsync({ 
+          userId: user.id, 
+          songId 
+        });
+        setIsLiked(true);
+        toast.success('Added to favorites');
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast.error('Failed to update favorites');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="player-page">
@@ -111,7 +174,7 @@ const PlayerPage: React.FC = () => {
             const songCoverUrl = song.album?.coverImage || '';
             const songTitle = song.title;
             // Get artist from API: contributors array
-            const songArtist = song.contributors?.map((c: any) => c.label?.artistName || c.label?.labelName).filter(Boolean).join(', ') || 'Unknown Artist';
+            const songArtist = song.contributors?.map((c: { label?: { artistName?: string; labelName?: string | null } }) => c.label?.artistName || c.label?.labelName || '').filter(Boolean).join(', ') || 'Unknown Artist';
             const songDuration = formatTime(song.duration);
             const isCurrent = index === currentIndex;
             const albumTitle = song.album?.albumTitle || '';
@@ -128,9 +191,13 @@ const PlayerPage: React.FC = () => {
               >
                 <div className="player-page__song-cover">
                   <img
-                    src={songCoverUrl || 'https://via.placeholder.com/120'}
+                    src={songCoverUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(songTitle)}&background=7c3aed&color=fff&size=120`}
                     alt={songTitle}
                     className="player-page__song-cover-img"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(songTitle)}&background=7c3aed&color=fff&size=120`;
+                    }}
+                    loading="lazy"
                   />
                 </div>
                 {isCurrent ? (
@@ -138,11 +205,25 @@ const PlayerPage: React.FC = () => {
                     <div className="player-page__song-title">{songTitle}</div>
                     <div className="player-page__song-artist">{songArtist}</div>
                     <div className="player-page__song-duration">{songDuration}</div>
-                    <div className="player-page__song-heart">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                    <button 
+                      className="player-page__song-heart"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLikeClick();
+                      }}
+                      disabled={isSubmitting}
+                      style={{ 
+                        cursor: 'pointer',
+                        border: 'none',
+                        background: 'transparent',
+                        color: isLiked ? '#ef4444' : 'currentColor',
+                        transition: 'color 0.2s'
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                       </svg>
-                    </div>
+                    </button>
                   </div>
                 ) : (
                   <div className="player-page__song-album-title">{albumTitle || songTitle}</div>
@@ -158,13 +239,15 @@ const PlayerPage: React.FC = () => {
 
         {/* Center - Vinyl Record */}
         <div className="player-page__vinyl-container">
-          <div className="player-page__vinyl">
+          <div className="player-page__vinyl" onClick={togglePlayPause} style={{ cursor: 'pointer' }}>
             <div className="player-page__vinyl-inner">
               {/* Album cover image */}
               <img
                 src={coverImage}
                 alt={displaySong.title}
                 className="player-page__vinyl-image"
+                onError={() => setImageError(true)}
+                loading="lazy"
               />
               <div className="player-page__vinyl-center">
                 <div className="player-page__vinyl-text-main">{albumName.split(' ')[0] || 'ARCANE'}</div>

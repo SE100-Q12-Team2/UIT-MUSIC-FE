@@ -224,7 +224,18 @@ export function useHomeData() {
       return [];
     }
     try {
-      return discoverWeeklyData.slice(0, 5).map(transformSongToUI);
+      const albumMap = new Map<number, PlaylistData>();
+      discoverWeeklyData.forEach(song => {
+        if (song.album && song.albumId && !albumMap.has(song.albumId)) {
+          albumMap.set(song.albumId, {
+            id: song.albumId.toString(),
+            title: song.album.albumTitle,
+            subtitle: 'Recommended for you',
+            coverUrl: song.album.coverImage || `https://picsum.photos/seed/album-${song.albumId}/300/300`,
+          });
+        }
+      });
+      return Array.from(albumMap.values()).slice(0, 5);
     } catch (error) {
       console.error('❌ Error transforming discover weekly:', error);
       return [];

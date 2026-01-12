@@ -57,19 +57,51 @@ export const AdDisplay: React.FC<AdDisplayProps> = ({ placement, className }) =>
     return (
       <div className={cn('relative group', className)}>
         <div
-          className="relative rounded-lg overflow-hidden cursor-pointer bg-accent"
+          className="relative rounded-xl overflow-hidden cursor-pointer bg-gradient-to-br from-vio-600 via-purple-600 to-pink-600 shadow-2xl transform hover:scale-[1.02] transition-all duration-300"
           onClick={handleClick}
         >
           {currentAd.imageUrl ? (
-            <img
-              src={currentAd.imageUrl}
-              alt={currentAd.title}
-              className="w-full h-auto object-cover"
-            />
+            <div className="relative">
+              <img
+                src={currentAd.imageUrl}
+                alt={currentAd.title}
+                className="w-full h-48 md:h-64 object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              {/* Gradient overlay for better text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              
+              {/* Content overlay on image */}
+              <div className="absolute bottom-0 left-0 right-0 p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-bold text-2xl mb-2 text-white drop-shadow-lg">{currentAd.title}</h3>
+                    <p className="text-sm text-white/90 drop-shadow-md line-clamp-2">{currentAd.content}</p>
+                    {currentAd.targetUrl && (
+                      <button className="mt-3 px-4 py-2 bg-white text-vio-600 rounded-lg font-semibold hover:bg-white/90 transition-all transform hover:scale-105 shadow-lg">
+                        Xem ngay →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : (
-            <div className="p-6">
-              <h3 className="font-semibold text-lg mb-2">{currentAd.title}</h3>
-              <p className="text-sm text-muted-foreground">{currentAd.content}</p>
+            <div className="p-8 md:p-10 min-h-[200px] flex flex-col justify-center">
+              <div className="space-y-4">
+                <div className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white font-medium">
+                  ✨ Quảng cáo
+                </div>
+                <h3 className="font-bold text-3xl text-white drop-shadow-lg">{currentAd.title}</h3>
+                <p className="text-lg text-white/90 max-w-2xl">{currentAd.content}</p>
+                {currentAd.targetUrl && (
+                  <button className="mt-4 px-6 py-3 bg-white text-vio-600 rounded-lg font-semibold hover:bg-white/90 transition-all transform hover:scale-105 shadow-xl">
+                    Khám phá ngay →
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -78,13 +110,14 @@ export const AdDisplay: React.FC<AdDisplayProps> = ({ placement, className }) =>
               e.stopPropagation();
               handleClose();
             }}
-            className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-4 right-4 p-2 bg-black/70 hover:bg-black/90 rounded-full text-white transition-all backdrop-blur-sm shadow-lg"
+            aria-label="Close advertisement"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 rounded text-xs text-white">
+        <div className="absolute top-4 left-4 px-3 py-1.5 bg-black/70 backdrop-blur-sm rounded-full text-xs text-white font-medium shadow-lg">
           Quảng cáo
         </div>
       </div>
@@ -94,36 +127,51 @@ export const AdDisplay: React.FC<AdDisplayProps> = ({ placement, className }) =>
   // Interstitial Ad (Full screen overlay)
   if (currentAd.adType === 'Interstitial') {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div className="relative max-w-2xl w-full mx-4">
-          <div className="bg-background rounded-lg overflow-hidden">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="relative max-w-3xl w-full mx-4 animate-in zoom-in-95 duration-300">
+          <div className="bg-gradient-to-br from-vio-900 via-purple-900 to-pink-900 rounded-2xl overflow-hidden shadow-2xl border border-white/10">
             {currentAd.imageUrl && (
-              <img
-                src={currentAd.imageUrl}
-                alt={currentAd.title}
-                className="w-full h-auto object-cover cursor-pointer"
-                onClick={handleClick}
-              />
+              <div className="relative">
+                <img
+                  src={currentAd.imageUrl}
+                  alt={currentAd.title}
+                  className="w-full h-64 md:h-96 object-cover cursor-pointer"
+                  onClick={handleClick}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-vio-900 via-transparent to-transparent" />
+              </div>
             )}
 
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-2">{currentAd.title}</h2>
-              <p className="text-muted-foreground mb-4">{currentAd.content}</p>
+            <div className="p-8 md:p-10 bg-gradient-to-br from-vio-900/90 to-purple-900/90 backdrop-blur-xl">
+              <div className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white font-medium mb-4">
+                ✨ Quảng cáo đặc biệt
+              </div>
+              
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white drop-shadow-lg">
+                {currentAd.title}
+              </h2>
+              <p className="text-lg text-white/90 mb-6 leading-relaxed">
+                {currentAd.content}
+              </p>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4 flex-wrap">
                 {currentAd.targetUrl && (
                   <button
                     onClick={handleClick}
-                    className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                    className="px-8 py-3 bg-white text-vio-600 rounded-xl hover:bg-white/90 transition-all font-bold shadow-xl transform hover:scale-105"
                   >
-                    Tìm hiểu thêm
+                    Khám phá ngay →
                   </button>
                 )}
                 <button
                   onClick={handleClose}
-                  className="px-6 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
+                  className="px-8 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl hover:bg-white/20 transition-all font-semibold border border-white/20"
                 >
-                  Đóng
+                  Để sau
                 </button>
               </div>
             </div>
@@ -131,7 +179,8 @@ export const AdDisplay: React.FC<AdDisplayProps> = ({ placement, className }) =>
 
           <button
             onClick={handleClose}
-            className="absolute -top-12 right-0 p-2 text-white hover:text-white/80 transition-colors"
+            className="absolute -top-12 right-0 p-3 text-white hover:text-white/80 transition-all hover:scale-110 bg-white/10 backdrop-blur-sm rounded-full"
+            aria-label="Close advertisement"
           >
             <X className="h-6 w-6" />
           </button>

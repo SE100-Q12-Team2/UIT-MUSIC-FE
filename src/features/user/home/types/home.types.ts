@@ -1,6 +1,7 @@
 export interface SectionProps {
   title: string;
   actionText?: string;
+  onActionClick?: () => void;
   children: React.ReactNode;
 }
 
