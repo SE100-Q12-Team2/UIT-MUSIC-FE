@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import "@/styles/favorite.css";
 
 import { usePageBackground } from "@/shared/hooks/usePageBackground";
@@ -8,6 +9,7 @@ import { useCheckFollow, useToggleFollow } from "@/core/services/follow.service"
 import { useSongsByIds, Song } from "@/core/services/song.service";
 import { useRecordLabel } from "@/core/services/label.service";
 import { useDiscoverWeekly, usePersonalizedRecommendations } from "@/core/services/recommendation.service";
+import { useAlbums } from "@/core/services/album.service";
 import { useMusicPlayer } from "@/contexts/MusicPlayerContext";
 import { Heart, Play, Music2 } from "lucide-react";
 import { toast } from 'sonner';
@@ -21,8 +23,10 @@ const FavoritePage: React.FC = () => {
   usePageBackground(favoriteBg);
   const { user } = useAuth();
   const { play, currentSong } = useMusicPlayer();
+  const navigate = useNavigate();
   
   const [showAllSuggestions, setShowAllSuggestions] = useState(false);
+  const [showAllAlbums, setShowAllAlbums] = useState(false);
 
   // Fetch favorite song IDs
   const { data: favoritesData, isLoading: loadingFavorites } = useFavoriteSongs(user?.id);
@@ -38,6 +42,13 @@ const FavoritePage: React.FC = () => {
   // Fetch recommendations for suggestions
   const { data: recommendations, isLoading: loadingRecommendations } = useDiscoverWeekly();
   const { data: youMightLike, isLoading: loadingYouMightLike } = usePersonalizedRecommendations(8);
+  
+  // Fetch albums for "You Might Also Like" section
+  const { data: albumsData, isLoading: loadingAlbums } = useAlbums({ 
+    page: 1, 
+    limit: showAllAlbums ? 16 : 8,
+    order: 'latest' 
+  });
   
   const displayedSuggestions = useMemo(() => {
     return showAllSuggestions ? recommendations || [] : (recommendations?.slice(0, 8) || []);
@@ -380,44 +391,58 @@ const FavoritePage: React.FC = () => {
       <section className="favorite-section">
         <div className="favorite-section__header">
           <h2 className="favorite-section__title">You Might Also Like</h2>
-          <button className="favorite-section__see-all" type="button">
+          <button 
+            className="favorite-section__see-all" 
+            type="button"
+            onClick={() => navigate('/albums/all')}
+          >
             See All
           </button>
         </div>
 
         <div className="ymal-grid">
-          {loadingYouMightLike ? (
+          {loadingAlbums ? (
             <div className="favorite-loading">Loading recommendations...</div>
-          ) : youMightLike && youMightLike.length > 0 ? (
-            youMightLike.slice(0, 8).map((song) => {
-              const coverImage = song.album?.coverImage || trackCover6;
+          ) : albumsData && albumsData.items && albumsData.items.length > 0 ? (
+            albumsData.items.map((album) => {
+              const coverImage = album.coverImage || trackCover6;
+              const totalTracks = album.totalTracks || 0;
               
               return (
-                <article key={song.id} className="ymal-card">
+                <article 
+                  key={album.id} 
+                  className="ymal-card"
+                  onClick={() => navigate(`/album/${album.id}`)}
+                >
                   <div className="ymal-card__cover">
-                    <img src={coverImage} alt={song.title} />
+                    <img src={coverImage} alt={album.albumTitle} />
                     <div className="ymal-card__overlay">
-                      <button className="ymal-card__play">
+                      <button 
+                        className="ymal-card__play"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/album/${album.id}`);
+                        }}
+                      >
                         <Play size={24} fill="white" />
                       </button>
                     </div>
                   </div>
 
                   <div className="ymal-card__meta">
-                    <div className="ymal-card__title">{song.title}</div>
+                    <div className="ymal-card__title">{album.albumTitle}</div>
                     <div className="ymal-card__artist">
-                      <ArtistName labelId={song.labelId!} />
+                      <ArtistName labelId={album.labelId} />
                     </div>
 
                     <div className="ymal-card__info">
                       <Music2 size={14} />
-                      <span>{Math.floor(song.duration / 60)} Tracks</span>
+                      <span>{totalTracks} Tracks</span>
                     </div>
 
                     <div className="ymal-card__actions">
-                      <FavoriteButton songId={song.id} />
-                      <span className="ymal-card__likes">
-                        {song.playCount ? `${Math.floor(song.playCount / 100)}` : '0'}
+                      <span className="ymal-card__release">
+                        {album.releaseDate ? new Date(album.releaseDate).getFullYear() : 'N/A'}
                       </span>
                     </div>
                   </div>
