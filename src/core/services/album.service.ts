@@ -3,6 +3,22 @@ import { QUERY_KEYS } from '@/config/query.config';
 import api from '@/config/api.config';
 
 // Album info
+export interface AlbumSong {
+  id: number;
+  title: string;
+  duration: number;
+  playCount: number;
+  uploadDate: string;
+  songArtists?: {
+    role: string;
+    artist: {
+      id: number;
+      artistName: string;
+      profileImage: string | null;
+    };
+  }[];
+}
+
 export interface Album {
   id: number;
   albumTitle: string;
@@ -13,6 +29,7 @@ export interface Album {
   totalTracks: number;
   createdAt: string;
   updatedAt: string;
+  songs?: AlbumSong[];
 }
 
 export interface AlbumsResponse {

@@ -152,18 +152,22 @@ export const advertisementService = {
 
   // Get active ads (Public)
   getActiveAds: async (params?: GetActiveAdsParams): Promise<Advertisement[]> => {
-    const response = await api.get<Advertisement[] | { data: Advertisement[] }>('/advertisements/active', { params });
+    const queryParams = params ? {
+      ...params,
+      limit: params.limit?.toString(),
+    } : undefined;
+    const response = await api.get<Advertisement[] | { data: Advertisement[] }>('/advertisements/active/list', { params: queryParams });
     return Array.isArray(response) ? response : response.data || [];
   },
 
   // Track ad impression (Public)
   trackImpression: async (id: number, data?: CreateAdImpressionRequest): Promise<ApiResponse> => {
-    return api.post<ApiResponse>(`/advertisements/${id}/impression`, data);
+    return api.post<ApiResponse>('/advertisements/impressions', { adId: id, ...data });
   },
 
   // Track ad click (Public)
   trackClick: async (id: number, data?: TrackAdClickRequest): Promise<ApiResponse> => {
-    return api.post<ApiResponse>(`/advertisements/${id}/click`, data);
+    return api.post<ApiResponse>('/advertisements/impressions/click', data);
   },
 };
 

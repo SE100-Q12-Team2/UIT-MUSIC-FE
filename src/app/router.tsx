@@ -42,6 +42,8 @@ import AdminPaymentMethodsPage from "@/features/admin/payment-methods/pages/Admi
 
 // user pages
 import SongDetailPage from "@/features/user/songs/pages/SongDetailPage";
+import PlaylistPage from "@/features/playlist/pages/PlaylistPage";
+import AlbumPage from "@/features/user/album/pages/AlbumPage";
 
 // others
 import NotFoundPage from "@/features/user/error/pages/NotFoundPage";
@@ -152,6 +154,76 @@ export const router = createBrowserRouter([
               <ProtectedRoute>
                 <LazyLoad>
                   <SongDetailPage />
+                </LazyLoad>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "playlist/:id",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad>
+                  <PlaylistPage />
+                </LazyLoad>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "album/:id",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad>
+                  <AlbumPage />
+                </LazyLoad>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "artist/:id",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad>
+                  <BrowserPage />
+                </LazyLoad>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "genre/:id",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad>
+                  <BrowserPage />
+                </LazyLoad>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "recently-played",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad>
+                  <UserPlaylistsPage />
+                </LazyLoad>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "liked-songs",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad>
+                  <FavoritePage />
+                </LazyLoad>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "most-listened",
+            element: (
+              <ProtectedRoute>
+                <LazyLoad>
+                  <UserPlaylistsPage />
                 </LazyLoad>
               </ProtectedRoute>
             ),

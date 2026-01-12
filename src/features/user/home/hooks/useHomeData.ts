@@ -78,17 +78,19 @@ const transformSongToUI = (song: RecommendationSong): SongData => {
 
 const transformMixToPlaylist = (mix: RecommendationMix): PlaylistData => {
   let coverUrl = '';
+  let albumId = '';
   
-  const songWithCover = mix.songs.find(song => song.album?.coverImage);
-  
-  if (songWithCover?.album?.coverImage) {
-    coverUrl = songWithCover.album.coverImage;
+  const firstSong = mix.songs[0];
+  if (firstSong?.album) {
+    albumId = firstSong.album.id.toString();
+    coverUrl = firstSong.album.coverImage || `https://picsum.photos/seed/${mix.id}/300/300`;
   } else {
+    albumId = mix.id;
     coverUrl = `https://picsum.photos/seed/${mix.id}/300/300`;
   }
   
   return {
-    id: mix.id,
+    id: albumId,
     title: mix.title,
     subtitle: `${mix.songs.length} Tracks`,
     coverUrl,
@@ -200,13 +202,12 @@ export function useHomeData() {
     }
     try {
       const spaces = personalizedData.slice(0, 5).map(song => {
-        // Get album cover with fallback
         const albumCover = song.album?.coverImage;
         const fallbackUrl = `https://picsum.photos/seed/song-${song.id}/300/300`;
         
         return {
-          id: song.id.toString(),
-          title: song.title,
+          id: song.album?.id.toString() || song.id.toString(),
+          title: song.album?.albumTitle || song.title,
           subtitle: `${song.playCount || 0} Plays`,
           coverUrl: albumCover || fallbackUrl,
         };

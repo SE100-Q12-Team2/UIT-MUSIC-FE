@@ -27,7 +27,7 @@ export interface FollowsResponse {
 }
 
 export interface FollowsQuery {
-  userId?: number | string; // optional, can be number or string
+  userId?: number; // will be converted to string for API
   targetType?: 'Artist' | 'Label'; // optional
   limit?: number; // optional, default: 20, max: 100
   page?: number; // optional, default: 1
@@ -37,7 +37,16 @@ export interface FollowsQuery {
 
 const followService = {
   getFollows: async (query?: FollowsQuery): Promise<FollowsResponse> => {
-    return api.get<FollowsResponse>('/follows', { params: query });
+    // Backend expects all query params as strings, it will transform them
+    const queryParams = query ? {
+      userId: query.userId?.toString(),
+      targetType: query.targetType,
+      limit: query.limit?.toString(),
+      page: query.page?.toString(),
+      sort: query.sort,
+      order: query.order,
+    } : undefined;
+    return api.get<FollowsResponse>('/follows', { params: queryParams });
   },
 };
 

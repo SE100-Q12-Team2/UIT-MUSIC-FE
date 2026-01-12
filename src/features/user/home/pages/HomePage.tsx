@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Heart } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 // Removed mock data imports - now using real API data
 
@@ -39,6 +40,7 @@ const Section = ({ title, actionText = 'See All', children }: SectionProps) => (
 /* ---------------- Home ---------------- */
 
 const Home = () => {
+  const navigate = useNavigate();
   const [isPlayerVisible, setIsPlayerVisible] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
 
@@ -53,6 +55,33 @@ const Home = () => {
     recentAlbums,
     loadingStates,
   } = useHomeData();
+
+  // Navigation handlers
+  const handlePlaylistClick = (id: string) => {
+    navigate(`/playlist/${id}`);
+  };
+
+  const handleAlbumClick = (id: string) => {
+    navigate(`/album/${id}`);
+  };
+
+  const handleArtistClick = (id: string) => {
+    navigate(`/artist/${id}`);
+  };
+
+  const handleGenreClick = (id: string) => {
+    navigate(`/genre/${id}`);
+  };
+
+  const handleBannerClick = (banner: BannerData) => {
+    if (banner.title === 'Recently Listened') {
+      navigate('/recently-played');
+    } else if (banner.title === 'Liked Tracks') {
+      navigate('/liked-songs');
+    } else if (banner.title === 'Most Listened') {
+      navigate('/most-listened');
+    }
+  };
 
   return (
     <div className="w-full min-h-screen flex bg-linear-to-b from-vio-900 via-[#0a0a16] to-[#05050a] overflow-x-hidden">
@@ -72,6 +101,7 @@ const Home = () => {
                 <div
                   key={banner.id}
                   className="relative h-[88px] w-[256px] rounded-xl overflow-hidden group cursor-pointer shrink-0"
+                  onClick={() => handleBannerClick(banner)}
                 >
                   <img
                     src={banner.coverUrl}
@@ -110,6 +140,7 @@ const Home = () => {
                   title={item.title}
                   subtitle={item.subtitle}
                   coverUrl={item.coverUrl}
+                  onClick={() => handleAlbumClick(item.id)}
                 />
               ))}
             </div>
@@ -134,6 +165,7 @@ const Home = () => {
                   title={item.title}
                   subtitle={item.subtitle}
                   coverUrl={item.coverUrl}
+                  onClick={() => handleAlbumClick(item.id)}
                 />
               ))}
             </div>
@@ -155,6 +187,7 @@ const Home = () => {
                 <div
                   key={item.id}
                   className="flex items-center gap-4 bg-[#13132b]/50 p-4 rounded-lg hover:bg-[#13132b] transition-colors group cursor-pointer border border-white/5"
+                  onClick={() => handleAlbumClick(item.id)}
                 >
                   <img
                     src={item.coverUrl}
@@ -227,6 +260,7 @@ const Home = () => {
                 <div
                   key={artist.id}
                   className="flex flex-col items-center gap-2 cursor-pointer group shrink-0"
+                  onClick={() => handleArtistClick(artist.id)}
                 >
                   <div className="relative">
                     <img
@@ -269,6 +303,7 @@ const Home = () => {
                     title={item.title}
                     subtitle={item.subtitle}
                     coverUrl={item.coverUrl}
+                    onClick={() => handleAlbumClick(item.id)}
                   />
                 </div>
               ))}
@@ -301,6 +336,7 @@ const Home = () => {
                     title={item.title}
                     subtitle={item.subtitle}
                     coverUrl={item.coverUrl}
+                    onClick={() => handleAlbumClick(item.id)}
                   />
                 </div>
               ))}
@@ -324,6 +360,7 @@ const Home = () => {
                 <div
                   key={item.id}
                   className="flex items-center gap-4 bg-[#13132b]/50 p-4 rounded-lg hover:bg-[#13132b] transition-colors group cursor-pointer border border-white/5"
+                  onClick={() => handleAlbumClick(item.id)}
                 >
                   <img
                     src={item.coverUrl}
@@ -366,6 +403,7 @@ const Home = () => {
                 <div
                   key={genre.id}
                   className="relative h-32 rounded-xl overflow-hidden group cursor-pointer"
+                  onClick={() => handleGenreClick(genre.id)}
                 >
                   <img
                     src={genre.coverUrl}
@@ -405,6 +443,7 @@ const Home = () => {
                 <div
                   key={`more-${artist.id}`}
                   className="flex flex-col items-center gap-2 cursor-pointer group shrink-0"
+                  onClick={() => handleArtistClick(artist.id)}
                 >
                   <div className="relative">
                     <img
@@ -475,6 +514,7 @@ const Home = () => {
                     title={item.title}
                     subtitle={item.subtitle}
                     coverUrl={item.coverUrl}
+                    onClick={() => handleAlbumClick(item.id)}
                   />
                 </div>
               ))}
