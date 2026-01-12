@@ -1,55 +1,27 @@
 import React, { useState } from 'react';
-import { usePlaylistsWithTrackCounts } from '@/core/services/playlist.service';
+import { usePlaylistsWithTrackCounts, playlistService, useAllPlaylistSongIds } from '@/core/services/playlist.service';
 import { useTrendingSongs } from '@/core/services/song.service';
+import { useToggleFavorite, useCheckFavorite } from '@/core/services/favorite.service';
+import { useProfileStore } from '@/store/profileStore';
 import { Playlist } from '@/types/playlist.types';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   PlaylistDetail,
   CreatePlaylistModal,
 } from '../components';
-  import '@/styles/user-playlists.css';
-
-// Carousel Section Component
-const CarouselSection: React.FC<{
-  title: string;
-  items: Playlist[];
-  onSeeAll?: () => void;
-  renderItem: (item: Playlist, index: number) => React.ReactNode;
-}> = ({ title, items, onSeeAll, renderItem }) => {
-  return (
-    <div className="user-playlist__section">
-      <div className="user-playlist__section-header">
-        <h2 className="user-playlist__section-title">{title}</h2>
-        {onSeeAll && (
-          <button className="user-playlist__see-all" onClick={onSeeAll}>
-            See All
-          </button>
-        )}
-      </div>
-      <div className="user-playlist__carousel">
-        <div className="user-playlist__carousel-track">
-          {items.map((item, index) => renderItem(item, index))}
-        </div>
-      </div>
-    </div>
-  );
-};
+import '@/styles/user-playlists.css';
+import { toast } from 'sonner';
 
 // Grid Section Component
 const GridSection: React.FC<{
   title: string;
   items: Playlist[];
-  onSeeAll?: () => void;
   renderItem: (item: Playlist, index: number) => React.ReactNode;
-}> = ({ title, items, onSeeAll, renderItem }) => {
+}> = ({ title, items, renderItem }) => {
   return (
     <div className="user-playlist__section">
       <div className="user-playlist__section-header">
         <h2 className="user-playlist__section-title">{title}</h2>
-        {onSeeAll && (
-          <button className="user-playlist__see-all" onClick={onSeeAll}>
-            See All
-          </button>
-        )}
       </div>
       <div className="user-playlist__grid">
         {items.map((item, index) => renderItem(item, index))}
@@ -105,7 +77,11 @@ interface TrackInfo {
 const TrackListItem: React.FC<{
   track: TrackInfo;
   onAddToPlaylist: () => void;
-}> = ({ track, onAddToPlaylist }) => {
+  onRemoveFromPlaylists: () => void;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
+  isInPlaylist: boolean;
+}> = ({ track, onAddToPlaylist, onRemoveFromPlaylists, isFavorite, onToggleFavorite, isInPlaylist }) => {
   return (
     <div className="track-list-item">
       <div className="track-list-item__image-wrapper">
@@ -124,17 +100,130 @@ const TrackListItem: React.FC<{
         {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
       </span>
       <div className="track-list-item__actions">
-        <button className="track-list-item__favorite" title="Add to favorites">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <button 
+          className={`track-list-item__favorite ${isFavorite ? 'is-favorite' : ''}`}
+          onClick={onToggleFavorite}
+          title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
-        <button className="track-list-item__add" onClick={onAddToPlaylist} title="Add to playlist">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+        <button 
+          className={`track-list-item__add ${isInPlaylist ? 'is-in-playlist' : ''}`}
+          onClick={isInPlaylist ? onRemoveFromPlaylists : onAddToPlaylist}
+          title={isInPlaylist ? 'Remove from playlists' : 'Add to playlist'}
+        >
+          {isInPlaylist ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          )}
         </button>
+      </div>
+    </div>
+  );
+};
+
+const TrackListItemWrapper: React.FC<{
+  track: TrackInfo;
+  userId: number;
+  allPlaylistSongIds: Set<number>;
+  onAddToPlaylist: () => void;
+  onRemoveFromPlaylists: () => void;
+  onToggleFavorite: (isFavorited: boolean) => void;
+}> = ({ track, userId, allPlaylistSongIds, onAddToPlaylist, onRemoveFromPlaylists, onToggleFavorite }) => {
+  const { data: favoriteStatus } = useCheckFavorite(userId, track.id);
+  const isFavorite = favoriteStatus?.isFavorite || false;
+  const isInPlaylist = allPlaylistSongIds.has(track.id);
+
+  return (
+    <TrackListItem
+      track={track}
+      isFavorite={isFavorite}
+      onToggleFavorite={() => onToggleFavorite(isFavorite)}
+      onAddToPlaylist={onAddToPlaylist}
+      onRemoveFromPlaylists={onRemoveFromPlaylists}
+      isInPlaylist={isInPlaylist}
+    />
+  );
+};
+
+const AddToPlaylistModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  songId: number;
+  songTitle: string;
+  playlists: Playlist[];
+}> = ({ isOpen, onClose, songId, songTitle, playlists }) => {
+  const queryClient = useQueryClient();
+  const [adding, setAdding] = useState<number | null>(null);
+
+  const handleAddToPlaylist = async (playlistId: number) => {
+    setAdding(playlistId);
+    try {
+      await playlistService.addTrackToPlaylist(playlistId, songId);
+      // Invalidate all playlist-related queries for real-time update
+      queryClient.invalidateQueries({ queryKey: ['playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['playlists-with-counts'] });
+      queryClient.invalidateQueries({ queryKey: ['playlist-tracks'] });
+      queryClient.invalidateQueries({ queryKey: ['all-playlist-song-ids'] });
+      toast.success('Song added to playlist successfully!');
+      onClose();
+    } catch (error) {
+      console.error('Failed to add song to playlist:', error);
+      toast.error('Failed to add song to playlist');
+    } finally {
+      setAdding(null);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content add-to-playlist-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Add "{songTitle}" to Playlist</h2>
+          <button className="modal-close" onClick={onClose}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div className="modal-body">
+          {playlists.length === 0 ? (
+            <p className="no-playlists">You don't have any playlists yet. Create one first!</p>
+          ) : (
+            <div className="playlists-list">
+              {playlists.map((playlist) => (
+                <button
+                  key={playlist.id}
+                  className="playlist-item"
+                  onClick={() => handleAddToPlaylist(playlist.id)}
+                  disabled={adding === playlist.id}
+                >
+                  <img
+                    src={playlist.coverImageUrl || '/placeholder-playlist.png'}
+                    alt={playlist.playlistName}
+                    className="playlist-item__image"
+                  />
+                  <div className="playlist-item__info">
+                    <h4>{playlist.playlistName}</h4>
+                    <p>{playlist.playlistSongs?.length || 0} songs</p>
+                  </div>
+                  {adding === playlist.id && <span className="loading">Adding...</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -143,23 +232,24 @@ const TrackListItem: React.FC<{
 const UserPlaylistsPage: React.FC = () => {
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
   const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
+  const [addToPlaylistModal, setAddToPlaylistModal] = useState<{ songId: number; songTitle: string } | null>(null);
+  const queryClient = useQueryClient();
+  
+  // Get user profile
+  const profile = useProfileStore((state) => state.profile);
+  const userId = profile?.id || 0;
   
   // Fetch data
   const { data: playlists = [] } = usePlaylistsWithTrackCounts();
   const { data: trendingResponse } = useTrendingSongs();
+  const { data: allPlaylistSongIds = new Set<number>() } = useAllPlaylistSongIds();
+  const toggleFavorite = useToggleFavorite();
   
   const trendingSongs = trendingResponse?.items || [];
 
-  // Mock data for sections (replace with real API calls later)
-  const recentlyListened = playlists.slice(0, 4);
-  const mostListened = playlists.slice(0, 4);
-  const likedTracks = playlists.slice(0, 4);
-  const yourPlaylists = playlists.slice(0, 6);
-  const updatedPlaylists = playlists.slice(0, 2);
-  const subscribedPlaylists = playlists.slice(0, 10);
-  const popularPlaylists = playlists.slice(0, 4);
-  const recentlySeen = playlists.slice(0, 5);
-  const tracksToAdd = trendingSongs.slice(0, 4);
+  // Only use real API data - Your Playlists
+  const yourPlaylists = playlists;
+  const tracksToAdd = trendingSongs.slice(0, 8);
 
   const handlePlaylistClick = (playlist: Playlist) => {
     setSelectedPlaylist(playlist);
@@ -169,56 +259,66 @@ const UserPlaylistsPage: React.FC = () => {
     setSelectedPlaylist(null);
   };
 
+  const handleToggleFavorite = (songId: number, isFavorited: boolean) => {
+    if (!userId) {
+      alert('Please log in to add favorites');
+      return;
+    }
+    toggleFavorite.mutate({ userId, songId, isFavorited });
+  };
+
+  const handleOpenAddToPlaylist = (songId: number, songTitle: string) => {
+    setAddToPlaylistModal({ songId, songTitle });
+  };
+
+  const handleCloseAddToPlaylist = () => {
+    setAddToPlaylistModal(null);
+  };
+
+  const handleRemoveFromPlaylists = async (songId: number, songTitle: string) => {
+    if (!userId) {
+      toast.error('Please log in to manage playlists');
+      return;
+    }
+
+    const playlistsWithSong: number[] = [];
+    for (const playlist of playlists) {
+      const tracks = await playlistService.getPlaylistTracks(playlist.id);
+      if (tracks.some(track => track.songId === songId)) {
+        playlistsWithSong.push(playlist.id);
+      }
+    }
+
+    if (playlistsWithSong.length === 0) {
+      toast.error('Song not found in any playlist');
+      return;
+    }
+
+    try {
+      await Promise.all(
+        playlistsWithSong.map(playlistId =>
+          playlistService.removeTrackFromPlaylist(playlistId, songId)
+        )
+      );
+
+      queryClient.invalidateQueries({ queryKey: ['playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['playlists-with-counts'] });
+      queryClient.invalidateQueries({ queryKey: ['playlist-tracks'] });
+      queryClient.invalidateQueries({ queryKey: ['all-playlist-song-ids'] });
+
+      toast.success(`Removed "${songTitle}" from ${playlistsWithSong.length} playlist(s)`);
+    } catch (error) {
+      console.error('Failed to remove song from playlists:', error);
+      toast.error('Failed to remove song from playlists');
+    }
+  };
+
   return (
     <div className="user-playlists-page">
       <div className="user-playlists-page__main">
-        {/* Recently Listened */}
-        <CarouselSection
-          title="Recently Listened"
-          items={recentlyListened}
-          onSeeAll={() => console.log('See all recently listened')}
-          renderItem={(playlist, index) => (
-            <PlaylistCard
-              key={`recent-${index}`}
-              playlist={playlist}
-              onClick={() => handlePlaylistClick(playlist)}
-            />
-          )}
-        />
-
-        {/* Most Listened */}
-        <CarouselSection
-          title="Most Listened"
-          items={mostListened}
-          onSeeAll={() => console.log('See all most listened')}
-          renderItem={(playlist, index) => (
-            <PlaylistCard
-              key={`most-${index}`}
-              playlist={playlist}
-              onClick={() => handlePlaylistClick(playlist)}
-            />
-          )}
-        />
-
-        {/* Liked Tracks */}
-        <CarouselSection
-          title="Liked Tracks"
-          items={likedTracks}
-          onSeeAll={() => console.log('See all liked tracks')}
-          renderItem={(playlist, index) => (
-            <PlaylistCard
-              key={`liked-${index}`}
-              playlist={playlist}
-              onClick={() => handlePlaylistClick(playlist)}
-            />
-          )}
-        />
-
-        {/* Your Playlists */}
         <GridSection
           title="Your Playlists"
           items={yourPlaylists}
-          onSeeAll={() => console.log('See all your playlists')}
           renderItem={(playlist, index) => (
             <PlaylistCard
               key={`yours-${index}`}
@@ -228,59 +328,13 @@ const UserPlaylistsPage: React.FC = () => {
           )}
         />
 
-        {/* Updated Playlists */}
-        <GridSection
-          title="Updated Playlists"
-          items={updatedPlaylists}
-          onSeeAll={() => console.log('See all updated playlists')}
-          renderItem={(playlist, index) => (
-            <PlaylistCard
-              key={`updated-${index}`}
-              playlist={playlist}
-              onClick={() => handlePlaylistClick(playlist)}
-            />
-          )}
-        />
-
-        {/* Subscribed Playlists */}
-        <GridSection
-          title="Subscribed Playlists"
-          items={subscribedPlaylists}
-          onSeeAll={() => console.log('See all subscribed playlists')}
-          renderItem={(playlist, index) => (
-            <PlaylistCard
-              key={`subscribed-${index}`}
-              playlist={playlist}
-              onClick={() => handlePlaylistClick(playlist)}
-            />
-          )}
-        />
-
-        {/* Popular Playlists Based On You */}
-        <CarouselSection
-          title="Popular Playlists Based On You"
-          items={popularPlaylists}
-          onSeeAll={() => console.log('See all popular playlists')}
-          renderItem={(playlist, index) => (
-            <PlaylistCard
-              key={`popular-${index}`}
-              playlist={playlist}
-              onClick={() => handlePlaylistClick(playlist)}
-            />
-          )}
-        />
-
-        {/* Add Tracks To Your Playlists */}
         <div className="user-playlist__section">
           <div className="user-playlist__section-header">
             <h2 className="user-playlist__section-title">Add Tracks To Your Playlists</h2>
-            <button className="user-playlist__see-all" onClick={() => console.log('See all tracks')}>
-              See All
-            </button>
           </div>
           <div className="user-playlist__track-list">
             {tracksToAdd.map((track, index) => (
-              <TrackListItem
+              <TrackListItemWrapper
                 key={`track-${index}`}
                 track={{
                   id: track.id,
@@ -290,25 +344,15 @@ const UserPlaylistsPage: React.FC = () => {
                   coverImage: track.album?.coverImage,
                   duration: track.duration,
                 }}
-                onAddToPlaylist={() => console.log('Add to playlist:', track.id)}
+                userId={userId}
+                allPlaylistSongIds={allPlaylistSongIds}
+                onToggleFavorite={(isFavorited) => handleToggleFavorite(track.id, isFavorited)}
+                onAddToPlaylist={() => handleOpenAddToPlaylist(track.id, track.title)}
+                onRemoveFromPlaylists={() => handleRemoveFromPlaylists(track.id, track.title)}
               />
             ))}
           </div>
         </div>
-
-        {/* Playlists You Recently Seen */}
-        <CarouselSection
-          title="Playlists You Recently Seen"
-          items={recentlySeen}
-          onSeeAll={() => console.log('See all recently seen')}
-          renderItem={(playlist, index) => (
-            <PlaylistCard
-              key={`seen-${index}`}
-              playlist={playlist}
-              onClick={() => handlePlaylistClick(playlist)}
-            />
-          )}
-        />
       </div>
 
       {/* Playlist Detail Panel - Right Sidebar */}
@@ -338,6 +382,17 @@ const UserPlaylistsPage: React.FC = () => {
           setShowCreatePlaylistModal(false);
         }}
       />
+
+      {/* Add To Playlist Modal */}
+      {addToPlaylistModal && (
+        <AddToPlaylistModal
+          isOpen={true}
+          onClose={handleCloseAddToPlaylist}
+          songId={addToPlaylistModal.songId}
+          songTitle={addToPlaylistModal.songTitle}
+          playlists={playlists}
+        />
+      )}
     </div>
   );
 };
