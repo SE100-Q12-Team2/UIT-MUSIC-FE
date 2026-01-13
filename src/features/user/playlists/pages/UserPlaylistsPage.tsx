@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePlaylistsWithTrackCounts, playlistService, useAllPlaylistSongIds } from '@/core/services/playlist.service';
 import { useTrendingSongs } from '@/core/services/song.service';
 import { useToggleFavorite, useCheckFavorite } from '@/core/services/favorite.service';
@@ -6,7 +7,6 @@ import { useProfileStore } from '@/store/profileStore';
 import { Playlist } from '@/types/playlist.types';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  PlaylistDetail,
   CreatePlaylistModal,
 } from '../components';
 import '@/styles/user-playlists.css';
@@ -230,7 +230,7 @@ const AddToPlaylistModal: React.FC<{
 };
 
 const UserPlaylistsPage: React.FC = () => {
-  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
+  const navigate = useNavigate();
   const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
   const [addToPlaylistModal, setAddToPlaylistModal] = useState<{ songId: number; songTitle: string } | null>(null);
   const queryClient = useQueryClient();
@@ -252,11 +252,8 @@ const UserPlaylistsPage: React.FC = () => {
   const tracksToAdd = trendingSongs.slice(0, 8);
 
   const handlePlaylistClick = (playlist: Playlist) => {
-    setSelectedPlaylist(playlist);
-  };
-
-  const handleCloseDetail = () => {
-    setSelectedPlaylist(null);
+    // Navigate to full page playlist view like Spotify
+    navigate(`/playlist/${playlist.id}`);
   };
 
   const handleToggleFavorite = (songId: number, isFavorited: boolean) => {
@@ -314,7 +311,7 @@ const UserPlaylistsPage: React.FC = () => {
   };
 
   return (
-    <div className="user-playlists-page">
+    <div className="user-playlists-page user-playlists-page--no-detail">
       <div className="user-playlists-page__main">
         <GridSection
           title="Your Playlists"
@@ -354,24 +351,6 @@ const UserPlaylistsPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Playlist Detail Panel - Right Sidebar */}
-      {selectedPlaylist && (
-        <aside className="user-playlists-page__detail">
-          <PlaylistDetail
-            title={selectedPlaylist.playlistName}
-            coverImage={selectedPlaylist.coverImageUrl}
-            trackCount={selectedPlaylist.playlistSongs?.length || 0}
-            duration="0:00"
-            author="You"
-            tracks={[]}
-            onTrackClick={(track) => console.log('Play track:', track)}
-            onRemoveFromPlaylist={() => {}}
-            onPlayTrack={() => {}}
-            onClose={handleCloseDetail}
-          />
-        </aside>
-      )}
 
       {/* Create New Playlist Modal */}
       <CreatePlaylistModal

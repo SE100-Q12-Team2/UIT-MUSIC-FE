@@ -9,6 +9,15 @@
   position: relative;
 }
 
+.user-playlists-page--no-detail {
+  display: block;
+  padding: 24px;
+}
+
+.user-playlists-page--no-detail .user-playlists-page__main {
+  max-width: 100%;
+}
+
 .user-playlists-page::before {
   content: '';
   position: absolute;

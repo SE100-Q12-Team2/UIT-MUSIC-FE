@@ -24,6 +24,7 @@ import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 // pages (main)
 import SettingsPage from "@/features/settings/pages/SettingsPage";
 import UserPlaylistsPage from "@/features/user/playlists/pages/UserPlaylistsPage";
+import PlaylistDetailPage from "@/features/user/playlists/pages/PlaylistDetailPage";
 import FavoritePage from "@/features/user/favorite/pages/FavoritePage";
 import BrowserPage from "@/features/user/browser/pages/BrowserPage";
 import PlayerPage from "@/features/player/pages/PlayerPage";
@@ -42,7 +43,6 @@ import AdminPaymentMethodsPage from "@/features/admin/payment-methods/pages/Admi
 
 // user pages
 import SongDetailPage from "@/features/user/songs/pages/SongDetailPage";
-import PlaylistPage from "@/features/playlist/pages/PlaylistPage";
 import { AlbumPage, AllAlbumsPage } from "@/features/user/album/pages";
 import SeeAllPage from "@/features/user/home/pages/SeeAllPage";
 import { ArtistDetailPage } from "@/features/user/artist/pages";
@@ -165,7 +165,7 @@ export const router = createBrowserRouter([
             element: (
               <ProtectedRoute>
                 <LazyLoad>
-                  <PlaylistPage />
+                  <PlaylistDetailPage />
                 </LazyLoad>
               </ProtectedRoute>
             ),

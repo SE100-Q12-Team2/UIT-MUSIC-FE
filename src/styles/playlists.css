@@ -6,6 +6,16 @@
   min-height: calc(100vh - 80px);
 }
 
+/* Full width layout when no detail panel */
+.playlists-page--no-detail {
+  display: block;
+  padding: 24px;
+}
+
+.playlists-page--no-detail .playlists-page__main {
+  max-width: 100%;
+}
+
 .playlists-page__main {
   flex: 1;
   display: flex;

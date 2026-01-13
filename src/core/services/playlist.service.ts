@@ -143,15 +143,15 @@ export const usePlaylist = (id: string) => {
     
     // Convert tracks to songs format
     const songs: PlaylistSong[] = tracks.map(track => {
-      const playlistSong = track.song;
+      const trackSong = track.song;
       return {
-        id: playlistSong.id,
-        title: playlistSong.title,
+        id: trackSong.id,
+        title: trackSong.title,
         description: '',
-        duration: playlistSong.duration,
+        duration: trackSong.duration,
         language: '',
         lyrics: '',
-        albumId: playlistSong.album?.id || 0,
+        albumId: trackSong.album?.id || 0,
         genreId: 0,
         labelId: 0,
         uploadDate: '',
@@ -159,21 +159,21 @@ export const usePlaylist = (id: string) => {
         copyrightStatus: 'Clear' as const,
         playCount: 0,
         isFavorite: false,
-        contributors: playlistSong.songArtists.map(sa => ({
-          labelId: sa.artist.id,
-          songId: playlistSong.id,
+        contributors: (trackSong.contributors || []).map(contributor => ({
+          labelId: contributor.label.id,
+          songId: trackSong.id,
           role: 'MainArtist',
           label: {
-            id: sa.artist.id,
-            artistName: sa.artist.artistName,
-            labelName: sa.artist.artistName,
+            id: contributor.label.id,
+            artistName: contributor.label.labelName,
+            labelName: contributor.label.labelName,
           },
         })),
         favorites: [],
-        album: playlistSong.album ? {
-          id: playlistSong.album.id,
-          albumTitle: playlistSong.album.albumTitle,
-          coverImage: '',
+        album: trackSong.album ? {
+          id: trackSong.album.id,
+          albumTitle: trackSong.album.albumTitle,
+          coverImage: trackSong.album.coverImage || '',
         } : {
           id: 0,
           albumTitle: '',
@@ -187,6 +187,11 @@ export const usePlaylist = (id: string) => {
           id: 0,
           labelName: '',
         },
+        asset: trackSong.asset ? {
+          id: trackSong.asset.id,
+          bucket: trackSong.asset.bucket,
+          keyMaster: trackSong.asset.keyMaster,
+        } : undefined,
       } as PlaylistSong;
     });
     

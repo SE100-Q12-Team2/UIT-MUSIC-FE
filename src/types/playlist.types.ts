@@ -1,9 +1,11 @@
 import { Song } from "@/types/song.types";
 
-export interface PlaylistSong {
+export interface PlaylistSongRelation {
   id: number;
   playlistId: number;
+  songId: number;
   position: number;
+  addedAt: string;
   song: Song;
 }
 
@@ -11,47 +13,53 @@ export interface Playlist {
   id: number;
   userId: number;
   playlistName: string;
-  description: string;
+  description: string | null;
   tags: string[];
-  coverImageUrl: string;
-  playlistSongs: PlaylistSong[];
+  coverImageUrl: string | null;
+  playlistSongs?: PlaylistSongRelation[];
   isFavorite: boolean;
   isPublic: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-// Artist info in song
-export interface PlaylistSongArtist {
-  artist: {
+// Artist info in track response (from BE /playlists/:id/tracks)
+export interface TrackArtist {
+  label: {
     id: number;
-    artistName: string;
+    labelName: string;
   };
 }
 
-// Album info in song
-export interface PlaylistSongAlbum {
+// Album info in track response (from BE /playlists/:id/tracks)
+export interface TrackAlbum {
   id: number;
   albumTitle: string;
-  coverImage: string;
+  coverImage?: string;
 }
 
-// Song info embedded in playlist track
-export interface PlaylistSong {
+// Song info embedded in playlist track response (from BE /playlists/:id/tracks)
+export interface TrackSong {
   id: number;
   title: string;
   duration: number;
-  album: PlaylistSongAlbum | null;
-  songArtists: PlaylistSongArtist[];
+  album: TrackAlbum | null;
+  contributors: TrackArtist[];
+  asset?: {
+    id: number;
+    bucket: string;
+    keyMaster: string;
+  };
 }
 
+// PlaylistTrack response from GET /playlists/:id/tracks
 export interface PlaylistTrack {
   id: number;
   playlistId: number;
   songId: number;
   position: number;
   addedAt: string;
-  song: PlaylistSong;
+  song: TrackSong;
 }
 
 export interface PlaylistsResponse {
