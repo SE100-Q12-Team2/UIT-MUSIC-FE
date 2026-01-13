@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback, useEffect } from "react";
 import '@/styles/detail.css';
 import { useRecentlyPlayed } from '@/core/services/listening-history.service';
 import { useFollows, FollowItem } from '@/core/services/follow.service';
@@ -6,6 +6,10 @@ import { useProfileStore } from '@/store/profileStore';
 import { useRecordLabel } from '@/core/services/label.service';
 import { useNavigate } from 'react-router-dom';
 import TrackItem, { Track } from '@/features/user/playlists/components/TrackItem';
+import { useMusicPlayer } from '@/contexts/MusicPlayerContext';
+import { Song } from '@/core/services/song.service';
+import { useGetPlaybackUrl } from '@/core/services/playback.service';
+import { toast } from 'sonner';
 
 import detailsBanner from "@/assets/details-banner.png";
 import detailsProfileAvatar from "@/assets/details-profile-avatar.png";
@@ -36,8 +40,14 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ follow }) => {
     return follow.target.imageUrl || '/default-artist.jpg';
   }, [follow, labelData]);
 
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/artist/${follow.targetId}`);
+  };
+
   return (
-    <article className="details-singer-card">
+    <article className="details-singer-card" onClick={handleClick} style={{ cursor: 'pointer' }}>
       <div className="details-singer-card__avatar">
         <img src={displayAvatar} alt={displayName} />
       </div>
@@ -46,10 +56,26 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ follow }) => {
   );
 };
 
+interface RecentlyPlayedSong {
+  songId: number;
+  title: string;
+  artists: { name: string }[];
+  coverImageUrl?: string;
+  playCount: number;
+  duration?: number;
+  uploadDate?: string;
+  albumId?: number;
+  album?: { id: number; albumTitle: string; coverImage?: string } | null;
+  genre?: { id: number; genreName: string } | null;
+  label?: { id: number; labelName: string } | null;
+  asset?: { id: number; bucket: string; keyMaster: string } | null;
+}
+
 const DetailSection: React.FC = () => {
-  const navigate = useNavigate();
   const profile = useProfileStore((state) => state.profile);
   const userId = profile?.id;
+  const { play, setFetchPlaybackUrl } = useMusicPlayer();
+  const { mutateAsync: getPlaybackUrl } = useGetPlaybackUrl();
 
   // Fetch recently played songs (limit 12 to split into 2 columns of 6)
   const { data: recentlyPlayedData, isLoading: isLoadingSongs } = useRecentlyPlayed(12);
@@ -59,16 +85,97 @@ const DetailSection: React.FC = () => {
     userId: userId || 0,
   });
 
+  const fetchPlaybackUrlForSong = useCallback(async (songId: number): Promise<string | null> => {
+    try {
+      const response = await getPlaybackUrl({ 
+        songId, 
+        options: { quality: 'hls' } 
+      });
+      
+      if (response.ok && response.url) {
+        return response.url;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching playback URL:', error);
+      return null;
+    }
+  }, [getPlaybackUrl]);
+
+  useEffect(() => {
+    setFetchPlaybackUrl(fetchPlaybackUrlForSong);
+  }, [fetchPlaybackUrlForSong, setFetchPlaybackUrl]);
+
   // Convert API data to Track format for TrackItem
-  const tracks: Track[] = (recentlyPlayedData?.data || []).map((song: { songId: number; title: string; artists: { name: string }[]; coverImageUrl?: string; playCount: number }) => ({
+  const tracks: Track[] = (recentlyPlayedData?.data || []).map((song: RecentlyPlayedSong) => ({
     id: song.songId,
     title: song.title,
     artist: song.artists.map((a: { name: string }) => a.name).join(', ') || 'Unknown Artist',
     coverImage: song.coverImageUrl,
   }));
 
-  const handlePlayTrack = (trackId: number) => {
-    navigate(`/player?trackId=${trackId}`);
+  const songs: Song[] = useMemo(() => {
+    return (recentlyPlayedData?.data || []).map((song: RecentlyPlayedSong) => ({
+      id: song.songId,
+      title: song.title,
+      description: null,
+      duration: song.duration || 0,
+      language: null,
+      lyrics: null,
+      albumId: song.albumId || null,
+      genreId: null,
+      labelId: null,
+      uploadDate: song.uploadDate || new Date().toISOString(),
+      isActive: true,
+      copyrightStatus: 'Clear',
+      playCount: song.playCount || 0,
+      contributors: [],
+      album: song.album || null,
+      genre: song.genre || { id: 0, genreName: '' },
+      label: song.label || { id: 0, labelName: '' },
+      favorites: [],
+      asset: song.asset || null,
+    } as Song));
+  }, [recentlyPlayedData]);
+
+  const handlePlayTrack = async (trackId: number) => {
+    try {
+      const songToPlay = songs.find(s => s.id === trackId);
+      if (!songToPlay) {
+        toast.error('Song not found');
+        return;
+      }
+
+      const playbackResponse = await getPlaybackUrl({ 
+        songId: trackId, 
+        options: { quality: 'hls' } 
+      });
+      
+      if (!playbackResponse.ok || !playbackResponse.url) {
+        toast.error('Failed to load song');
+        console.error('Failed to get playback URL:', playbackResponse.reason);
+        return;
+      }
+
+      const songWithAudio = {
+        ...songToPlay,
+        audioUrl: playbackResponse.url
+      };
+
+      const songsWithAudio = await Promise.all(
+        songs.map(async (s) => {
+          if (s.id === trackId) {
+            return songWithAudio;
+          }
+          return s;
+        })
+      );
+
+      play(songWithAudio as Song, songsWithAudio);
+    } catch (error) {
+      console.error('Error playing song:', error);
+      toast.error('Failed to play song');
+    }
   };
   return (
     <section className="details-page">
