@@ -36,20 +36,37 @@ const getTagline = (planName: string): string => {
 
 // Format price for display
 const formatPrice = (price: number): string => {
-  return price.toFixed(2);
+  return price.toLocaleString('vi-VN');
 };
 
 // Extract features from plan
 const getFeatures = (plan: SubscriptionPlan): string[] => {
-  // Handle different response formats
-  if (Array.isArray(plan.features)) {
-    return plan.features as string[];
+  try {
+    if (typeof plan.features === 'string') {
+      const parsed = JSON.parse(plan.features);
+      
+      if (parsed?.feature && Array.isArray(parsed.feature)) {
+        return parsed.feature;
+      }
+      
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+    
+    if (plan.features && typeof plan.features === 'object') {
+      if ('feature' in plan.features && Array.isArray(plan.features.feature)) {
+        return plan.features.feature;
+      }
+      
+      if (Array.isArray(plan.features)) {
+        return plan.features as string[];
+      }
+    }
+  } catch (error) {
+    console.error('Error parsing features:', error);
   }
-  if (plan.features?.feature && Array.isArray(plan.features.feature)) {
-    return plan.features.feature;
-  }
-  // Default features if none provided
-  return [
+    return [
     "Ad-free listening",
     "Offline downloads",
     "High-quality audio"
@@ -83,10 +100,10 @@ const SubscriptionCard = ({
 
       {/* Price */}
       <div className="plan-price">
-        <span className="plan-price__currency">$</span>
         <span className="plan-price__amount">
           {formatPrice(plan.price)}
         </span>
+        <span className="plan-price__currency">VND</span>
       </div>
 
       {/* Features */}

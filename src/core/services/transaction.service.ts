@@ -9,16 +9,26 @@ export interface Transaction {
   subscriptionId?: number;
   amount: number;
   paymentMethodId: number;
-  status: 'Pending' | 'Completed' | 'Failed' | 'Refunded';
+  transactionStatus: 'Pending' | 'Completed' | 'Failed' | 'Refunded';
+  transactionReference?: string;
+  invoiceData?: any;
   qrCode?: string;
   returnUrl?: string;
   metadata?: Record<string, unknown>;
   createdAt: string;
-  updatedAt: string;
+  user?: {
+    id: number;
+    email: string;
+    fullName: string;
+  };
+  subscription?: {
+    id: number;
+    planId: number;
+  };
   paymentMethod?: {
     id: number;
     methodName: string;
-    methodType: string;
+    methodType?: string;
   };
 }
 
@@ -62,17 +72,14 @@ export interface RefundTransactionRequest {
 }
 
 export interface SepayPaymentQRResponse {
-  success: boolean;
-  message: string;
-  data: {
-    transactionId: number;
-    qrCode: string;
-    amount: number;
-    description: string;
-    accountNumber: string;
-    accountName: string;
-    expiresAt: string;
-  };
+  qrCodeUrl: string;
+  accountNumber: string;
+  accountName: string;
+  amount: number;
+  content: string;
+  bankName: string;
+  transactionId: number;
+  txnRef: string;
 }
 
 // ==================== Service ====================

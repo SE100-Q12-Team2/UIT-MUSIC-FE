@@ -51,6 +51,7 @@ export interface Transaction {
   paymentMethodId: number;
   status: 'Pending' | 'Completed' | 'Failed' | 'Refunded';
   qrCode?: string;
+  txnRef?: string;
   returnUrl?: string;
   metadata?: Record<string, unknown>;
   createdAt: string;
@@ -76,6 +77,18 @@ export interface CreateTransactionRequest {
   paymentMethodId: number;
   returnUrl?: string;
   metadata?: Record<string, unknown>;
+}
+
+export interface CreateTransactionResponse {
+  qrCodeUrl?: string;
+  accountNumber?: string;
+  accountName?: string;
+  amount: number;
+  content: string;
+  bankName?: string;
+  transactionId: number;
+  txnRef: string;
+  qrCode?: string;
 }
 
 export interface SubscriptionPlanQuery {
@@ -147,8 +160,8 @@ export const subscriptionService = {
   },
 
   // Transactions
-  createTransaction: async (data: CreateTransactionRequest): Promise<Transaction> => {
-    return api.post<Transaction>('/transactions', data);
+  createTransaction: async (data: CreateTransactionRequest): Promise<CreateTransactionResponse> => {
+    return api.post<CreateTransactionResponse>('/transactions', data);
   },
 
   getMyTransactions: async (query: TransactionsQuery): Promise<TransactionsResponse> => {

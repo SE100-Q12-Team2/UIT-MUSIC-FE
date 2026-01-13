@@ -1,10 +1,11 @@
 import "@/styles/subscription.css";
 import backgroundImg from "@/assets/background-subscription.jpg";
 import { SubscriptionHeader, SubscriptionCardsGrid } from "../components";
+import { PaymentModal } from "../components/PaymentModal";
 import { usePageBackground } from "@/shared/hooks/usePageBackground";
-import { useSubscriptionPlans, useSubscribe } from "@/core/services/subscription.service";
-import { handleSubscriptionError } from "@/features/user/subscription/utils";
-import { toast } from "sonner";
+import { useSubscriptionPlans } from "@/core/services/subscription.service";
+import { SubscriptionPlan } from "@/types/subscription.types";
+import { useState } from "react";
 
 
 const LoadingState = () => (
@@ -21,17 +22,27 @@ const ErrorState = ({ error }: { error: string }) => (
 
 export default function PremiumSubscriptionsPage() {
   const { data: plans, isLoading, isError, error } = useSubscriptionPlans();
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
-  const subscribeMutation = useSubscribe();
   usePageBackground(backgroundImg);
 
-  const handleSubscribe = async (planId: number) => {
-    try {
-      await subscribeMutation.mutateAsync({ planId });
-      toast.success("Subscription successful! Welcome to Premium.");
-    } catch (error: any) {
-      handleSubscriptionError(error);
+  const handleSubscribe = (planId: number) => {
+    const plan = plans?.find(p => p.id === planId);
+    if (plan) {
+      setSelectedPlan(plan);
+      setIsPaymentModalOpen(true);
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    setIsPaymentModalOpen(false);
+    setSelectedPlan(null);
+  };
+
+  const handleClosePaymentModal = () => {
+    setIsPaymentModalOpen(false);
+    setSelectedPlan(null);
   };
 
   if (isLoading) return <LoadingState />;
@@ -48,8 +59,17 @@ export default function PremiumSubscriptionsPage() {
     <div className="subscription-page">
       <div className="subscription-container">
         <SubscriptionHeader />
-        <SubscriptionCardsGrid plans={plans || []} onSubscribe={handleSubscribe} isSubscribing={subscribeMutation.isPending} />
+        <SubscriptionCardsGrid plans={plans || []} onSubscribe={handleSubscribe} isSubscribing={false} />
       </div>
+      
+      {selectedPlan && (
+        <PaymentModal
+          plan={selectedPlan}
+          isOpen={isPaymentModalOpen}
+          onClose={handleClosePaymentModal}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 };

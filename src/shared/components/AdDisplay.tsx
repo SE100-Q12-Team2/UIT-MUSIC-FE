@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useActiveAds, useTrackImpression, useTrackClick } from '@/core/services/advertisement.service';
+import { useSubscriptionStatus } from '@/core/services/subscription.service';
 import { cn } from '@/lib/utils';
 
 interface AdDisplayProps {
@@ -12,6 +13,9 @@ export const AdDisplay: React.FC<AdDisplayProps> = ({ placement, className }) =>
   const [currentAdIndex, setCurrentAdIndex] = React.useState(0);
   const [isVisible, setIsVisible] = React.useState(true);
 
+  const { data: subscriptionStatus } = useSubscriptionStatus();
+  const isPremium = subscriptionStatus?.hasActiveSubscription ?? false;
+
   const { data: ads = [] } = useActiveAds({ placement, limit: 5 });
   const trackImpression = useTrackImpression();
   const trackClick = useTrackClick();
@@ -20,13 +24,15 @@ export const AdDisplay: React.FC<AdDisplayProps> = ({ placement, className }) =>
 
   // Track impression when ad is shown
   useEffect(() => {
+    if (isPremium) return;
     if (currentAd && isVisible) {
       trackImpression.mutate({ id: currentAd.id });
     }
-  }, [currentAd?.id, isVisible]);
+  }, [isPremium, currentAd?.id, isVisible, currentAd, trackImpression]);
 
   // Rotate ads
   useEffect(() => {
+    if (isPremium) return;
     if (ads.length <= 1) return;
 
     const interval = setInterval(() => {
@@ -34,7 +40,7 @@ export const AdDisplay: React.FC<AdDisplayProps> = ({ placement, className }) =>
     }, 15000); // Change ad every 15 seconds
 
     return () => clearInterval(interval);
-  }, [ads.length]);
+  }, [isPremium, ads.length]);
 
   const handleClick = () => {
     if (!currentAd) return;
@@ -50,7 +56,7 @@ export const AdDisplay: React.FC<AdDisplayProps> = ({ placement, className }) =>
     setIsVisible(false);
   };
 
-  if (!currentAd || !isVisible) return null;
+  if (isPremium || !currentAd || !isVisible) return null;
 
   // Banner Ad
   if (currentAd.adType === 'Banner') {

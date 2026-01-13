@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { useActiveAds, useTrackImpression, useTrackClick } from '@/core/services/advertisement.service';
+import { useSubscriptionStatus } from '@/core/services/subscription.service';
 
 interface PopupAdProps {
   showDelay?: number; 
@@ -13,6 +14,9 @@ export const PopupAd: React.FC<PopupAdProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
+  const { data: subscriptionStatus } = useSubscriptionStatus();
+  const isPremium = subscriptionStatus?.hasActiveSubscription ?? false;
+
   const { data: ads = [] } = useActiveAds({ placement: 'Homepage', limit: 3 });
   const trackImpression = useTrackImpression();
   const trackClick = useTrackClick();
@@ -21,6 +25,8 @@ export const PopupAd: React.FC<PopupAdProps> = ({
   const currentAd = popupAds[0];
 
   useEffect(() => {
+    if (isPremium) return;
+    
     if (sessionOnly) {
       const hasShownAd = sessionStorage.getItem('hasShownPopupAd');
       if (hasShownAd) {
@@ -41,13 +47,14 @@ export const PopupAd: React.FC<PopupAdProps> = ({
     }, showDelay);
 
     return () => clearTimeout(timer);
-  }, [popupAds.length, showDelay, sessionOnly]);
+  }, [isPremium, popupAds.length, showDelay, sessionOnly]);
 
   useEffect(() => {
+    if (isPremium) return;
     if (currentAd && isVisible) {
       trackImpression.mutate({ id: currentAd.id });
     }
-  }, [currentAd?.id, isVisible, currentAd, trackImpression]);
+  }, [isPremium, currentAd?.id, isVisible, currentAd, trackImpression]);
 
   const handleClick = () => {
     if (!currentAd) return;
@@ -63,7 +70,7 @@ export const PopupAd: React.FC<PopupAdProps> = ({
     setIsVisible(false);
   };
 
-  if (!currentAd || !isVisible) return null;
+  if (isPremium || !currentAd || !isVisible) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in duration-500">
