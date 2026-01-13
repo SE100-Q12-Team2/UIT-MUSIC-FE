@@ -54,7 +54,8 @@ export const PopupAd: React.FC<PopupAdProps> = ({
     if (currentAd && isVisible) {
       trackImpression.mutate({ id: currentAd.id });
     }
-  }, [isPremium, currentAd?.id, isVisible, currentAd, trackImpression]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPremium, currentAd?.id, isVisible]);
 
   const handleClick = () => {
     if (!currentAd) return;

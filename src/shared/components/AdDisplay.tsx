@@ -28,7 +28,8 @@ export const AdDisplay: React.FC<AdDisplayProps> = ({ placement, className }) =>
     if (currentAd && isVisible) {
       trackImpression.mutate({ id: currentAd.id });
     }
-  }, [isPremium, currentAd?.id, isVisible, currentAd, trackImpression]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPremium, currentAd?.id, isVisible]);
 
   // Rotate ads
   useEffect(() => {
