@@ -2,12 +2,10 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { User, Settings, LogOut } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 
 import logoWithName from '@/assets/logo-name-under.svg';
 import searchIcon from '@/assets/search.svg';
-import notificationIcon from '@/assets/notification.svg';
-import settingsIcon from '@/assets/settings.svg';
 import '@/styles/app-header.css';
 
 import {
@@ -24,7 +22,7 @@ import { ROUTES } from '@/core/constants/routes';
 
 const AppHeader: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: profile, isLoading: isLoadingProfile } = useProfile();
+  const { data: profile } = useProfile();
 
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -43,7 +41,7 @@ const AppHeader: React.FC = () => {
     <header className="app-header">
       {/* LEFT */}
       <div className="app-header__left">
-        <Link to="/" className="app-header__logo">
+        <Link to="/home" className="app-header__logo">
           <img
             src={logoWithName}
             alt="VioTune"
@@ -80,15 +78,14 @@ const AppHeader: React.FC = () => {
         {/* PROFILE DROPDOWN */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="app-header__profile-btn">
-              <img
-                src={avatarUrl}
-                alt={displayName}
-                className="h-9 w-9 rounded-full object-cover ring-2 ring-white/10 hover:ring-white/30 transition"
-              />
-            </button>
+              <button className="app-header__profile-btn">
+                <img
+                  src={avatarUrl}
+                  alt={displayName}
+                  className="h-9 w-9 rounded-full object-cover ring-2 ring-white/10 hover:ring-white/30 transition"
+                />
+              </button>
           </DropdownMenuTrigger>
-
           <DropdownMenuContent
             align="end"
             sideOffset={10}
@@ -115,21 +112,11 @@ const AppHeader: React.FC = () => {
 
             <DropdownMenuItem asChild>
               <Link
-                to="/profile"
+                to="/settings"
                 className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-white/10"
               >
                 <User className="h-4 w-4 opacity-80" />
                 Profile
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem asChild>
-              <Link
-                to="/settings/profile"
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-white/10"
-              >
-                <Settings className="h-4 w-4 opacity-80" />
-                Account settings
               </Link>
             </DropdownMenuItem>
 

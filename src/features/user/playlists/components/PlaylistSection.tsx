@@ -16,15 +16,13 @@ const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   playlists,
   onSeeAll,
   onPlaylistClick,
-  onAddToExisting,
-  onAddToNew,
 }) => {
   return (
     <section className="playlist-section">
       <div className="playlist-section__header">
         <h2 className="playlist-section__title">{title}</h2>
         {onSeeAll && (
-          <button className="playlist-section__see-all" onClick={onSeeAll}>
+          <button className="playlist-section__see-all cursor-pointer" onClick={onSeeAll}>
             See All
           </button>
         )}

@@ -112,7 +112,15 @@ const PlaylistPage: React.FC = () => {
                     className="w-10 h-10 rounded object-cover flex-shrink-0 group-hover:hidden"
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="text-white font-medium truncate">{song.title}</div>
+                    <div 
+                      className="text-white font-medium truncate cursor-pointer hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/songs/${song.id}`);
+                      }}
+                    >
+                      {song.title}
+                    </div>
                     <div className="text-sm text-gray-400 truncate">
                       {song.contributors?.map((c) => c.label?.artistName || c.label?.labelName).filter(Boolean).join(', ') || 'Unknown Artist'}
                     </div>

@@ -208,7 +208,15 @@ const FavoritePage: React.FC = () => {
                           )}
                         </div>
                         <div className="favorite-track__meta">
-                          <div className="favorite-track__title">{song.title}</div>
+                          <div 
+                            className="favorite-track__title cursor-pointer hover:underline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/songs/${song.id}`);
+                            }}
+                          >
+                            {song.title}
+                          </div>
                           <div className="favorite-track__artist">
                             <ArtistName labelId={song.labelId} />
                           </div>
@@ -334,7 +342,7 @@ const FavoritePage: React.FC = () => {
           <h2 className="favorite-section__title">Suggestions For You</h2>
           {recommendations && recommendations.length > 8 && (
             <button 
-              className="favorite-section__see-all" 
+              className="favorite-section__see-all cursor-pointer" 
               type="button"
               onClick={() => setShowAllSuggestions(!showAllSuggestions)}
             >
@@ -392,7 +400,7 @@ const FavoritePage: React.FC = () => {
         <div className="favorite-section__header">
           <h2 className="favorite-section__title">You Might Also Like</h2>
           <button 
-            className="favorite-section__see-all" 
+            className="favorite-section__see-all cursor-pointer" 
             type="button"
             onClick={() => navigate('/albums/all')}
           >

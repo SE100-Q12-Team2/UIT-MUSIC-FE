@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 import { Heart } from 'lucide-react';
 import { useCheckFavorite, useToggleFavorite } from '@/core/services/favorite.service';
 import TrackMenu from './TrackMenu';
@@ -40,6 +41,7 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
   onClick,
   onPlayTrack,
 }) => {
+  const navigate = useNavigate();
   // Check favorite status from API
   const { data: favoriteStatus } = useCheckFavorite(userId, track.id);
   const toggleFavorite = useToggleFavorite();
@@ -72,6 +74,11 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
     }
   };
 
+  const handleTitleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/songs/${track.id}`);
+  };
+
   return (
     <div className="add-track-item" onClick={handleTrackClick}>
       <img
@@ -80,7 +87,12 @@ const AddTrackItem: React.FC<AddTrackItemProps> = ({
         className="add-track-item__image"
       />
       <div className="add-track-item__info">
-        <span className="add-track-item__title">{track.title}</span>
+        <span 
+          className="add-track-item__title cursor-pointer hover:underline"
+          onClick={handleTitleClick}
+        >
+          {track.title}
+        </span>
         <span className="add-track-item__artist">{track.artist}</span>
       </div>
       <div className="add-track-item__album">{track.album}</div>

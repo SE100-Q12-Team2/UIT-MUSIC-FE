@@ -81,14 +81,14 @@ const ArtistsList = () => {
                 </div>
                 
                 <div className="flex justify-center pt-4">
-                    <Button
-                        variant="default"
-                        size="default"
-                        style={{ backgroundColor: 'var(--color-accent)', color: '#000' }}
-                    >
-                        Explore Artist
-                        <ArrowRight className="h-4 w-4" />
-                    </Button>
+                        <Button
+                            variant="default"
+                            size="default"
+                            style={{ backgroundColor: 'var(--color-accent)', color: '#000' }}
+                        >
+                            Explore Artist
+                            <ArrowRight className="h-4 w-4" />
+                        </Button>
                 </div>
             </div>
         </section>

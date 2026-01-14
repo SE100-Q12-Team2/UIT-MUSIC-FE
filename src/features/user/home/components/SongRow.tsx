@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { Heart, GripVertical, MoreVertical } from 'lucide-react';
 import { Song as ApiSong } from '@/core/services/song.service';
 import { formatTime } from '@/shared/utils/formatTime';
@@ -25,6 +26,7 @@ interface SongWithCoverUrl {
 }
 
 const SongRow: React.FC<SongRowProps> = ({ song, onPlay, showGrip = false }) => {
+  const navigate = useNavigate();
   const { play } = useMusicPlayer();
   const { user } = useAuth();
   const addToFavorites = useAddToFavorites();

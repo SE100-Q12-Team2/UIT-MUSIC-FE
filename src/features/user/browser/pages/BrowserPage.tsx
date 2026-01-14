@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 import { useTrendingSongs } from '@/core/services/song.service';
 import { AddTracksSection } from '@/features/user/playlists/components';
 import { AddTrack } from '@/features/user/playlists/components/AddTrackItem';
@@ -7,6 +8,7 @@ import '@/styles/browser.css';
 import '@/styles/playlists.css';
 
 const BrowserPage: React.FC = () => {
+  const navigate = useNavigate();
   const { data: trendingResponse, isLoading } = useTrendingSongs();
 
   const {
@@ -152,7 +154,15 @@ const BrowserPage: React.FC = () => {
                         )}
                       </div>
                       <div className="browser-carousel__info">
-                        <h3 className="browser-carousel__title">{song.title}</h3>
+                        <h3 
+                          className="browser-carousel__title cursor-pointer hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/songs/${song.id}`);
+                          }}
+                        >
+                          {song.title}
+                        </h3>
                         <p className="browser-carousel__artist">{song.artist}</p>
                       </div>
                     </div>

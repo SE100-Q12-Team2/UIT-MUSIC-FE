@@ -92,7 +92,7 @@ const AddTracksSection: React.FC<AddTracksSectionProps> = ({
       <div className="add-tracks-section__header">
         <h3 className="add-tracks-section__title">Add Tracks To Your Playlists</h3>
         {allTracks.length > 8 && (
-          <button className="add-tracks-section__see-all" onClick={handleSeeAll}>
+          <button className="add-tracks-section__see-all cursor-pointer" onClick={handleSeeAll}>
             {showAll ? 'Show Less' : 'See All'}
           </button>
         )}

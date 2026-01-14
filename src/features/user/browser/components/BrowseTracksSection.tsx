@@ -22,7 +22,7 @@ const BrowseTracksSection: React.FC<BrowseTracksSectionProps> = ({
     <div className="browse-tracks-section">
       <div className="browse-tracks-section__header">
         <h3 className="browse-tracks-section__title">{title}</h3>
-        <button className="browse-tracks-section__see-all" onClick={onSeeAll}>
+        <button className="browse-tracks-section__see-all cursor-pointer" onClick={onSeeAll}>
           See All
         </button>
       </div>

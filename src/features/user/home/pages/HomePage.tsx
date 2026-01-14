@@ -30,7 +30,7 @@ const Section = ({ title, actionText = 'See All', onActionClick, children }: Sec
       {onActionClick && (
         <Button
           variant="link"
-          className="text-gray-400 hover:text-white uppercase font-medium tracking-wider text-xs h-auto p-0"
+          className="text-gray-400 cursor-pointer hover:text-white uppercase font-medium tracking-wider text-xs h-auto p-0"
           onClick={onActionClick}
         >
           {actionText}

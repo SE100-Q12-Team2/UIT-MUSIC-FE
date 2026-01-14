@@ -4,14 +4,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // ==================== Types ====================
 
+export type Rating = 'Like' | 'Dislike';
+
 export interface SongRating {
-  id: number;
   userId: number;
   songId: number;
-  rating: number; // 1-5
-  review?: string;
-  createdAt: string;
-  updatedAt: string;
+  rating: Rating;
+  comment?: string;
+  ratedAt: string;
   user?: {
     id: number;
     fullName: string;
@@ -21,43 +21,53 @@ export interface SongRating {
 
 export interface SongRatingStats {
   songId: number;
-  averageRating: number;
   totalRatings: number;
-  ratingDistribution: {
-    rating: number;
-    count: number;
-  }[];
+  likes: number;
+  dislikes: number;
+  likePercentage: number;
+  dislikePercentage: number;
+  userRating: Rating | null;
 }
 
 export interface UserRatingStats {
   totalRatings: number;
-  averageRating: number;
-  recentRatings: SongRating[];
+  totalLikes: number;
+  totalDislikes: number;
+  recentlyRated: {
+    songId: number;
+    songTitle: string;
+    rating: Rating;
+    ratedAt: string;
+  }[];
 }
 
 export interface QueryUserRatingsParams {
   page?: number;
   limit?: number;
-  sortBy?: 'recent' | 'rating';
+  rating?: Rating;
+  sortBy?: 'ratedAt' | 'songTitle';
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface CreateRatingRequest {
   songId: number;
-  rating: number; // 1-5
-  review?: string;
+  rating: Rating;
+  comment?: string;
 }
 
 export interface UpdateRatingRequest {
-  rating?: number;
-  review?: string;
+  rating: Rating;
+  comment?: string;
 }
 
 export interface PaginatedRatingsResponse {
   data: SongRating[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 // ==================== Service ====================
@@ -92,7 +102,7 @@ export const ratingService = {
 
   // Get song rating stats
   getSongRatingStats: async (songId: number): Promise<SongRatingStats> => {
-    return api.get<SongRatingStats>(`/ratings/songs/${songId}`);
+    return api.get<SongRatingStats>(`/ratings/songs/${songId}/stats`);
   },
 
   // Get all ratings for a song
@@ -177,6 +187,7 @@ export const useRateSong = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ratings.myRating(variables.songId) });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ratings.songStats(variables.songId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ratings.songRatings(variables.songId) });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ratings.myRatings() });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ratings.myStats });
     },
@@ -208,6 +219,7 @@ export const useDeleteRating = () => {
     onSuccess: (_, songId) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ratings.myRating(songId) });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ratings.songStats(songId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ratings.songRatings(songId) });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ratings.myRatings() });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ratings.myStats });
     },

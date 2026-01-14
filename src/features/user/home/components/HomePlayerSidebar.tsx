@@ -38,12 +38,12 @@ export default function HomePlayerSidebar({
       language: null,
       lyrics: null,
       albumId: track.song.album?.id || null,
-      genreId: track.song.genre?.id || null,
-      labelId: null,
+      genreId: null,
+      labelId: track.song.contributors?.[0]?.label?.id || null,
       uploadDate: new Date().toISOString(),
       isActive: true,
       copyrightStatus: 'Clear' as const,
-      playCount: track.song.playCount || 0,
+      playCount: 0,
       contributors: [],
       album: track.song.album ? {
         id: track.song.album.id,
@@ -54,31 +54,31 @@ export default function HomePlayerSidebar({
         albumTitle: '',
         coverImage: playlist?.coverImageUrl || '',
       },
-      genre: track.song.genre || {
+      genre: {
         id: 0,
         genreName: '',
       },
-      label: {
+      label: track.song.contributors?.[0]?.label || {
         id: 0,
         labelName: '',
       },
-      asset: undefined,
+      asset: track.song.asset,
       favorites: [],
-      songArtists: track.song.songArtists?.map((sa) => ({
-        artistId: sa.artist.id,
+      songArtists: track.song.contributors?.map((contributor, idx) => ({
+        artistId: idx + 1,
         songId: track.song.id,
         role: 'MainArtist' as const,
         artist: {
-          id: sa.artist.id,
-          artistName: sa.artist.artistName,
-          profileImage: sa.artist.profileImage || '',
+          id: idx + 1,
+          artistName: contributor.label.labelName,
+          profileImage: '',
         },
-      })),
+      })) || [],
     })) as Song[];
   }, [tracks, playlist]);
 
   // Handle play song
-  const handlePlaySong = (song: Song, index: number) => {
+  const handlePlaySong = (song: Song) => {
     // Play the clicked song with the full playlist
     play(song, songs);
   };
@@ -108,7 +108,7 @@ export default function HomePlayerSidebar({
           </h3>
           <button
             onClick={() => setIsPlayerVisible(false)}
-            className="text-gray-400 hover:text-white"
+            className="text-gray-400 hover:text-white cursor-pointer"
             title="Close player"
           >
             •••
@@ -162,9 +162,9 @@ export default function HomePlayerSidebar({
                     cursor-pointer
                     ${isPlaying ? 'bg-violet-600/20 border-violet-500' : ''}
                   `}
-                  onClick={() => song && handlePlaySong(song, index)}
+                  onClick={() => song && handlePlaySong(song)}
                 >
-                  <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0">
+                  <div className="relative w-10 h-10 rounded overflow-hidden shrink-0">
                     <img
                       src={
                         track.song.album?.coverImage ||
@@ -197,9 +197,9 @@ export default function HomePlayerSidebar({
                       </span>
                     </div>
                     <div className="text-xs text-gray-400 truncate">
-                      {track.song.songArtists && track.song.songArtists.length > 0
-                        ? track.song.songArtists
-                            .map((a) => a.artist.artistName)
+                      {track.song.contributors && track.song.contributors.length > 0
+                        ? track.song.contributors
+                            .map((c) => c.label.labelName)
                             .join(', ')
                         : 'Unknown Artist'}
                     </div>

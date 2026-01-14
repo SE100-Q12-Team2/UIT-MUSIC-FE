@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 import { Play, Heart, MoreHorizontal, Clock } from 'lucide-react';
 import { useAlbumDetails, AlbumSong } from '@/core/services/album.service';
 import { useMusicPlayer } from '@/contexts/MusicPlayerContext';
@@ -10,6 +10,7 @@ import '@/styles/playlists.css'
 
 const AlbumPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { play } = useMusicPlayer();
   
   const albumId = id ? parseInt(id, 10) : undefined;
@@ -174,7 +175,15 @@ const AlbumPage: React.FC = () => {
                 </div>
                 <div className="playlist-page__table-col playlist-page__table-col--title">
                   <div className="playlist-page__song-info">
-                    <p className="playlist-page__song-title">{song.title}</p>
+                    <p 
+                      className="playlist-page__song-title cursor-pointer hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/songs/${song.id}`);
+                      }}
+                    >
+                      {song.title}
+                    </p>
                     <p className="playlist-page__song-artist">
                       {song.songArtists?.map((sa) => 
                         sa.artist.artistName

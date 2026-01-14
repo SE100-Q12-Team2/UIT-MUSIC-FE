@@ -11,6 +11,7 @@ interface SelectPlaylistModalProps {
   sourcePlaylistId?: number; // The playlist we're adding tracks from
   trackId?: number; // Track ID to add to the selected playlist
   isLoading?: boolean;
+  onCreateNew?: () => void; 
 }
 
 const SelectPlaylistModal: React.FC<SelectPlaylistModalProps> = ({
@@ -21,6 +22,7 @@ const SelectPlaylistModal: React.FC<SelectPlaylistModalProps> = ({
   sourcePlaylistId,
   trackId,
   isLoading = false,
+  onCreateNew,
 }) => {
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<number | null>(null);
   const addTrackMutation = useAddTrackToPlaylist();
@@ -103,6 +105,18 @@ const SelectPlaylistModal: React.FC<SelectPlaylistModalProps> = ({
           >
             Cancel
           </button>
+          {onCreateNew && (
+            <button
+              className="select-playlist-modal__cancel"
+              onClick={() => {
+                onClose();
+                onCreateNew();
+              }}
+              type="button"
+            >
+              Create New
+            </button>
+          )}
           <button
             className="select-playlist-modal__confirm"
             onClick={handleConfirm}
