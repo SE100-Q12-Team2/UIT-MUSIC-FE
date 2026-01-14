@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
 import { useRecordLabels, useLabelAlbums, useLabelSongs } from '@/core/services/label.service';
 import { Music, Disc, TrendingUp, Edit } from 'lucide-react';
-import labelAvatar from '@/assets/label-avatar.jpg';
 import { EditProfileDialog } from '../components/EditProfileDialog';
 import '@/styles/label-home.css';
 
@@ -62,7 +61,11 @@ const LabelHomePage: React.FC = () => {
       {/* Header Section */}
       <div className="label-home__header">
         <div className="label-home__logo">
-          <img src={labelAvatar} alt="Label Avatar" className="label-home__logo-img" />
+          <img 
+            src={label.imageUrl || 'https://via.placeholder.com/150?text=No+Image'} 
+            alt={`${label.labelName} Avatar`} 
+            className="label-home__logo-img" 
+          />
         </div>
         <div className="label-home__info">
           <h1 className="label-home__title">{label.labelName}</h1>

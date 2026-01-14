@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { X, Building2, FileText, Globe, Mail } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { X, Building2, FileText, Globe, Mail, ImagePlus, Loader2 } from 'lucide-react';
 import { useUpdateLabel } from '@/core/services/label.service';
+import { useUploadAvatar } from '@/core/services/upload.service';
 import type { RecordLabel, UpdateLabelRequest } from '@/types/label.types';
 import { toast } from 'sonner';
 
@@ -17,13 +18,47 @@ export const EditProfileDialog = ({ isOpen, onClose, label }: EditProfileDialogP
     website: label.website,
     contactEmail: label.contactEmail,
     hasPublicProfile: label.hasPublicProfile,
+    imageUrl: label.imageUrl,
   });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(label.imageUrl);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateLabelMutation = useUpdateLabel();
+  const uploadAvatarMutation = useUploadAvatar();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Please select a valid image file (JPG, PNG, GIF, or WebP)');
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setSelectedImage(file);
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleClose = () => {
@@ -34,7 +69,10 @@ export const EditProfileDialog = ({ isOpen, onClose, label }: EditProfileDialogP
       website: label.website,
       contactEmail: label.contactEmail,
       hasPublicProfile: label.hasPublicProfile,
+      imageUrl: label.imageUrl,
     });
+    setSelectedImage(null);
+    setPreviewUrl(label.imageUrl);
     onClose();
   };
 
@@ -42,9 +80,20 @@ export const EditProfileDialog = ({ isOpen, onClose, label }: EditProfileDialogP
     e.preventDefault();
     
     try {
+      let imageUrl = formData.imageUrl;
+
+      if (selectedImage) {
+        toast.info('Uploading image...');
+        imageUrl = await uploadAvatarMutation.mutateAsync(selectedImage);
+        console.log('✅ Image uploaded successfully:', imageUrl);
+      }
+
       await updateLabelMutation.mutateAsync({
         labelId: label.id,
-        data: formData,
+        data: {
+          ...formData,
+          imageUrl,
+        },
       });
       
       toast.success('Profile updated successfully');
@@ -73,6 +122,46 @@ export const EditProfileDialog = ({ isOpen, onClose, label }: EditProfileDialogP
         </div>
 
         <form onSubmit={handleSubmit} className="edit-profile-form">
+          {/* Image Upload Section */}
+          <div className="edit-profile-field">
+            <label className="edit-profile-label">Profile Image</label>
+            <div className="edit-profile-image-container">
+              <div 
+                className="edit-profile-image-preview" 
+                onClick={handleImageClick}
+                style={{ cursor: 'pointer' }}
+              >
+                {previewUrl ? (
+                  <img 
+                    src={previewUrl} 
+                    alt="Profile preview" 
+                    className="edit-profile-image"
+                  />
+                ) : (
+                  <div className="edit-profile-image-placeholder">
+                    <ImagePlus size={48} />
+                    <span>Click to upload image</span>
+                  </div>
+                )}
+                {uploadAvatarMutation.isPending && (
+                  <div className="edit-profile-image-uploading">
+                    <Loader2 size={24} className="animate-spin" />
+                  </div>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                onChange={handleImageSelect}
+                style={{ display: 'none' }}
+              />
+              <p className="edit-profile-image-hint">
+                Recommended: Square image, max 5MB (JPG, PNG, GIF, WebP)
+              </p>
+            </div>
+          </div>
+
           <div className="edit-profile-field">
             <label htmlFor="labelName" className="edit-profile-label">
               Label/Artist Name
@@ -161,9 +250,9 @@ export const EditProfileDialog = ({ isOpen, onClose, label }: EditProfileDialogP
             <button
               type="submit"
               className="edit-profile-submit"
-              disabled={updateLabelMutation.isPending}
+              disabled={updateLabelMutation.isPending || uploadAvatarMutation.isPending}
             >
-              {updateLabelMutation.isPending ? 'Saving...' : 'Save changes'}
+              {uploadAvatarMutation.isPending ? 'Uploading image...' : updateLabelMutation.isPending ? 'Saving...' : 'Save changes'}
             </button>
           </div>
         </form>
