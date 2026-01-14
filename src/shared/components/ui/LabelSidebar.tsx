@@ -8,13 +8,17 @@ import reportIconClick from "@/assets/copyright-report-click.svg";
 import playlistClickIcon from "@/assets/playlist-click-icon.svg";
 import albumIcon from "@/assets/browser-icon.svg";
 import albumIconClick from "@/assets/browser-click-icon.svg";
+import { Users } from "lucide-react";
+import { useAuth } from "@/shared/hooks/auth/useAuth";
+import { useRecordLabels } from "@/core/services/label.service";
 import "@/styles/sidebar.css";
 
 interface NavItem {
   id: string;
   label: string;
-  icon: string;
-  activeIcon: string;
+  icon?: string;
+  activeIcon?: string;
+  iconComponent?: React.ComponentType<{ size?: number; className?: string }>;
   path: string;
 }
 
@@ -45,6 +49,12 @@ const labelNavItems: NavItem[] = [
     path: "/label/albums",
   },
   {
+    id: "artists",
+    label: "Artists",
+    iconComponent: Users,
+    path: "/label/artists",
+  },
+  {
     id: "report",
     label: "Report",
     icon: reportIcon,
@@ -56,6 +66,12 @@ const labelNavItems: NavItem[] = [
 const LabelSidebar: React.FC<LabelSidebarProps> = ({ onExpandChange }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
+  const { data: labels } = useRecordLabels(user?.id);
+  
+  // Get current label's type (if user has a label)
+  const currentLabel = labels?.[0];
+  const isCompanyLabel = currentLabel?.labelType === "COMPANY";
 
   const isActive = (path: string) => {
     return (
@@ -73,6 +89,14 @@ const LabelSidebar: React.FC<LabelSidebarProps> = ({ onExpandChange }) => {
     onExpandChange?.(false);
   };
 
+  // Filter out "Artists" menu if label is INDIVIDUAL
+  const filteredNavItems = labelNavItems.filter(item => {
+    if (item.id === "artists") {
+      return isCompanyLabel;
+    }
+    return true;
+  });
+
   return (
     <aside
       className={`sidebar ${isExpanded ? "sidebar--expanded" : ""}`}
@@ -81,7 +105,7 @@ const LabelSidebar: React.FC<LabelSidebarProps> = ({ onExpandChange }) => {
     >
       <nav className="sidebar__nav">
         <ul className="sidebar__list sidebar__list--main">
-          {labelNavItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <li key={item.id}>
               <Link
                 to={item.path}
@@ -90,11 +114,20 @@ const LabelSidebar: React.FC<LabelSidebarProps> = ({ onExpandChange }) => {
                 }`}
               >
                 <div className="sidebar__icon-wrapper">
-                  <img
-                    src={isActive(item.path) ? item.activeIcon : item.icon}
-                    alt={item.label}
-                    className="sidebar__icon"
-                  />
+                  {item.iconComponent ? (
+                    <item.iconComponent 
+                      size={24} 
+                      className={`sidebar__icon ${
+                        isActive(item.path) ? "sidebar__icon--active" : ""
+                      }`}
+                    />
+                  ) : (
+                    <img
+                      src={isActive(item.path) ? item.activeIcon : item.icon}
+                      alt={item.label}
+                      className="sidebar__icon"
+                    />
+                  )}
                 </div>
                 {isExpanded && (
                   <span className="sidebar__label">{item.label}</span>

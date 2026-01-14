@@ -9,6 +9,9 @@ export interface RegisterRequest {
   password: string;
   confirmPassword: string;
   code: string;
+  role?: 'Listener' | 'Label';
+  labelType?: 'INDIVIDUAL' | 'COMPANY';
+  labelName?: string;
 }
 
 export interface SendOTPRequest {

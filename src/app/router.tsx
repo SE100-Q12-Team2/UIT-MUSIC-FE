@@ -34,6 +34,7 @@ import LabelHomePage from "@/features/label/home/pages/LabelHomePage";
 import LabelSongManagementPage from "@/features/label/songs/pages/LabelSongManagementPage";
 import LabelAlbumManagementPage from "@/features/label/albums/pages/LabelAlbumManagementPage";
 import CreateAlbumPage from "@/features/label/albums/pages/CreateAlbumPage";
+import ArtistManagementPage from "@/features/label/artists/pages/ArtistManagementPage";
 
 // admin pages
 import AdminDashboardPage from "@/features/admin/pages/AdminDashboardPage";
@@ -291,6 +292,14 @@ export const router = createBrowserRouter([
             element: (
               <LazyLoad>
                 <CreateAlbumPage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: "artists",
+            element: (
+              <LazyLoad>
+                <ArtistManagementPage />
               </LazyLoad>
             ),
           },

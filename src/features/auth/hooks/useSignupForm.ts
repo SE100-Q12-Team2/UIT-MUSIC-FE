@@ -25,6 +25,9 @@ export const useSignupForm = () => {
       password: "",
       confirmPassword: "",
       code: "",
+      role: "Listener",
+      labelType: undefined,
+      labelName: "",
     },
   });
 
@@ -67,7 +70,10 @@ export const useSignupForm = () => {
         email: data.email,
         password: data.password,
         confirmPassword: data.confirmPassword,
-        code: data.code
+        code: data.code,
+        role: data.role,
+        labelType: data.role === "Label" ? data.labelType : undefined,
+        labelName: data.role === "Label" && data.labelName ? data.labelName : undefined,
       })
       toast.success("Registration successful! Redirecting to login...");
       navigate('/login', { replace: true });

@@ -6,27 +6,53 @@ export interface RecordLabel {
   description: string;
   website: string;
   imageUrl: string;
-  labelType: "COMPANY" | "INDEPENDENT";
+  labelType: "COMPANY" | "INDIVIDUAL";
   contactEmail: string;
   hasPublicProfile: boolean;
+  parentLabelId: number | null;
   createdAt: string;
   user: {
     id: number;
     email: string;
     fullName: string;
   };
+  parentLabel?: {
+    id: number;
+    labelName: string;
+    labelType: "COMPANY" | "INDIVIDUAL";
+  } | null;
+  managedArtists?: {
+    id: number;
+    labelName: string;
+    imageUrl: string | null;
+  }[];
   _count: {
     albums: number;
     songs: number;
+    managedArtists?: number;
   };
 }
 
-export interface UpdateLabelRequest {
+export interface CreateLabelRequest {
   labelName: string;
-  description: string;
-  website: string;
-  contactEmail: string;
-  hasPublicProfile: boolean;
+  labelType: "COMPANY" | "INDIVIDUAL";
+  imageUrl?: string | null;
+  description?: string;
+  website?: string;
+  contactEmail?: string;
+  hasPublicProfile?: boolean;
+  parentLabelId?: number | null;
+}
+
+export interface UpdateLabelRequest {
+  labelName?: string;
+  labelType?: "COMPANY" | "INDIVIDUAL";
+  imageUrl?: string | null;
+  description?: string;
+  website?: string;
+  contactEmail?: string;
+  hasPublicProfile?: boolean;
+  parentLabelId?: number | null;
 }
 
 export interface RecordLabelsResponse {
@@ -143,6 +169,19 @@ export interface LabelSong {
 
 export interface LabelSongsResponse {
   items: LabelSong[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// Artist management types
+export interface AddArtistToCompanyRequest {
+  artistLabelId: number;
+}
+
+export interface ManagedArtistsResponse {
+  items: RecordLabel[];
   total: number;
   page: number;
   limit: number;

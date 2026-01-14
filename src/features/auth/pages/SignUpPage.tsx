@@ -24,6 +24,8 @@ const SignUpPage = () => {
     sendVerificationCode,
   } = useSignupForm();
 
+  const selectedRole = form.watch("role");
+
   return (
     <div className="auth-page">
       <div className="auth-container">
@@ -87,6 +89,99 @@ const SignUpPage = () => {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem className="auth-field">
+                  <FormLabel>I want to register as</FormLabel>
+                  <FormControl>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          value="Listener"
+                          checked={field.value === "Listener"}
+                          onChange={() => field.onChange("Listener")}
+                          className="w-4 h-4"
+                        />
+                        <span className="text-white">Listener</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          value="Label"
+                          checked={field.value === "Label"}
+                          onChange={() => field.onChange("Label")}
+                          className="w-4 h-4"
+                        />
+                        <span className="text-white">Record Label / Artist</span>
+                      </label>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {selectedRole === "Label" && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="labelName"
+                  render={({ field }) => (
+                    <FormItem className="auth-field">
+                      <FormLabel>Label / Artist Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Enter your label or artist name"
+                          className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="labelType"
+                  render={({ field }) => (
+                    <FormItem className="auth-field">
+                      <FormLabel>Label Type</FormLabel>
+                      <FormControl>
+                        <div className="flex gap-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              value="INDIVIDUAL"
+                              checked={field.value === "INDIVIDUAL"}
+                              onChange={() => field.onChange("INDIVIDUAL")}
+                              className="w-4 h-4"
+                            />
+                            <span className="text-white">Individual Artist</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              value="COMPANY"
+                              checked={field.value === "COMPANY"}
+                              onChange={() => field.onChange("COMPANY")}
+                              className="w-4 h-4"
+                            />
+                            <span className="text-white">Company / Label</span>
+                          </label>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
             <FormField
               control={form.control}

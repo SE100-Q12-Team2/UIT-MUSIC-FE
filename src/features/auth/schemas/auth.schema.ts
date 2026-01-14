@@ -31,10 +31,35 @@ export const signUpFormSchema = z.object({
     .string()
     .min(1, "Please confirm your password"),
   code: z.string("OTP code is required").length(6, "OTP code must be 6 characters"),
+  role: z.enum(["Listener", "Label"]),
+  labelType: z.enum(["INDIVIDUAL", "COMPANY"]).optional(),
+  labelName: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
-});
+}).refine(
+  (data) => {
+    if (data.role === "Label" && !data.labelType) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Label type is required when registering as a label",
+    path: ["labelType"],
+  }
+).refine(
+  (data) => {
+    if (data.role === "Label" && !data.labelName) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Label name is required when registering as a label",
+    path: ["labelName"],
+  }
+);
 
 export type SignUpFormValues = z.infer<typeof signUpFormSchema>;
 

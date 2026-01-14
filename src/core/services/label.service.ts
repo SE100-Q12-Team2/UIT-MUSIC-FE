@@ -6,6 +6,9 @@ import {
   LabelAlbumsResponse,
   LabelSongsResponse,
   UpdateLabelRequest,
+  CreateLabelRequest,
+  ManagedArtistsResponse,
+  AddArtistToCompanyRequest,
 } from '@/types/label.types';
 
 export const labelService = {
@@ -20,6 +23,10 @@ export const labelService = {
   // Get a specific record label by ID
   getRecordLabelById: async (labelId: number): Promise<RecordLabel> => {
     return api.get<RecordLabel>(`/record-labels/${labelId}`);
+  },
+
+  createLabel: async (data: CreateLabelRequest): Promise<RecordLabel> => {
+    return api.post<RecordLabel>('/record-labels', data);
   },
 
   // Get albums for a label
@@ -40,6 +47,20 @@ export const labelService = {
   updateLabel: async (labelId: number, data: UpdateLabelRequest): Promise<RecordLabel> => {
     const response = await api.put<RecordLabel>(`/record-labels/${labelId}`, data);
     return response;
+  },
+
+  getManagedArtists: async (companyId: number, page = 1, limit = 20, search?: string): Promise<ManagedArtistsResponse> => {
+    return api.get<ManagedArtistsResponse>(`/record-labels/${companyId}/managed-artists`, {
+      params: { page, limit, search },
+    });
+  },
+
+  addArtistToCompany: async (companyId: number, data: AddArtistToCompanyRequest): Promise<void> => {
+    return api.post(`/record-labels/${companyId}/managed-artists`, data);
+  },
+
+  removeArtistFromCompany: async (companyId: number, artistId: number): Promise<void> => {
+    return api.delete(`/record-labels/${companyId}/managed-artists/${artistId}`);
   },
 };
 
@@ -103,5 +124,51 @@ export const useRecordLabel = (labelId: number | undefined) => {
       return labelService.getRecordLabelById(labelId);
     },
     enabled: !!labelId,
+  });
+};
+
+export const useCreateLabel = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation<RecordLabel, Error, CreateLabelRequest>({
+    mutationFn: (data) => labelService.createLabel(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['record-labels'] });
+    },
+  });
+};
+
+export const useManagedArtists = (companyId: number | undefined, page = 1, limit = 20, search?: string) => {
+  return useQuery({
+    queryKey: ['managed-artists', companyId, page, limit, search],
+    queryFn: () => {
+      if (!companyId) throw new Error('Company ID not available');
+      return labelService.getManagedArtists(companyId, page, limit, search);
+    },
+    enabled: !!companyId,
+  });
+};
+
+export const useAddArtistToCompany = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation<void, Error, { companyId: number; data: AddArtistToCompanyRequest }>({
+    mutationFn: ({ companyId, data }) => labelService.addArtistToCompany(companyId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['managed-artists', variables.companyId] });
+      queryClient.invalidateQueries({ queryKey: ['record-label', variables.companyId] });
+    },
+  });
+};
+
+export const useRemoveArtistFromCompany = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation<void, Error, { companyId: number; artistId: number }>({
+    mutationFn: ({ companyId, artistId }) => labelService.removeArtistFromCompany(companyId, artistId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['managed-artists', variables.companyId] });
+      queryClient.invalidateQueries({ queryKey: ['record-label', variables.companyId] });
+    },
   });
 };
