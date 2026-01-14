@@ -116,6 +116,36 @@ export const useUploadAvatar = () => {
   });
 };
 
+export const useUploadAlbumCover = () => {
+  const generateUrlMutation = useGenerateImageUploadUrl();
+
+  return useMutation({
+    mutationFn: async (file: File) => {
+      console.log('🔄 Starting album cover upload for file:', file.name);
+      
+      // Step 1: Get presigned URL with 'uploads' resource
+      const urlData = await generateUrlMutation.mutateAsync({
+        resource: 'uploads',
+        fileName: file.name,
+        contentType: file.type,
+      });
+
+      console.log('📝 Generated presigned URL:', {
+        key: urlData.key,
+        publicUrl: urlData.publicUrl,
+      });
+
+      // Step 2: Upload to S3
+      await uploadService.uploadImageToS3(urlData.presignedUrl, file);
+
+      console.log('✅ Album cover upload complete. Public URL:', urlData.publicUrl);
+
+      // Return public URL
+      return urlData.publicUrl;
+    },
+  });
+};
+
 export const useUploadAudio = () => {
   return useMutation({
     mutationFn: async ({ file, songId }: { file: File; songId: number }) => {

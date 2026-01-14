@@ -85,6 +85,17 @@
   color: rgba(255, 255, 255, 0.35);
 }
 
+.lac-select {
+  cursor: pointer;
+  padding-right: 8px;
+}
+
+.lac-select option {
+  background: #1a1a1a;
+  color: white;
+  padding: 8px;
+}
+
 .lac-input-date {
   padding-right: 8px;
 }
@@ -236,6 +247,13 @@
 .lac-songDel img {
   width: 16px;
   height: 16px;
+}
+
+.lac-loading {
+  padding: 16px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
 }
 
 .lac-empty {

@@ -1,8 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "@/shared/hooks/auth/useAuth";
 import { useCreateAlbum } from "@/core/services/album.service";
-import { useUploadAvatar } from "@/core/services/upload.service";
+import { useUploadAlbumCover } from "@/core/services/upload.service";
+import { useRecordLabels, useLabelSongs } from "@/core/services/label.service";
 
 import "@/styles/label-album-create.css";
 
@@ -21,10 +23,10 @@ type SongItem = {
 
 const CreateAlbumPage: React.FC = () => {
   const navigate = useNavigate();
-  // const { user } = useAuth();
+  const { user } = useAuth();
 
   const createAlbumMutation = useCreateAlbum();
-  const uploadAvatarMutation = useUploadAvatar();
+  const uploadAlbumCoverMutation = useUploadAlbumCover();
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -35,9 +37,16 @@ const CreateAlbumPage: React.FC = () => {
 
   const [songs, setSongs] = useState<SongItem[]>([]);
   const [showAddSong, setShowAddSong] = useState(false);
-  const [songName, setSongName] = useState("");
-  const [songArtist, setSongArtist] = useState("");
-  const [songDuration, setSongDuration] = useState("");
+
+  const { data: labels = [] } = useRecordLabels(user?.id);
+  const label = labels[0];
+  const { data: labelSongsResponse, isLoading: isLoadingSongs } = useLabelSongs(label?.id, 1, 100);
+
+  const availableSongs = useMemo(() => {
+    if (!labelSongsResponse?.items) return [];
+    const addedIds = new Set(songs.map(s => s.id));
+    return labelSongsResponse.items.filter(song => !addedIds.has(song.id));
+  }, [labelSongsResponse, songs]);
 
   const handlePickFile = () => fileRef.current?.click();
 
@@ -46,26 +55,34 @@ const CreateAlbumPage: React.FC = () => {
     setCoverFile(f);
   };
 
-  const handleAddSong = () => {
-    const t = songName.trim();
-    const a = songArtist.trim();
-    const d = songDuration.trim();
+  const handleSelectSong = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const songId = Number(e.target.value);
+    if (!songId || !labelSongsResponse?.items) return;
 
-    if (!t || !a || !d) {
-      toast.error("Please fill Song name / Artist / Duration");
-      return;
-    }
+    const selectedSong = labelSongsResponse.items.find(s => s.id === songId);
+    if (!selectedSong) return;
+
+    const minutes = Math.floor(selectedSong.duration / 60);
+    const seconds = selectedSong.duration % 60;
+    const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+    const artistNames = (selectedSong.contributors || [])
+      .map(c => c.label.labelName)
+      .join(', ') || 'Unknown Artist';
 
     setSongs((prev) => [
       ...prev,
-      { id: `${Date.now()}`, title: t, artist: a, duration: d },
+      { 
+        id: selectedSong.id, 
+        title: selectedSong.title, 
+        artist: artistNames, 
+        duration: durationStr 
+      },
     ]);
 
-    setSongName("");
-    setSongArtist("");
-    setSongDuration("");
     setShowAddSong(false);
-    toast.success("Added song");
+    toast.success(`Added "${selectedSong.title}" to album`);
+    e.target.value = ''; // Reset dropdown
   };
 
   const handleRemoveSong = (id: SongItem["id"]) => {
@@ -83,7 +100,7 @@ const CreateAlbumPage: React.FC = () => {
 
       if (coverFile) {
         toast.info("Uploading cover image...");
-        const uploadResult = await uploadAvatarMutation.mutateAsync(coverFile);
+        const uploadResult = await uploadAlbumCoverMutation.mutateAsync(coverFile);
         coverImageUrl = uploadResult;
       }
 
@@ -248,61 +265,47 @@ const CreateAlbumPage: React.FC = () => {
 
         {showAddSong && (
           <div className="lac-addForm">
-            <div className="lac-row2">
-              <div className="lac-field">
-                <div className="lac-label">Song name</div>
+            <div className="lac-field">
+              <div className="lac-label">Select Song from Your Library</div>
+              {isLoadingSongs ? (
+                <div className="lac-loading">Loading songs...</div>
+              ) : availableSongs.length === 0 ? (
+                <div className="lac-empty">No more songs available to add</div>
+              ) : (
                 <div className="lac-inputWrap">
-                  <input
-                    className="lac-input"
-                    value={songName}
-                    onChange={(e) => setSongName(e.target.value)}
-                    placeholder="Song name"
-                  />
+                  <select 
+                    className="lac-input lac-select"
+                    onChange={handleSelectSong}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Choose a song...</option>
+                    {availableSongs.map((song) => {
+                      const minutes = Math.floor(song.duration / 60);
+                      const seconds = song.duration % 60;
+                      const duration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                      const artists = (song.contributors || [])
+                        .map(c => c.label.labelName)
+                        .join(', ') || 'Unknown';
+                      
+                      return (
+                        <option key={song.id} value={song.id}>
+                          {song.title} - {artists} ({duration})
+                        </option>
+                      );
+                    })}
+                  </select>
                 </div>
-              </div>
-
-              <div className="lac-field">
-                <div className="lac-label">Artist</div>
-                <div className="lac-inputWrap">
-                  <input
-                    className="lac-input"
-                    value={songArtist}
-                    onChange={(e) => setSongArtist(e.target.value)}
-                    placeholder="Artist"
-                  />
-                </div>
-              </div>
+              )}
             </div>
 
-            <div className="lac-row2">
-              <div className="lac-field">
-                <div className="lac-label">Duration</div>
-                <div className="lac-inputWrap">
-                  <input
-                    className="lac-input"
-                    value={songDuration}
-                    onChange={(e) => setSongDuration(e.target.value)}
-                    placeholder="4:46"
-                  />
-                </div>
-              </div>
-
-              <div className="lac-field lac-addActions">
-                <button
-                  type="button"
-                  className="lac-btn lac-btnGhost"
-                  onClick={() => setShowAddSong(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="lac-btn lac-btnPrimary"
-                  onClick={handleAddSong}
-                >
-                  Add
-                </button>
-              </div>
+            <div className="lac-field lac-addActions">
+              <button
+                type="button"
+                className="lac-btn lac-btnGhost"
+                onClick={() => setShowAddSong(false)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         )}
@@ -319,9 +322,9 @@ const CreateAlbumPage: React.FC = () => {
             type="button"
             className="lac-btn lac-btnPrimary"
             onClick={handleCreate}
-            disabled={createAlbumMutation.isPending || uploadAvatarMutation.isPending}
+            disabled={createAlbumMutation.isPending || uploadAlbumCoverMutation.isPending}
           >
-            {createAlbumMutation.isPending || uploadAvatarMutation.isPending ? 'Creating...' : 'Create'}
+            {createAlbumMutation.isPending || uploadAlbumCoverMutation.isPending ? 'Creating...' : 'Create'}
           </button>
         </div>
       </div>

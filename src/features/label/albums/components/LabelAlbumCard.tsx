@@ -46,7 +46,7 @@ const LabelAlbumCard: React.FC<Props> = ({
   onOpenDetail,
 }) => {
   const cover = album.coverImage || fallbackCoverSrc;
-  const tracks = album._count?.songs ?? 0;
+  const tracks = album.totalTracks ?? 0;
 
   const displayDuration = useMemo(() => {
     return (album as any).totalDuration || "01:38:58";
