@@ -232,6 +232,15 @@
   gap: 0.75rem;
 }
 
+.label-song-management__album-cover {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 .label-song-management__song-info {
   display: flex;
   align-items: center;

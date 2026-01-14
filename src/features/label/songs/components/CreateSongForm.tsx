@@ -6,7 +6,7 @@ import { Textarea } from '@/shared/components/ui/textarea';
 import { Label } from '@/shared/components/ui/label';
 import { useCreateSong } from '@/core/services/song.service';
 import { useGenres } from '@/core/services/genre.service';
-import { useRecordLabels } from '@/core/services/label.service';
+import { useRecordLabels, useLabelAlbums } from '@/core/services/label.service';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
 import { useUploadAudio } from '@/core/services/upload.service';
 import { toast } from 'sonner';
@@ -22,6 +22,7 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
   const [formData, setFormData] = useState({
     title: '',
     genreId: '',
+    albumId: '',
     duration: '3:00',
     publishDate: '',
     description: '',
@@ -33,11 +34,13 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
   const uploadAudioMutation = useUploadAudio();
   const { data: genresResponse } = useGenres({ limit: 100 });
   const { data: labels = [] } = useRecordLabels(user?.id);
+  const label = labels[0];
+  const { data: albumsResponse } = useLabelAlbums(label?.id, 1, 100);
 
   console.log("genresResponse", genresResponse)
 
   const genres = genresResponse?.data || [];
-  const label = labels[0];
+  const albums = albumsResponse?.items || [];
   const handleInputChange = (field: string, value: string | File) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -99,6 +102,7 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
         description: formData.description.trim() || undefined,
         language: formData.language,
         genreId: formData.genreId ? Number(formData.genreId) : undefined,
+        albumId: formData.albumId ? Number(formData.albumId) : undefined,
         // Artist is the label itself
         artists: [
           {
@@ -132,6 +136,7 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
       setFormData({
         title: '',
         genreId: '',
+        albumId: '',
         duration: '3:00',
         publishDate: '',
         description: '',
@@ -196,7 +201,7 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
           </div>
         </div>
 
-        {/* Row 2: Genre - Duration */}
+        {/* Row 2: Genre - Album */}
         <div className="create-song-form__row">
           <div className="create-song-form__field">
             <Label htmlFor="genre" className="create-song-form__label">
@@ -223,6 +228,33 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
           </div>
 
           <div className="create-song-form__field">
+            <Label htmlFor="album" className="create-song-form__label">
+              Album
+            </Label>
+            <div className="create-song-form__input-wrapper">
+              <div className="create-song-form__field-icon">
+                <Music size={20} />
+              </div>
+              <select
+                id="album"
+                value={formData.albumId}
+                onChange={(e) => handleInputChange('albumId', e.target.value)}
+                className="create-song-form__input"
+              >
+                <option value="">Select album (optional)</option>
+                {albums.map((album) => (
+                  <option key={album.id} value={album.id}>
+                    {album.albumTitle}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 3: Duration - Publish Date */}
+        <div className="create-song-form__row">
+          <div className="create-song-form__field">
             <Label htmlFor="duration" className="create-song-form__label">
               Duration
             </Label>
@@ -239,30 +271,6 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
                 className="create-song-form__input"
                 pattern="[0-9]+:[0-5][0-9]"
               />
-            </div>
-          </div>
-        </div>
-
-        {/* Row 3: Song's File - Date */}
-        <div className="create-song-form__row">
-          <div className="create-song-form__field">
-            <Label htmlFor="songFile" className="create-song-form__label">
-              Song's File
-            </Label>
-            <div className="create-song-form__input-wrapper">
-              <div className="create-song-form__field-icon">
-                <Music size={20} />
-              </div>
-              <Input
-                id="songFile"
-                type="file"
-                accept="audio/*"
-                onChange={handleFileChange}
-                className="create-song-form__file-input"
-              />
-              <label htmlFor="songFile" className="create-song-form__file-label">
-                {formData.songFile ? formData.songFile.name : 'Chọn file nhạc'}
-              </label>
             </div>
           </div>
 
@@ -285,7 +293,31 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
           </div>
         </div>
 
-        {/* Row 4: Description (full width) */}
+        {/* Row 4: Song's File */}
+        <div className="create-song-form__row">
+          <div className="create-song-form__field">
+            <Label htmlFor="songFile" className="create-song-form__label">
+              Song's File
+            </Label>
+            <div className="create-song-form__input-wrapper">
+              <div className="create-song-form__field-icon">
+                <Music size={20} />
+              </div>
+              <Input
+                id="songFile"
+                type="file"
+                accept="audio/*"
+                onChange={handleFileChange}
+                className="create-song-form__file-input"
+              />
+              <label htmlFor="songFile" className="create-song-form__file-label">
+                {formData.songFile ? formData.songFile.name : 'Chọn file nhạc'}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 5: Description (full width) */}
         <div className="create-song-form__field create-song-form__field--full create-song-form__field--textarea">
           <Label htmlFor="description" className="create-song-form__label">
             Description

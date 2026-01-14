@@ -424,6 +424,16 @@ const LabelSongManagementPage: React.FC = () => {
                     <tr key={song.id}>
                       <td>
                         <div className="label-song-management__song-name">
+                          {song.album?.coverImage && (
+                            <img 
+                              src={song.album.coverImage} 
+                              alt={song.album.albumTitle || song.title}
+                              className="label-song-management__album-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
                           <div className="label-song-management__song-info">
                             <span 
                               className="label-song-management__song-title label-song-management__song-title--clickable"

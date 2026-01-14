@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Type, User, Music, Calendar, Clock, FileText } from 'lucide-react';
+import { X, Type, User, Music, Clock, FileText } from 'lucide-react';
 import { LabelSong } from '@/types/label.types';
 import { useUpdateSong } from '@/core/services/song.service';
+import { useGenres } from '@/core/services/genre.service';
+import { useRecordLabels, useLabelAlbums } from '@/core/services/label.service';
+import { useAuth } from '@/shared/hooks/auth/useAuth';
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { Button } from '@/shared/components/ui/button';
@@ -18,16 +21,25 @@ interface EditSongModalProps {
 }
 
 const EditSongModal: React.FC<EditSongModalProps> = ({ song, isOpen, onClose, onSuccess }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
     artist: '',
-    genre: '',
+    genreId: '',
+    albumId: '',
     publishDate: '',
     duration: '',
     description: '',
   });
 
   const updateSongMutation = useUpdateSong();
+  const { data: genresResponse } = useGenres({ limit: 100 });
+  const { data: labels = [] } = useRecordLabels(user?.id);
+  const label = labels[0];
+  const { data: albumsResponse } = useLabelAlbums(label?.id, 1, 100);
+
+  const genres = genresResponse?.data || [];
+  const albums = albumsResponse?.items || [];
 
   // Initialize form data when song changes
   useEffect(() => {
@@ -40,7 +52,8 @@ const EditSongModal: React.FC<EditSongModalProps> = ({ song, isOpen, onClose, on
         setFormData({
           title: song.title,
           artist: song.contributors.map((sa) => sa.label.labelName).join(', '),
-          genre: song.genre.genreName,
+          genreId: song.genre?.id ? String(song.genre.id) : '',
+          albumId: song.albumId ? String(song.albumId) : '',
           publishDate: publishDate,
           duration: formatTime(song.duration),
           description: song.description || '',
@@ -68,8 +81,8 @@ const EditSongModal: React.FC<EditSongModalProps> = ({ song, isOpen, onClose, on
           title: formData.title,
           description: formData.description,
           duration: durationInSeconds,
-          uploadDate: formData.publishDate ? new Date(formData.publishDate).toISOString() : song.uploadDate,
-          // TODO: Update genre and artist if needed
+          genreId: formData.genreId ? Number(formData.genreId) : null,
+          albumId: formData.albumId ? Number(formData.albumId) : null,
         },
       });
 
@@ -150,7 +163,7 @@ const EditSongModal: React.FC<EditSongModalProps> = ({ song, isOpen, onClose, on
               </div>
             </div>
 
-            {/* Row 2: Genre, Date, Duration */}
+            {/* Row 2: Genre, Album, Duration */}
             <div className="edit-song-modal__row edit-song-modal__row--three">
               <div className="edit-song-modal__field">
                 <Label htmlFor="edit-genre" className="edit-song-modal__label">
@@ -160,31 +173,43 @@ const EditSongModal: React.FC<EditSongModalProps> = ({ song, isOpen, onClose, on
                   <div className="edit-song-modal__field-icon">
                     <Music size={20} />
                   </div>
-                  <Input
+                  <select
                     id="edit-genre"
-                    type="text"
-                    value={formData.genre}
-                    onChange={(e) => handleInputChange('genre', e.target.value)}
+                    value={formData.genreId}
+                    onChange={(e) => handleInputChange('genreId', e.target.value)}
                     className="edit-song-modal__input"
-                  />
+                  >
+                    <option value="">Select genre (optional)</option>
+                    {genres.map((genre) => (
+                      <option key={genre.id} value={genre.id}>
+                        {genre.genreName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
               <div className="edit-song-modal__field">
-                <Label htmlFor="edit-publishDate" className="edit-song-modal__label">
-                  Publish Date
+                <Label htmlFor="edit-album" className="edit-song-modal__label">
+                  Album
                 </Label>
                 <div className="edit-song-modal__input-wrapper">
                   <div className="edit-song-modal__field-icon">
-                    <Calendar size={20} />
+                    <Music size={20} />
                   </div>
-                  <Input
-                    id="edit-publishDate"
-                    type="date"
-                    value={formData.publishDate}
-                    onChange={(e) => handleInputChange('publishDate', e.target.value)}
+                  <select
+                    id="edit-album"
+                    value={formData.albumId}
+                    onChange={(e) => handleInputChange('albumId', e.target.value)}
                     className="edit-song-modal__input"
-                  />
+                  >
+                    <option value="">Select album (optional)</option>
+                    {albums.map((album) => (
+                      <option key={album.id} value={album.id}>
+                        {album.albumTitle}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
