@@ -4,8 +4,8 @@ import ProfileContent from '@/features/user/settings/components/ProfileContent';
 import DetailsContent from '@/features/user/settings/components/DetailsContent';
 import ContactContent from '@/features/user/settings/components/ContactContent';
 import FAQContent from '@/features/user/settings/components/FAQContent';
-import { UserPreferencesSettings } from '@/features/settings/components/UserPreferencesSettings';
-import { DeviceManagement } from '@/features/settings/components/DeviceManagement';
+
+
 import { usePageBackground } from '@/shared/hooks/usePageBackground';
 import backgroundSettings from '@/assets/background-settings.png';
 import '@/styles/settings.css';
@@ -23,10 +23,6 @@ const SettingsPage: React.FC = () => {
         return <ProfileContent />;
       case 'details':
         return <DetailsContent />;
-      case 'preferences':
-        return <UserPreferencesSettings />;
-      case 'devices':
-        return <DeviceManagement />;
       case 'contact':
         return <ContactContent />;
       case 'faq':
