@@ -3,7 +3,7 @@ import { useAuth } from '@/shared/hooks/auth/useAuth';
 import { useRecordLabels, useLabelSongs } from '@/core/services/label.service';
 import { useDeleteSong } from '@/core/services/song.service';
 import { useMusicPlayer } from '@/contexts/MusicPlayerContext';
-import { Search, Filter, ArrowUpDown, Edit, Trash2, ChevronDown, Check, Play } from 'lucide-react';
+import { Search, Filter, ArrowUpDown, Edit, Trash2, ChevronDown, Check, Play, Pause } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { formatTime } from '@/shared/utils/formatTime';
@@ -43,7 +43,7 @@ const LabelSongManagementPage: React.FC = () => {
   // Fetch songs for the label
   const { data: songsResponse, isLoading, refetch } = useLabelSongs(label?.id, page, limit);
   const deleteSongMutation = useDeleteSong();
-  const { play } = useMusicPlayer();
+  const { play, pause, isPlaying, currentSong } = useMusicPlayer();
 
   // Modal states
   const [selectedSong, setSelectedSong] = useState<LabelSong | null>(null);
@@ -63,14 +63,14 @@ const LabelSongManagementPage: React.FC = () => {
       filtered = filtered.filter(
         (song) =>
           song.title.toLowerCase().includes(query) ||
-          song.songArtists.some((sa) => sa.artist.artistName.toLowerCase().includes(query)) ||
-          song.genre.genreName.toLowerCase().includes(query)
+          song.contributors.some((sa) => sa.label.artistName.toLowerCase().includes(query)) ||
+          (song.genre?.genreName?.toLowerCase().includes(query) ?? false)
       );
     }
 
     // Genre filter
     if (filterValue !== 'All') {
-      filtered = filtered.filter((song) => song.genre.genreName === filterValue);
+      filtered = filtered.filter((song) => song.genre?.genreName === filterValue);
     }
 
     // Sort
@@ -102,7 +102,11 @@ const LabelSongManagementPage: React.FC = () => {
   const genres = useMemo(() => {
     const items = songsResponse?.items;
     if (!items) return [];
-    const uniqueGenres = new Set(items.map((song) => song.genre.genreName));
+    const uniqueGenres = new Set(
+      items
+        .filter((song) => song.genre?.genreName)
+        .map((song) => song.genre.genreName)
+    );
     return Array.from(uniqueGenres).sort();
   }, [songsResponse?.items]);
 
@@ -168,26 +172,26 @@ const LabelSongManagementPage: React.FC = () => {
       copyrightStatus: song.copyrightStatus,
       playCount: song.playCount,
       isFavorite: song.isFavorite,
-      contributors: song.songArtists.map((sa) => ({
-        labelId: sa.artistId,
+      contributors: (song.contributors || []).map((sa) => ({
+        labelId: sa.labelId,
         songId: sa.songId,
         role: sa.role,
         label: {
-          id: sa.artist.id,
-          artistName: sa.artist.artistName,
-          labelName: sa.artist.artistName,
+          id: sa.labelId,
+          artistName: sa.label.artistName,
+          labelName: sa.label.artistName,
         },
       })),
       favorites: [],
-      album: {
+      album: song.album ? {
         id: song.album.id,
         albumTitle: song.album.albumTitle,
         coverImage: song.album.coverImage,
-      },
-      genre: {
+      } : { id: 0, albumTitle: 'Unknown Album', coverImage: '' },
+      genre: song.genre ? {
         id: song.genre.id,
         genreName: song.genre.genreName,
-      },
+      } : { id: 0, genreName: 'Unknown Genre' },
       label: {
         id: song.label.id,
         labelName: song.label.labelName,
@@ -217,26 +221,26 @@ const LabelSongManagementPage: React.FC = () => {
           copyrightStatus: s.copyrightStatus as any,
           playCount: s.playCount,
           isFavorite: s.isFavorite,
-          contributors: s.songArtists.map((sa) => ({
-            labelId: sa.artistId,
+          contributors: (s.contributors || []).map((sa) => ({
+            labelId: sa.labelId,
             songId: sa.songId,
             role: sa.role,
             label: {
-              id: sa.artist.id,
-              artistName: sa.artist.artistName,
-              labelName: sa.artist.artistName,
+              id: sa.label.id,
+              artistName: sa.label.artistName,
+              labelName: sa.label.artistName,
             },
           })),
           favorites: [],
-          album: {
+          album: s.album ? {
             id: s.album.id,
             albumTitle: s.album.albumTitle,
             coverImage: s.album.coverImage,
-          },
-          genre: {
+          } : { id: 0, albumTitle: 'Unknown Album', coverImage: '' },
+          genre: s.genre ? {
             id: s.genre.id,
             genreName: s.genre.genreName,
-          },
+          } : { id: 0, genreName: 'Unknown Genre' },
           label: {
             id: s.label.id,
             labelName: s.label.labelName,
@@ -420,11 +424,6 @@ const LabelSongManagementPage: React.FC = () => {
                     <tr key={song.id}>
                       <td>
                         <div className="label-song-management__song-name">
-                          <img
-                            src={song.album.coverImage || 'https://via.placeholder.com/40'}
-                            alt={song.title}
-                            className="label-song-management__song-cover"
-                          />
                           <div className="label-song-management__song-info">
                             <span 
                               className="label-song-management__song-title label-song-management__song-title--clickable"
@@ -432,21 +431,32 @@ const LabelSongManagementPage: React.FC = () => {
                             >
                               {song.title}
                             </span>
-                            <button
-                              className="label-song-management__play-btn"
-                              onClick={() => handlePlay(song)}
-                              title="Play"
-                              aria-label="Play song"
-                            >
-                              <Play size={14} fill="currentColor" />
-                            </button>
+                            {isPlaying && currentSong?.id === song.id ? (
+                              <button
+                                className="label-song-management__play-btn label-song-management__play-btn--active"
+                                onClick={() => pause()}
+                                title="Pause"
+                                aria-label="Pause song"
+                              >
+                                <Pause size={14} fill="currentColor" />
+                              </button>
+                            ) : (
+                              <button
+                                className="label-song-management__play-btn"
+                                onClick={() => handlePlay(song)}
+                                title="Play"
+                                aria-label="Play song"
+                              >
+                                <Play size={14} fill="currentColor" />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </td>
                       <td>
-                        {(song.songArtists || []).map((sa) => sa.artist.artistName).join(', ') || 'Unknown Artist'}
+                        {(song.contributors || []).map((sa) => sa.label.labelName).join(', ') || 'Unknown Artist'}
                       </td>
-                      <td>{song.genre.genreName}</td>
+                      <td>{song.genre?.genreName || 'Unknown Genre'}</td>
                       <td>{formatPlayCount(song.playCount)}</td>
                       <td>
                         {/* TODO: Get rating from API if available */}

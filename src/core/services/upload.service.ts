@@ -19,10 +19,30 @@ export interface GenerateImageUploadUrlResponse {
   expiresIn: number;
 }
 
+export interface GenerateAudioUploadUrlRequest {
+  songId: number;
+  fileName: string;
+  tenant?: string;
+}
+
+export interface GenerateAudioUploadUrlResponse {
+  ok: boolean;
+  presignedUrl: string;
+  bucket: string;
+  key: string;
+  contentType: string;
+  expiresIn: number;
+}
+
 // API Service
 export const uploadService = {
   generateImageUploadUrl: async (data: GenerateImageUploadUrlRequest): Promise<GenerateImageUploadUrlResponse> => {
     const response = await api.post<GenerateImageUploadUrlResponse>('/upload/image/presigned-url', data);
+    return response;
+  },
+
+  generateAudioUploadUrl: async (data: GenerateAudioUploadUrlRequest): Promise<GenerateAudioUploadUrlResponse> => {
+    const response = await api.post<GenerateAudioUploadUrlResponse>('/media/master/presign', data);
     return response;
   },
 
@@ -40,6 +60,22 @@ export const uploadService = {
     }
 
     console.log('✅ Upload successful:', response.status);
+  },
+
+  uploadAudioToS3: async (presignedUrl: string, file: File): Promise<void> => {
+    const response = await fetch(presignedUrl, {
+      method: 'PUT',
+      body: file,
+      headers: {
+        'Content-Type': file.type || 'audio/mpeg',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Audio upload failed: ${response.status} ${response.statusText}`);
+    }
+
+    console.log('✅ Audio upload successful:', response.status);
   },
 };
 
@@ -76,6 +112,31 @@ export const useUploadAvatar = () => {
 
       // Return public URL
       return urlData.publicUrl;
+    },
+  });
+};
+
+export const useUploadAudio = () => {
+  return useMutation({
+    mutationFn: async ({ file, songId }: { file: File; songId: number }) => {
+      console.log('🔄 Starting audio upload for file:', file.name, 'songId:', songId);
+      
+      // Step 1: Get presigned URL
+      const urlData = await uploadService.generateAudioUploadUrl({
+        songId,
+        fileName: file.name,
+      });
+
+      console.log('📝 Generated audio presigned URL:', {
+        key: urlData.key,
+      });
+
+      // Step 2: Upload to S3
+      await uploadService.uploadAudioToS3(urlData.presignedUrl, file);
+
+      console.log('✅ Audio upload complete');
+
+      return { key: urlData.key, bucket: urlData.bucket };
     },
   });
 };

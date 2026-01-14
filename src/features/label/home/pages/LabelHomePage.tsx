@@ -185,14 +185,14 @@ const LabelHomePage: React.FC = () => {
               songsResponse.items.map((song) => (
                 <div key={song.id} className="label-home__song-item">
                   <img 
-                    src={song.album.coverImage} 
+                    src={song.album?.coverImage || 'https://via.placeholder.com/40'} 
                     alt={song.title}
                     className="label-home__song-cover"
                   />
                   <div className="label-home__song-info">
                     <h3 className="label-home__song-title">{song.title}</h3>
                     <p className="label-home__song-artist">
-                      {(song.songArtists || []).map(sa => sa.artist.artistName).join(', ') || 'Unknown Artist'}
+                      {(song.contributors || []).map(sa => sa.label.labelName).join(', ') || 'Unknown Artist'}
                     </p>
                   </div>
                   <span className="label-home__song-plays">{song.playCount.toLocaleString()} plays</span>

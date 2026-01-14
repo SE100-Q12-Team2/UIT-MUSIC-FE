@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useRef, useEffect, ReactNode } from 'react';
 import { Song } from '@/core/services/song.service';
+import { toast } from 'sonner';
 
 // Extended Song type with optional audioUrl for compatibility
 interface SongWithAudioUrl extends Song {
@@ -158,13 +159,22 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
     
     // Support both audioUrl (extended) and asset.keyMaster (from API)
     const songWithAudio = song as SongWithAudioUrl;
-    const audioUrl = songWithAudio.audioUrl || (song.asset?.keyMaster 
-      ? `${import.meta.env.VITE_API_BASE_URL || ''}/files/${song.asset.keyMaster}`
-      : '');
+    
+    let audioUrl = songWithAudio.audioUrl;
+    
+    if (!audioUrl && song.asset?.keyMaster) {
+      const s3Bucket = song.asset.bucket || import.meta.env.VITE_S3_BUCKET_NAME;
+      const s3Region = import.meta.env.VITE_S3_REGION || 'ap-southeast-1';
+      audioUrl = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${song.asset.keyMaster}`;
+    }
     
     if (!audioUrl) {
+      console.error('❌ No audio URL available for song:', song.title);
+      toast.error('Audio file not available');
       return;
     }
+    
+    console.log('🎵 Playing audio from:', audioUrl);
     
     if (audioRef.current) {
       audioRef.current.src = audioUrl;
@@ -176,6 +186,7 @@ export const MusicPlayerProvider: React.FC<MusicPlayerProviderProps> = ({ childr
         .catch((error) => {
           console.error('Error playing audio:', error);
           console.error('Audio URL:', audioUrl);
+          toast.error('Failed to play audio');
         });
     }
   };

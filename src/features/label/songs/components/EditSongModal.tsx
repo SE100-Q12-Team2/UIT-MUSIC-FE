@@ -39,7 +39,7 @@ const EditSongModal: React.FC<EditSongModalProps> = ({ song, isOpen, onClose, on
       // eslint-disable-next-line react-hooks/set-state-in-effect
         setFormData({
           title: song.title,
-          artist: song.songArtists.map((sa) => sa.artist.artistName).join(', '),
+          artist: song.contributors.map((sa) => sa.label.labelName).join(', '),
           genre: song.genre.genreName,
           publishDate: publishDate,
           duration: formatTime(song.duration),

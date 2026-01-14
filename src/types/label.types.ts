@@ -1,3 +1,5 @@
+import { Contributor } from "@/types/song.types";
+
 // Record Label types
 export interface RecordLabel {
   id: number;
@@ -160,7 +162,7 @@ export interface LabelSong {
   copyrightStatus: 'Clear' | 'Pending' | 'Disputed';
   playCount: number;
   isFavorite: boolean;
-  songArtists: LabelSongArtist[];
+  contributors: Contributor[];
   album: LabelSongAlbum;
   genre: LabelSongGenre;
   label: LabelSongLabel;

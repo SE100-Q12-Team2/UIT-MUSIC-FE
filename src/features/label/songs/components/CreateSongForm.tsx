@@ -5,6 +5,10 @@ import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { Label } from '@/shared/components/ui/label';
 import { useCreateSong } from '@/core/services/song.service';
+import { useGenres } from '@/core/services/genre.service';
+import { useRecordLabels } from '@/core/services/label.service';
+import { useAuth } from '@/shared/hooks/auth/useAuth';
+import { useUploadAudio } from '@/core/services/upload.service';
 import { toast } from 'sonner';
 import '@/styles/create-song-form.css';
 
@@ -14,18 +18,26 @@ interface CreateSongFormProps {
 }
 
 const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
-    genre: '',
-    artist: '',
+    genreId: '',
     duration: '3:00',
     publishDate: '',
     description: '',
+    language: 'Vietnamese',
     songFile: null as File | null,
   });
 
   const createSongMutation = useCreateSong();
+  const uploadAudioMutation = useUploadAudio();
+  const { data: genresResponse } = useGenres({ limit: 100 });
+  const { data: labels = [] } = useRecordLabels(user?.id);
 
+  console.log("genresResponse", genresResponse)
+
+  const genres = genresResponse?.data || [];
+  const label = labels[0];
   const handleInputChange = (field: string, value: string | File) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -40,40 +52,94 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.artist) {
-      toast.error('Please fill in required fields');
+    if (!formData.title.trim()) {
+      toast.error('Song title is required');
       return;
     }
 
+    if (!label) {
+      toast.error('No label found for your account');
+      return;
+    }
+
+    if (!label.id) {
+      toast.error('Label ID is missing. Please contact support.');
+      console.error('❌ Label object:', label);
+      return;
+    }
+
+    console.log('✅ Label info:', {
+      id: label.id,
+      name: label.labelName,
+      type: label.labelType,
+    });
+
     try {
-      // TODO: Convert duration from "MM:SS" to seconds
       const [minutes, seconds] = formData.duration.split(':').map(Number);
       const durationInSeconds = minutes * 60 + seconds;
 
-      await createSongMutation.mutateAsync({
-        title: formData.title,
-        // genreId: will need to be resolved from genre name
-        // artistId: will need to be resolved from artist name
+      if (isNaN(durationInSeconds) || durationInSeconds <= 0) {
+        toast.error('Invalid duration format. Use MM:SS format');
+        return;
+      }
+
+      toast.info('Creating song...');
+
+      console.log('🎵 Creating song with data:', {
+        title: formData.title.trim(),
         duration: durationInSeconds,
-        uploadDate: formData.publishDate || new Date().toISOString(),
-        description: formData.description,
-        // TODO: Upload song file and get asset info
+        labelId: label.id,
+        labelName: label.labelName,
+        genreId: formData.genreId ? Number(formData.genreId) : undefined,
       });
 
-      toast.success('Song created successfully');
+      const createdSong = await createSongMutation.mutateAsync({
+        title: formData.title.trim(),
+        duration: durationInSeconds,
+        description: formData.description.trim() || undefined,
+        language: formData.language,
+        genreId: formData.genreId ? Number(formData.genreId) : undefined,
+        // Artist is the label itself
+        artists: [
+          {
+            artistId: label.id,
+            role: 'MainArtist' as const,
+          },
+        ],
+      } as any);
+
+      if (formData.songFile && createdSong.id) {
+        toast.info('Uploading audio file...');
+        
+        try {
+          await uploadAudioMutation.mutateAsync({
+            file: formData.songFile,
+            songId: createdSong.id,
+          });
+          
+          toast.success(`Song "${formData.title}" created and audio uploaded successfully!`);
+        } catch (uploadError) {
+          console.error('❌ Audio upload error:', uploadError);
+          toast.warning(`Song created but audio upload failed. You can upload audio later.`);
+        }
+      } else {
+        toast.success(`Song "${formData.title}" created successfully!`);
+      }
+
       onSuccess?.();
       
       // Reset form
       setFormData({
         title: '',
-        genre: '',
-        artist: '',
+        genreId: '',
         duration: '3:00',
         publishDate: '',
         description: '',
+        language: 'Vietnamese',
         songFile: null,
       });
     } catch (error: unknown) {
+      console.error('❌ Create song error:', error);
       const errorObj = error as { message?: string; response?: { data?: { message?: string } } };
       const errorMsg = errorObj?.message || errorObj?.response?.data?.message || 'Failed to create song';
       toast.error('Failed to create song', { description: errorMsg });
@@ -120,13 +186,13 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
               <Input
                 id="artist"
                 type="text"
-                placeholder="Chọn nghệ sĩ"
-                value={formData.artist}
-                onChange={(e) => handleInputChange('artist', e.target.value)}
+                value={label?.labelName || 'Loading...'}
+                disabled
                 className="create-song-form__input"
-                required
+                title="Artist will be your label"
               />
             </div>
+            <p className="text-sm text-gray-400 mt-1">Your label will be set as the main artist</p>
           </div>
         </div>
 
@@ -140,14 +206,19 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
               <div className="create-song-form__field-icon">
                 <Music size={20} />
               </div>
-              <Input
+              <select
                 id="genre"
-                type="text"
-                placeholder="Genre"
-                value={formData.genre}
-                onChange={(e) => handleInputChange('genre', e.target.value)}
+                value={formData.genreId}
+                onChange={(e) => handleInputChange('genreId', e.target.value)}
                 className="create-song-form__input"
-              />
+              >
+                <option value="">Select genre (optional)</option>
+                {genres.map((genre) => (
+                  <option key={genre.id} value={genre.id}>
+                    {genre.genreName}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -248,9 +319,13 @@ const CreateSongForm: React.FC<CreateSongFormProps> = ({ onSuccess, onCancel }) 
         <Button
           type="submit"
           className="create-song-form__submit-btn"
-          disabled={createSongMutation.isPending}
+          disabled={createSongMutation.isPending || uploadAudioMutation.isPending}
         >
-          {createSongMutation.isPending ? 'Creating...' : 'Create'}
+          {createSongMutation.isPending 
+            ? 'Creating song...' 
+            : uploadAudioMutation.isPending 
+            ? 'Uploading audio...' 
+            : 'Create Song'}
         </Button>
       </div>
     </form>

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query.config';
 import api from '@/config/api.config';
 
@@ -65,6 +65,33 @@ const albumService = {
   getAlbumsByLabel: async (labelId: number): Promise<Album[]> => {
     return api.get<Album[]>(`/albums/label/${labelId}`);
   },
+
+  // Create album
+  createAlbum: async (data: {
+    albumTitle: string;
+    albumDescription?: string;
+    coverImage?: string;
+    releaseDate?: string;
+    totalTracks?: number;
+  }): Promise<Album> => {
+    return api.post<Album>('/albums', data);
+  },
+
+  // Update album
+  updateAlbum: async (albumId: number, data: {
+    albumTitle?: string;
+    albumDescription?: string | null;
+    coverImage?: string | null;
+    releaseDate?: string | null;
+    totalTracks?: number;
+  }): Promise<Album> => {
+    return api.put<Album>(`/albums/${albumId}`, data);
+  },
+
+  // Delete album
+  deleteAlbum: async (albumId: number): Promise<void> => {
+    return api.delete<void>(`/albums/${albumId}`);
+  },
 };
 
 // React Query hook for fetching all albums
@@ -92,6 +119,59 @@ export const useAlbumsByLabel = (labelId: number | undefined) => {
     queryKey: ['albums', 'label', labelId],
     queryFn: () => albumService.getAlbumsByLabel(labelId!),
     enabled: !!labelId && labelId > 0,
+  });
+};
+
+// React Query mutation for creating album
+export const useCreateAlbum = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      albumTitle: string;
+      albumDescription?: string;
+      coverImage?: string;
+      releaseDate?: string;
+      totalTracks?: number;
+    }) => albumService.createAlbum(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['albums'] });
+      queryClient.invalidateQueries({ queryKey: ['label-albums'] });
+    },
+  });
+};
+
+export const useUpdateAlbum = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ albumId, data }: {
+      albumId: number;
+      data: {
+        albumTitle?: string;
+        albumDescription?: string | null;
+        coverImage?: string | null;
+        releaseDate?: string | null;
+        totalTracks?: number;
+      };
+    }) => albumService.updateAlbum(albumId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['albums'] });
+      queryClient.invalidateQueries({ queryKey: ['label-albums'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.albums.detail(variables.albumId) });
+    },
+  });
+};
+
+export const useDeleteAlbum = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (albumId: number) => albumService.deleteAlbum(albumId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['albums'] });
+      queryClient.invalidateQueries({ queryKey: ['label-albums'] });
+    },
   });
 };
 

@@ -266,6 +266,13 @@
   opacity: 0;
 }
 
+.label-song-management__play-btn--active {
+  opacity: 1;
+  background: rgba(124, 148, 222, 0.3);
+  border-color: rgba(124, 148, 222, 0.5);
+  color: #7C94DE;
+}
+
 .label-song-management__table tbody tr:hover .label-song-management__play-btn {
   opacity: 1;
 }
@@ -273,6 +280,11 @@
 .label-song-management__play-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: scale(1.1);
+}
+
+.label-song-management__play-btn--active:hover {
+  background: rgba(124, 148, 222, 0.4);
+  border-color: rgba(124, 148, 222, 0.6);
 }
 
 .label-song-management__song-cover {

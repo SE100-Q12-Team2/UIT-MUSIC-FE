@@ -81,6 +81,34 @@
   background: rgba(114, 138, 171, 0.15);
 }
 
+/* Select dropdown specific styles */
+.create-song-form__input[type="select"],
+select.create-song-form__input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L6 6L11 1" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 12px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+select.create-song-form__input option {
+  background: #1a2332;
+  color: #ffffff;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-family: "Inter", sans-serif;
+}
+
+select.create-song-form__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: rgba(114, 138, 171, 0.05);
+}
+
 .create-song-form__input--date {
   color: var(--color-white-10, #ffffff);
 }

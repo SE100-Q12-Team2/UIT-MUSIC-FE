@@ -1,12 +1,12 @@
 import React, { useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuth } from "@/shared/hooks/auth/useAuth";
+import { useCreateAlbum } from "@/core/services/album.service";
+import { useUploadAvatar } from "@/core/services/upload.service";
 
 import "@/styles/label-album-create.css";
 
 import textNameIcon from "@/assets/text_name.svg";
-import artistIcon from "@/assets/artist_icon.svg";
 import calendarIcon from "@/assets/calendar.svg";
 import uploadIcon from "@/assets/music-square-search.svg";
 import descriptionIcon from "@/assets/description.svg";
@@ -19,27 +19,16 @@ type SongItem = {
   duration: string;
 };
 
-type CreatePayload = {
-  albumTitle: string;
-  artistName: string;
-  releaseDate?: string;
-  description: string;
-  coverFile?: File | null;
-  songs: SongItem[];
-};
-
-type Props = {
-  onSubmit?: (payload: CreatePayload) => Promise<void>;
-};
-
-const CreateAlbumPage: React.FC<Props> = ({ onSubmit }) => {
+const CreateAlbumPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  // const { user } = useAuth();
+
+  const createAlbumMutation = useCreateAlbum();
+  const uploadAvatarMutation = useUploadAvatar();
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [albumTitle, setAlbumTitle] = useState("");
-  const [artistName, setArtistName] = useState("");
   const [publishDate, setPublishDate] = useState("");
   const [description, setDescription] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -88,29 +77,30 @@ const CreateAlbumPage: React.FC<Props> = ({ onSubmit }) => {
       toast.error("Album's Name is required");
       return;
     }
-    if (!artistName.trim()) {
-      toast.error("Artist is required");
-      return;
-    }
 
     try {
-      const payload: CreatePayload = {
-        albumTitle: albumTitle.trim(),
-        artistName: artistName.trim(),
-        releaseDate: publishDate || undefined,
-        description: description.trim(),
-        coverFile,
-        songs,
-      };
+      let coverImageUrl: string | undefined = undefined;
 
-      if (onSubmit) {
-        await onSubmit(payload);
-      } 
-      toast.success("Created successfully!");
+      if (coverFile) {
+        toast.info("Uploading cover image...");
+        const uploadResult = await uploadAvatarMutation.mutateAsync(coverFile);
+        coverImageUrl = uploadResult;
+      }
+
+      // Create album
+      await createAlbumMutation.mutateAsync({
+        albumTitle: albumTitle.trim(),
+        albumDescription: description.trim() || undefined,
+        coverImage: coverImageUrl,
+        releaseDate: publishDate || undefined,
+        totalTracks: songs.length,
+      });
+
+      toast.success("Album created successfully!");
       navigate("/label/albums");
     } catch (e) {
       console.error(e);
-      toast.error("Create failed");
+      toast.error("Failed to create album");
     }
   };
 
@@ -138,31 +128,16 @@ const CreateAlbumPage: React.FC<Props> = ({ onSubmit }) => {
       </div>
 
       <div className="lac__form">
-        <div className="lac-row2">
-          <div className="lac-field">
-            <div className="lac-label">Album&apos;s Name</div>
-            <div className="lac-inputWrap">
-              <img className="lac-ico" src={textNameIcon} alt="" />
-              <input
-                className="lac-input"
-                value={albumTitle}
-                onChange={(e) => setAlbumTitle(e.target.value)}
-                placeholder="Enter album name..."
-              />
-            </div>
-          </div>
-
-          <div className="lac-field">
-            <div className="lac-label">Artist</div>
-            <div className="lac-inputWrap">
-              <img className="lac-ico" src={artistIcon} alt="" />
-              <input
-                className="lac-input"
-                value={artistName}
-                onChange={(e) => setArtistName(e.target.value)}
-                placeholder="Enter artist name..."
-              />
-            </div>
+        <div className="lac-field">
+          <div className="lac-label">Album&apos;s Name</div>
+          <div className="lac-inputWrap">
+            <img className="lac-ico" src={textNameIcon} alt="" />
+            <input
+              className="lac-input"
+              value={albumTitle}
+              onChange={(e) => setAlbumTitle(e.target.value)}
+              placeholder="Enter album name..."
+            />
           </div>
         </div>
 
@@ -344,8 +319,9 @@ const CreateAlbumPage: React.FC<Props> = ({ onSubmit }) => {
             type="button"
             className="lac-btn lac-btnPrimary"
             onClick={handleCreate}
+            disabled={createAlbumMutation.isPending || uploadAvatarMutation.isPending}
           >
-            Create
+            {createAlbumMutation.isPending || uploadAvatarMutation.isPending ? 'Creating...' : 'Create'}
           </button>
         </div>
       </div>

@@ -10,7 +10,7 @@ export interface Genre {
 }
 
 export interface GenresResponse {
-  items: Genre[];
+  data: Genre[];
   total: number;
   page: number;
   limit: number;
