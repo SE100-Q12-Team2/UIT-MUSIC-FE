@@ -5,6 +5,7 @@ import { useAuth } from "@/shared/hooks/auth/useAuth";
 import { useCreateAlbum } from "@/core/services/album.service";
 import { useUploadAlbumCover } from "@/core/services/upload.service";
 import { useRecordLabels, useLabelSongs } from "@/core/services/label.service";
+import { useUpdateSong } from "@/core/services/song.service";
 
 import "@/styles/label-album-create.css";
 
@@ -27,6 +28,7 @@ const CreateAlbumPage: React.FC = () => {
 
   const createAlbumMutation = useCreateAlbum();
   const uploadAlbumCoverMutation = useUploadAlbumCover();
+  const updateSongMutation = useUpdateSong();
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -105,13 +107,30 @@ const CreateAlbumPage: React.FC = () => {
       }
 
       // Create album
-      await createAlbumMutation.mutateAsync({
+      const createdAlbum = await createAlbumMutation.mutateAsync({
         albumTitle: albumTitle.trim(),
         albumDescription: description.trim() || undefined,
         coverImage: coverImageUrl,
         releaseDate: publishDate || undefined,
         totalTracks: songs.length,
       });
+
+      // Update songs with albumId if there are songs
+      if (songs.length > 0 && createdAlbum.id) {
+        toast.info(`Adding ${songs.length} song(s) to album...`);
+        
+        const songIds = songs.map(s => Number(s.id)).filter(id => !isNaN(id) && id > 0);
+        
+        // Update each song with the album ID
+        await Promise.all(
+          songIds.map(songId =>
+            updateSongMutation.mutateAsync({
+              id: songId,
+              data: { albumId: createdAlbum.id },
+            })
+          )
+        );
+      }
 
       toast.success("Album created successfully!");
       navigate("/label/albums");
@@ -322,9 +341,9 @@ const CreateAlbumPage: React.FC = () => {
             type="button"
             className="lac-btn lac-btnPrimary"
             onClick={handleCreate}
-            disabled={createAlbumMutation.isPending || uploadAlbumCoverMutation.isPending}
+            disabled={createAlbumMutation.isPending || uploadAlbumCoverMutation.isPending || updateSongMutation.isPending}
           >
-            {createAlbumMutation.isPending || uploadAlbumCoverMutation.isPending ? 'Creating...' : 'Create'}
+            {uploadAlbumCoverMutation.isPending ? 'Uploading...' : updateSongMutation.isPending ? 'Adding songs...' : createAlbumMutation.isPending ? 'Creating...' : 'Create'}
           </button>
         </div>
       </div>

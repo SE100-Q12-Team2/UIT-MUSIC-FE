@@ -105,6 +105,17 @@
   color: rgba(255, 255, 255, 0.35); /* placeholder xám */
 }
 
+.lae-select {
+  cursor: pointer;
+  padding-right: 8px;
+}
+
+.lae-select option {
+  background: #1a1a1a;
+  color: white;
+  padding: 8px;
+}
+
 .lae-input-date {
   padding-right: 8px;
 }
@@ -303,6 +314,13 @@
   background: rgba(55, 110, 255, 0.28);
   border-color: rgba(70, 130, 255, 0.45);
   color: rgba(255, 255, 255, 0.92);
+}
+
+.lae-loading {
+  padding: 16px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
 }
 
 @media (max-width: 820px) {

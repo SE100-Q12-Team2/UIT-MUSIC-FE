@@ -2,11 +2,14 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import type { LabelAlbum } from "@/types/label.types";
+import { useUpdateAlbum, useAlbumDetails } from "@/core/services/album.service";
+import { useUploadAlbumCover } from "@/core/services/upload.service";
+import { useAuth } from "@/shared/hooks/auth/useAuth";
+import { useRecordLabels, useLabelSongs } from "@/core/services/label.service";
 
 import "@/styles/label-album-edit.css";
 
 import textNameIcon from "@/assets/text_name.svg";
-import artistIcon from "@/assets/artist_icon.svg";
 import calendarIcon from "@/assets/calendar.svg";
 import uploadIcon from "@/assets/music-square-search.svg";
 import descriptionIcon from "@/assets/description.svg";
@@ -23,17 +26,6 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   album: LabelAlbum | null;
-
-  onSubmit?: (payload: {
-    albumId: number | string;
-    albumTitle: string;
-    artistName: string;
-    releaseDate?: string;
-    description: string;
-    coverFile?: File | null;
-    songs: SongItem[];
-  }) => Promise<void>;
-
   onUpdated?: () => void;
 };
 
@@ -56,76 +48,85 @@ const LabelAlbumEditModal: React.FC<Props> = ({
   isOpen,
   onClose,
   album,
-  onSubmit,
   onUpdated,
 }) => {
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const updateAlbumMutation = useUpdateAlbum();
+  const uploadAlbumCoverMutation = useUploadAlbumCover();
+  const { user } = useAuth();
+
+  // Fetch album details with songs
+  const { data: albumDetails, isLoading: isLoadingAlbumDetails } = useAlbumDetails(
+    isOpen && album?.id ? album.id : undefined,
+    true // includeSongs
+  );
 
   const [albumTitle, setAlbumTitle] = useState("");
-  const [artistName, setArtistName] = useState("");
   const [publishDate, setPublishDate] = useState("");
   const [description, setDescription] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
 
   const [songs, setSongs] = useState<SongItem[]>([]);
   const [showAddSong, setShowAddSong] = useState(false);
-  const [songName, setSongName] = useState("");
-  const [songArtist, setSongArtist] = useState("");
-  const [songDuration, setSongDuration] = useState("");
 
-  const albumId = useMemo(() => Number(album?.id ?? 0), [album]);
+  // Fetch label and label songs
+  const { data: labels = [] } = useRecordLabels(user?.id);
+  const label = labels[0];
+  const { data: labelSongsResponse, isLoading: isLoadingSongs } = useLabelSongs(label?.id, 1, 100);
+
+  // Available songs that haven't been added yet
+  const availableSongs = useMemo(() => {
+    if (!labelSongsResponse?.items) return [];
+    const addedIds = new Set(songs.map(s => s.id));
+    return labelSongsResponse.items.filter(song => !addedIds.has(song.id));
+  }, [labelSongsResponse, songs]);
+
+  const albumId = useMemo(() => Number(albumDetails?.id ?? album?.id ?? 0), [albumDetails, album]);
 
   const totalListening = useMemo(() => {
-    const fromAlbum = Number((album as any)?.totalListeningCount);
+    const fromAlbum = Number((albumDetails as any)?.totalListeningCount || (album as LabelAlbum & { totalListeningCount?: number })?.totalListeningCount);
     if (Number.isFinite(fromAlbum) && fromAlbum > 0) return fromAlbum;
     return seeded(albumId || 1, 8_500_000, 4_000_000);
-  }, [album, albumId]);
+  }, [albumDetails, album, albumId]);
 
   const totalLike = useMemo(() => {
-    const fromAlbum = Number((album as any)?.totalLikes);
+    const fromAlbum = Number((albumDetails as any)?.totalLikes || (album as LabelAlbum & { totalLikes?: number })?.totalLikes);
     if (Number.isFinite(fromAlbum) && fromAlbum > 0) return fromAlbum;
     return seeded(albumId || 1, 450_000, 400_000);
-  }, [album, albumId]);
+  }, [albumDetails, album, albumId]);
 
   useEffect(() => {
-    if (!isOpen || !album) return;
+    if (!isOpen || !albumDetails) return;
 
-    setAlbumTitle("");
-    setArtistName("");
-    setPublishDate(
-      toDateInputValue((album as any)?.releaseDate || (album as any)?.createdAt)
-    );
-    setDescription((album as any)?.description ?? "");
+    // Initialize form with album details - valid pattern for modal
+    queueMicrotask(() => {
+      setAlbumTitle(albumDetails.albumTitle || "");
+      setPublishDate(
+        toDateInputValue(albumDetails.releaseDate || albumDetails.createdAt)
+      );
+      setDescription(albumDetails.albumDescription || "");
 
-    const seededSongs: SongItem[] =
-      Array.isArray((album as any)?.songs) && (album as any).songs.length
-        ? (album as any).songs.map((s: any) => ({
-            id: s.id ?? `${album.id}-${Math.random()}`,
-            title: s.title ?? "Untitled",
-            artist:
-              s.artistName ||
-              s.artist?.artistName ||
-              (album as any)?.artistName ||
-              "Adele",
-            duration: s.duration ?? s.durationText ?? "4:46",
-          }))
-        : [
-            {
-              id: 1,
-              title: "Skyfall",
-              artist: "Adele",
-              duration: "4:46",
-            },
-          ];
+      // Use songs from albumDetails (fetched with includeSongs=true)
+      const albumSongs = albumDetails.songs || [];
+      const songItems: SongItem[] = albumSongs.map((s) => {
+        const minutes = Math.floor(s.duration / 60);
+        const seconds = s.duration % 60;
+        const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        const artistNames = s.songArtists?.map(sa => sa.artist.artistName).join(', ') || 'Unknown Artist';
+        
+        return {
+          id: s.id,
+          title: s.title,
+          artist: artistNames,
+          duration: durationStr,
+        };
+      });
 
-    setSongs(seededSongs);
-
-    setShowAddSong(false);
-    setSongName("");
-    setSongArtist("");
-    setSongDuration("");
-    setCoverFile(null);
-  }, [isOpen, album]);
+      setSongs(songItems);
+      setShowAddSong(false);
+      setCoverFile(null);
+    });
+  }, [isOpen, albumDetails]);
 
   if (!isOpen || !album) return null;
 
@@ -136,26 +137,36 @@ const LabelAlbumEditModal: React.FC<Props> = ({
     setCoverFile(f);
   };
 
-  const handleAddSong = () => {
-    const t = songName.trim();
-    const a = songArtist.trim();
-    const d = songDuration.trim();
+  const handleSelectSong = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const songId = Number(e.target.value);
+    if (!songId || !labelSongsResponse?.items) return;
 
-    if (!t || !a || !d) {
-      toast.error("Please fill Song name / Artist / Duration");
-      return;
-    }
+    const selectedSong = labelSongsResponse.items.find(s => s.id === songId);
+    if (!selectedSong) return;
+
+    // Format duration from seconds to MM:SS
+    const minutes = Math.floor(selectedSong.duration / 60);
+    const seconds = selectedSong.duration % 60;
+    const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+    // Get artist names
+    const artistNames = (selectedSong.contributors || [])
+      .map(c => c.label.labelName)
+      .join(', ') || 'Unknown Artist';
 
     setSongs((prev) => [
       ...prev,
-      { id: `${Date.now()}`, title: t, artist: a, duration: d },
+      { 
+        id: selectedSong.id, 
+        title: selectedSong.title, 
+        artist: artistNames, 
+        duration: durationStr 
+      },
     ]);
 
-    setSongName("");
-    setSongArtist("");
-    setSongDuration("");
     setShowAddSong(false);
-    toast.success("Added song");
+    toast.success(`Added "${selectedSong.title}" to album`);
+    e.target.value = ''; // Reset dropdown
   };
 
   const handleRemoveSong = (id: SongItem["id"]) => {
@@ -163,34 +174,43 @@ const LabelAlbumEditModal: React.FC<Props> = ({
   };
 
   const handleUpdate = async () => {
+    if (!albumDetails && !album) return;
+    
+    const currentAlbumId = albumDetails?.id || album?.id;
+    if (!currentAlbumId) return;
+    
     if (!albumTitle.trim()) {
       toast.error("Album's Name is required");
       return;
     }
-    if (!artistName.trim()) {
-      toast.error("Artist is required");
-      return;
-    }
 
     try {
-      if (onSubmit) {
-        await onSubmit({
-          albumId: album.id as any,
-          albumTitle: albumTitle.trim(),
-          artistName: artistName.trim(),
-          releaseDate: publishDate || undefined,
-          description: description.trim(),
-          coverFile,
-          songs,
-        });
+      let coverImageUrl: string | null | undefined = undefined;
+
+      // Upload new cover image if selected
+      if (coverFile) {
+        toast.info("Uploading cover image...");
+        coverImageUrl = await uploadAlbumCoverMutation.mutateAsync(coverFile);
       }
 
-      toast.success("Updated successfully!");
+      // Update album with API
+      await updateAlbumMutation.mutateAsync({
+        albumId: currentAlbumId,
+        data: {
+          albumTitle: albumTitle.trim(),
+          albumDescription: description.trim() || null,
+          releaseDate: publishDate || null,
+          totalTracks: songs.length,
+          ...(coverImageUrl !== undefined && { coverImage: coverImageUrl }),
+        },
+      });
+
+      toast.success("Album updated successfully!");
       onUpdated?.();
       onClose();
     } catch (e) {
       console.error(e);
-      toast.error("Update failed");
+      toast.error("Failed to update album");
     }
   };
 
@@ -215,32 +235,27 @@ const LabelAlbumEditModal: React.FC<Props> = ({
 
         {/* ✅ GIỮ lae-body MỞ cho tới hết */}
         <div className="lae-body">
-          {/* row 1 */}
-          <div className="lae-row2">
-            <div className="lae-field">
-              <div className="lae-label">Album&apos;s Name</div>
-              <div className="lae-inputWrap">
-                <img className="lae-ico" src={textNameIcon} alt="" />
-                <input
-                  className="lae-input"
-                  value={albumTitle}
-                  onChange={(e) => setAlbumTitle(e.target.value)}
-                  placeholder="Enter album name..."
-                />
-              </div>
+          {/* Loading state */}
+          {isLoadingAlbumDetails && (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>
+              Loading album details...
             </div>
+          )}
 
-            <div className="lae-field">
-              <div className="lae-label">Artist</div>
-              <div className="lae-inputWrap">
-                <img className="lae-ico" src={artistIcon} alt="" />
-                <input
-                  className="lae-input"
-                  value={artistName}
-                  onChange={(e) => setArtistName(e.target.value)}
-                  placeholder="Enter artist name..."
-                />
-              </div>
+          {/* Form content - only show when data is loaded */}
+          {!isLoadingAlbumDetails && albumDetails && (
+            <>
+          {/* row 1 */}
+          <div className="lae-field">
+            <div className="lae-label">Album&apos;s Name</div>
+            <div className="lae-inputWrap">
+              <img className="lae-ico" src={textNameIcon} alt="" />
+              <input
+                className="lae-input"
+                value={albumTitle}
+                onChange={(e) => setAlbumTitle(e.target.value)}
+                placeholder="Enter album name..."
+              />
             </div>
           </div>
 
@@ -352,61 +367,47 @@ const LabelAlbumEditModal: React.FC<Props> = ({
 
           {showAddSong && (
             <div className="lae-addForm">
-              <div className="lae-row2">
-                <div className="lae-field">
-                  <div className="lae-label">Song name</div>
+              <div className="lae-field">
+                <div className="lae-label">Select Song from Your Library</div>
+                {isLoadingSongs ? (
+                  <div className="lae-loading">Loading songs...</div>
+                ) : availableSongs.length === 0 ? (
+                  <div className="lae-empty">No more songs available to add</div>
+                ) : (
                   <div className="lae-inputWrap">
-                    <input
-                      className="lae-input"
-                      value={songName}
-                      onChange={(e) => setSongName(e.target.value)}
-                      placeholder="Song name"
-                    />
+                    <select 
+                      className="lae-input lae-select"
+                      onChange={handleSelectSong}
+                      defaultValue=""
+                    >
+                      <option value="" disabled>Choose a song...</option>
+                      {availableSongs.map((song) => {
+                        const minutes = Math.floor(song.duration / 60);
+                        const seconds = song.duration % 60;
+                        const duration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                        const artists = (song.contributors || [])
+                          .map(c => c.label.labelName)
+                          .join(', ') || 'Unknown';
+                        
+                        return (
+                          <option key={song.id} value={song.id}>
+                            {song.title} - {artists} ({duration})
+                          </option>
+                        );
+                      })}
+                    </select>
                   </div>
-                </div>
-
-                <div className="lae-field">
-                  <div className="lae-label">Artist</div>
-                  <div className="lae-inputWrap">
-                    <input
-                      className="lae-input"
-                      value={songArtist}
-                      onChange={(e) => setSongArtist(e.target.value)}
-                      placeholder="Artist"
-                    />
-                  </div>
-                </div>
+                )}
               </div>
 
-              <div className="lae-row2">
-                <div className="lae-field">
-                  <div className="lae-label">Duration</div>
-                  <div className="lae-inputWrap">
-                    <input
-                      className="lae-input"
-                      value={songDuration}
-                      onChange={(e) => setSongDuration(e.target.value)}
-                      placeholder="4:46"
-                    />
-                  </div>
-                </div>
-
-                <div className="lae-field lae-addActions">
-                  <button
-                    type="button"
-                    className="lae-btn lae-btnGhost"
-                    onClick={() => setShowAddSong(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="lae-btn lae-btnPrimary"
-                    onClick={handleAddSong}
-                  >
-                    Add
-                  </button>
-                </div>
+              <div className="lae-field lae-addActions">
+                <button
+                  type="button"
+                  className="lae-btn lae-btnGhost"
+                  onClick={() => setShowAddSong(false)}
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           )}
@@ -449,10 +450,13 @@ const LabelAlbumEditModal: React.FC<Props> = ({
               type="button"
               className="lae-btn lae-btnPrimary"
               onClick={handleUpdate}
+              disabled={updateAlbumMutation.isPending || uploadAlbumCoverMutation.isPending}
             >
-              Update
+              {uploadAlbumCoverMutation.isPending ? 'Uploading...' : updateAlbumMutation.isPending ? 'Updating...' : 'Update'}
             </button>
           </div>
+          </> 
+          )}
         </div>
       </div>
     </>
