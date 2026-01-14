@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/config/query.config';
 import {
   AuthResponse,
@@ -123,8 +123,15 @@ export const useProfile = () => {
 };
 
 export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation({
     mutationFn: (data: UpdateProfileRequest) => authService.updateProfile(data),
+    onSuccess: () => {
+      // Invalidate profile queries to refetch latest data
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.profile });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
   });
 };
 

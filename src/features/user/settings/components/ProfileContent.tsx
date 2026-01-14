@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
 import { useUpdateProfile } from '@/core/services/auth.service';
 import { useChangePassword } from '@/core/services/settings.service';
+import { useUploadAvatar } from '@/core/services/upload.service';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Lock } from 'lucide-react';
+import { Lock, Camera, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import '@/styles/profile.css';
 
@@ -16,9 +17,11 @@ interface ProfileFormData {
 }
 
 const ProfileContent: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const updateProfileMutation = useUpdateProfile();
   const changePasswordMutation = useChangePassword();
+  const uploadAvatarMutation = useUploadAvatar();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const parseName = (fullName: string) => {
     const parts = fullName.trim().split(' ');
@@ -44,6 +47,9 @@ const ProfileContent: React.FC = () => {
 
   const [hasChanges, setHasChanges] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Change Password state
   const [passwordData, setPasswordData] = useState({
@@ -86,7 +92,45 @@ const ProfileContent: React.FC = () => {
         email: user.email || '',
       });
       setHasChanges(false);
+      setAvatarPreview(null);
+      setAvatarFile(null);
     }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type', { 
+        description: 'Please upload a JPG, PNG, GIF, or WebP image' 
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error('File too large', { 
+        description: 'Please upload an image smaller than 5MB' 
+      });
+      return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatarPreview(reader.result as string);
+      setAvatarFile(file);
+      setHasChanges(true);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,19 +144,46 @@ const ProfileContent: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      let uploadedAvatarUrl: string | undefined;
+
+      // Upload avatar if changed
+      if (avatarFile) {
+        setIsUploadingAvatar(true);
+        try {
+          uploadedAvatarUrl = await uploadAvatarMutation.mutateAsync(avatarFile);
+        } catch (error) {
+          console.error('Avatar upload error:', error);
+          toast.error('Failed to upload avatar');
+          setIsUploadingAvatar(false);
+          setIsSubmitting(false);
+          return;
+        } finally {
+          setIsUploadingAvatar(false);
+        }
+      }
+
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
       
-      // Real API call
-      await updateProfileMutation.mutateAsync({
+      // Update profile with new data
+      const updatedProfile = await updateProfileMutation.mutateAsync({
         fullName: fullName,
         email: formData.email,
-        profileImage: undefined, // Có thể thêm upload image sau
-        dateOfBirth: undefined, // Có thể thêm date picker sau
-        gender: undefined, // Có thể thêm gender selector sau
+        profileImage: uploadedAvatarUrl || undefined,
+        dateOfBirth: undefined,
+        gender: undefined,
+      });
+
+      // Update AuthContext with new user data
+      updateUser({
+        fullName: updatedProfile.fullName,
+        email: updatedProfile.email,
+        profileImage: updatedProfile.profileImage,
       });
 
       toast.success('Profile updated successfully');
       setHasChanges(false);
+      setAvatarPreview(null);
+      setAvatarFile(null);
     } catch (error: unknown) {
       console.error('Update profile error:', error);
       const errorObj = error as { message?: string; response?: { data?: { message?: string } } };
@@ -166,16 +237,49 @@ const ProfileContent: React.FC = () => {
 
   const displayName = user?.fullName || 'User';
   const username = user?.email?.split('@')[0] || 'user';
-  const avatarUrl = user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=728AAB&color=fff&size=200`;
+  const currentAvatarUrl = user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=728AAB&color=fff&size=200`;
+  const avatarUrl = avatarPreview || currentAvatarUrl;
 
   return (
     <div className="settings-content profile-content">
       <div className="profile-content__container">
         {/* Profile Header */}
         <div className="profile-header">
-          <div className="profile-avatar">
+          <div className="profile-avatar" style={{ position: 'relative', cursor: 'pointer' }} onClick={handleAvatarClick}>
             <img src={avatarUrl} alt={displayName} />
+            <div 
+              className="profile-avatar-overlay"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: 0,
+                transition: 'opacity 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '0'}
+            >
+              {isUploadingAvatar ? (
+                <Loader2 className="animate-spin" size={32} color="white" />
+              ) : (
+                <Camera size={32} color="white" />
+              )}
+            </div>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+            onChange={handleAvatarChange}
+            style={{ display: 'none' }}
+          />
           <div className="profile-info">
             <h2 className="profile-name">{displayName}</h2>
             <p className="profile-username">@{username}</p>

@@ -73,6 +73,13 @@ const LabelSidebar: React.FC<LabelSidebarProps> = ({ onExpandChange }) => {
   const currentLabel = labels?.[0];
   const isCompanyLabel = currentLabel?.labelType === "COMPANY";
 
+  const filteredNavItems = labelNavItems.filter(item => {
+    if (item.id === "artists") {
+      return isCompanyLabel;
+    }
+    return true;
+  });
+
   const isActive = (path: string) => {
     return (
       location.pathname === path || location.pathname.startsWith(path + "/")
@@ -88,14 +95,6 @@ const LabelSidebar: React.FC<LabelSidebarProps> = ({ onExpandChange }) => {
     setIsExpanded(false);
     onExpandChange?.(false);
   };
-
-  // Filter out "Artists" menu if label is INDIVIDUAL
-  const filteredNavItems = labelNavItems.filter(item => {
-    if (item.id === "artists") {
-      return isCompanyLabel;
-    }
-    return true;
-  });
 
   return (
     <aside
