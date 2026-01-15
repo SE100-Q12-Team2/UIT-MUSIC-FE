@@ -8,7 +8,7 @@ const SubscriptionsTab: React.FC = () => {
   const [subscriptionStats, setSubscriptionStats] = useState<SubscriptionStatsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingPlan, setEditingPlan] = useState<{ id: number; name: string; price: number; duration: number; features: [string, string, string]; isActive: boolean } | null>(null);
+  const [editingPlan, setEditingPlan] = useState<{ id: number; name: string; price: number; durationMonths: number; features: [string, string, string]; isActive: boolean } | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -63,7 +63,7 @@ const SubscriptionsTab: React.FC = () => {
       id: plan.id,
       name: plan.name,
       price: parseFloat(plan.price.replace('$', '')),
-      duration: plan.period === '/mo' ? 1 : plan.period === '/yr' ? 12 : 0,
+      durationMonths: plan.period === '/mo' ? 1 : plan.period === '/yr' ? 12 : 0,
       features: featuresArray,
       isActive: true,
     });
@@ -83,7 +83,7 @@ const SubscriptionsTab: React.FC = () => {
 
       const updateData: UpdateSubscriptionPlanRequest = {
         planName: editingPlan.name,
-        durationMonths: editingPlan.duration,
+        durationMonths: editingPlan.durationMonths,
         price: editingPlan.price,
         features: featuresObj,
         isActive: editingPlan.isActive,
@@ -118,7 +118,7 @@ const SubscriptionsTab: React.FC = () => {
       id: 0, // 0 indicates new plan
       name: '',
       price: 0,
-      duration: 1,
+      durationMonths: 1,
       features: ['', '', ''],
       isActive: true,
     });
@@ -138,7 +138,7 @@ const SubscriptionsTab: React.FC = () => {
 
       const createData: UpdateSubscriptionPlanRequest = {
         planName: editingPlan.name,
-        durationMonths: editingPlan.duration,
+        durationMonths: editingPlan.durationMonths,
         price: editingPlan.price,
         features: featuresObj,
         isActive: editingPlan.isActive,
@@ -168,26 +168,36 @@ const SubscriptionsTab: React.FC = () => {
     setEditingPlan(null);
   };
 
-  // const handleDeleteClick = async (planId: number, planName: string) => {
-  //   if (!window.confirm(`Are you sure you want to delete "${planName}"? This action cannot be undone.`)) {
-  //     return;
-  //   }
+  const handleDeleteClick = async (planId: number, planName: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${planName}"? This action cannot be undone.`)) {
+      return;
+    }
 
-  //   try {
-  //     await adminApi.deleteSubscriptionPlan(planId);
+    try {
+      await adminApi.deleteSubscriptionPlan(planId);
       
-  //     // Refresh data
-  //     await Promise.all([
-  //       fetchSubscriptionData(),
-  //       refetchPlans(),
-  //     ]);
+      // Refresh data
+      await Promise.all([
+        fetchSubscriptionData(),
+        refetchPlans(),
+      ]);
       
-  //     showNotification('success', `Subscription plan "${planName}" deleted successfully!`);
-  //   } catch (err) {
-  //     console.error('Error deleting subscription plan:', err);
-  //     showNotification('error', 'Failed to delete subscription plan. Please try again.');
-  //   }
-  // };
+      showNotification('success', `Subscription plan "${planName}" deleted successfully!`);
+    } catch (err: any) {
+      console.error('Error deleting subscription plan:', err);
+      
+      // Handle specific error for active plans
+      const errorMessage = err?.response?.data?.message;
+      if (Array.isArray(errorMessage) && errorMessage.some((e: any) => e.message === 'Error.CannotDeleteActivePlan')) {
+        showNotification('error', `Cannot delete "${planName}": This plan has active subscribers. Please deactivate it or wait for subscriptions to expire.`);
+      } else if (typeof errorMessage === 'string' && errorMessage.includes('CannotDeleteActivePlan')) {
+        showNotification('error', `Cannot delete "${planName}": This plan has active subscribers. Please deactivate it or wait for subscriptions to expire.`);
+      } else {
+        const errorMsg = typeof errorMessage === 'string' ? errorMessage : 'Failed to delete subscription plan. Please try again.';
+        showNotification('error', errorMsg);
+      }
+    }
+  };
 
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -407,15 +417,17 @@ const SubscriptionsTab: React.FC = () => {
                 </svg>
                 Edit
               </button>
-              {/* <button 
+              <button 
                 className="subscription-card__delete-btn"
                 onClick={() => handleDeleteClick(plan.id, plan.name)}
+                disabled={plan.price === '$0'}
+                style={{ opacity: plan.price === '$0' ? 0.5 : 1, cursor: plan.price === '$0' ? 'not-allowed' : 'pointer' }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 </svg>
-              </button> */}
+              </button>
             </div>
           </div>
         ))}
@@ -453,8 +465,8 @@ const SubscriptionsTab: React.FC = () => {
                   <input
                     type="number"
                     className="form-input"
-                    value={editingPlan.duration}
-                    onChange={(e) => setEditingPlan({ ...editingPlan, duration: parseInt(e.target.value) || 0 })}
+                    value={editingPlan.durationMonths}
+                    onChange={(e) => setEditingPlan({ ...editingPlan, durationMonths: parseInt(e.target.value) || 0 })}
                     placeholder="Enter duration"
                     min="0"
                   />
@@ -582,8 +594,8 @@ const SubscriptionsTab: React.FC = () => {
                   <input
                     type="number"
                     className="form-input"
-                    value={editingPlan.duration}
-                    onChange={(e) => setEditingPlan({ ...editingPlan, duration: parseInt(e.target.value) || 0 })}
+                    value={editingPlan.durationMonths}
+                    onChange={(e) => setEditingPlan({ ...editingPlan, durationMonths: parseInt(e.target.value) || 0 })}
                     placeholder="Enter duration"
                     min="0"
                     required

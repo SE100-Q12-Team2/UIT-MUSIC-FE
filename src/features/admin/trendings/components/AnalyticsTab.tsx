@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi, EngagementStatsResponse, DailyStatsResponse } from '@/core/api/admin.api';
+import StreamingChart from './StreamingChart';
 import '@/styles/loading.css';
 
 const AnalyticsTab: React.FC = () => {
@@ -192,14 +193,7 @@ const AnalyticsTab: React.FC = () => {
       {/* Streaming Overview */}
       <div className="analytics-tab__overview">
         <h2 className="analytics-tab__section-title">Streaming Overview</h2>
-        <div className="analytics-chart-placeholder">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="rgba(255, 255, 255, 0.2)" strokeWidth="2">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-          <p>Chart visualization area</p>
-        </div>
+        <StreamingChart data={dailyStats?.data || []} />
       </div>
 
       {/* Top Genres */}

@@ -24,7 +24,7 @@ const StatCard: React.FC<StatCardProps> = ({ icon, title, value, change, iconCol
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d={isPositive ? "M12 19V5M5 12l7-7 7 7" : "M12 5v14M19 12l-7 7-7-7"} />
         </svg>
-        {isPositive ? '+' : ''}{change}%
+        {isPositive ? '+' : ''}{Math.floor(change)}%
       </div>
     </div>
   );

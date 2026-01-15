@@ -144,6 +144,33 @@
   font-size: 14px;
 }
 
+/* Streaming Chart */
+.streaming-chart {
+  width: 100%;
+  height: 320px;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.streaming-chart svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.streaming-chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+}
+
+
 /* Genre List */
 .genre-list {
   display: flex;
