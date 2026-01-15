@@ -1,17 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
 import { useRecordLabels, useManagedArtists, useAddArtistToCompany, useRemoveArtistFromCompany } from '@/core/services/label.service';
-import { Search, Plus, Trash2, Users } from 'lucide-react';
+import { Search, Plus, Trash2, Users, Music, Disc, X, ChevronDown, Check } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/config/api.config';
+import type { RecordLabelsResponse } from '@/types/label.types';
 import '@/styles/artist-management.css';
 
 const ArtistManagementPage: React.FC = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [artistIdToAdd, setArtistIdToAdd] = useState('');
+  const [artistSearchQuery, setArtistSearchQuery] = useState('');
+  const [selectedArtist, setSelectedArtist] = useState<{id: number; name: string; imageUrl: string | null} | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const { data: labels = [] } = useRecordLabels(user?.id);
   const label = labels[0];
@@ -23,23 +28,63 @@ const ArtistManagementPage: React.FC = () => {
     searchQuery
   );
 
+  const managedArtists = managedArtistsResponse?.items || [];
+
   const addArtistMutation = useAddArtistToCompany();
   const removeArtistMutation = useRemoveArtistFromCompany();
 
+  const { data: availableArtistsResponse, isLoading: isLoadingArtists } = useQuery({
+    queryKey: ['available-artists', artistSearchQuery, managedArtists.length],
+    queryFn: async () => {
+      const response = await api.get<RecordLabelsResponse>('/record-labels', {
+        params: {
+          page: 1,
+          limit: 50,
+          search: artistSearchQuery || undefined,
+        },
+      });
+      
+      // Filter only INDIVIDUAL labels that:
+      // 1. Are INDIVIDUAL type (not COMPANY)
+      // 2. Have no parentLabelId (not managed by ANY company)
+      // 3. Are not the current user's label
+      const managedArtistIds = managedArtists.map(a => a.id);
+      const currentLabelId = label?.id;
+      
+      return response.items.filter(artist => {
+        // Must be INDIVIDUAL type
+        if (artist.labelType !== 'INDIVIDUAL') return false;
+        
+        // Must not have a parent (not managed by any company)
+        if (artist.parentLabelId !== null && artist.parentLabelId !== undefined) return false;
+        
+        // Must not be the current company label itself
+        if (artist.id === currentLabelId) return false;
+        
+        // Must not be already in the managed list (redundant check for safety)
+        if (managedArtistIds.includes(artist.id)) return false;
+        
+        return true;
+      });
+    },
+    enabled: showAddModal && !!label,
+  });
+
   const handleAddArtist = async () => {
-    if (!label?.id || !artistIdToAdd) {
-      toast.error('Please enter artist ID');
+    if (!label?.id || !selectedArtist) {
+      toast.error('Please select an artist');
       return;
     }
 
     try {
       await addArtistMutation.mutateAsync({
         companyId: label.id,
-        data: { artistLabelId: Number(artistIdToAdd) },
+        data: { artistLabelId: selectedArtist.id },
       });
       toast.success('Artist added successfully');
       setShowAddModal(false);
-      setArtistIdToAdd('');
+      setSelectedArtist(null);
+      setArtistSearchQuery('');
       refetch();
     } catch (error: unknown) {
       const errorObj = error as { message?: string; response?: { data?: { message?: string } } };
@@ -47,6 +92,15 @@ const ArtistManagementPage: React.FC = () => {
       toast.error('Failed to add artist', { description: errorMsg });
     }
   };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setShowDropdown(false);
+    if (showDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showDropdown]);
 
   const handleRemoveArtist = async (artistId: number) => {
     if (!label?.id) return;
@@ -72,8 +126,12 @@ const ArtistManagementPage: React.FC = () => {
   if (!label) {
     return (
       <div className="artist-management">
-        <div className="artist-management__empty">
-          <p>You need to create a record label first</p>
+        <div className="artist-management__empty-state">
+          <div className="artist-management__empty-icon">
+            <Users size={64} />
+          </div>
+          <h2>No Record Label Found</h2>
+          <p>You need to create a record label first to manage artists</p>
         </div>
       </div>
     );
@@ -82,27 +140,29 @@ const ArtistManagementPage: React.FC = () => {
   if (label.labelType !== 'COMPANY') {
     return (
       <div className="artist-management">
-        <div className="artist-management__empty">
+        <div className="artist-management__empty-state">
+          <div className="artist-management__empty-icon">
+            <Users size={64} />
+          </div>
+          <h2>Company Labels Only</h2>
           <p>Only company labels can manage artists</p>
           <p className="artist-management__empty-hint">
-            Your label type is: {label.labelType}
+            Your label type: <span className="highlight">{label.labelType}</span>
           </p>
         </div>
       </div>
     );
   }
 
-  const managedArtists = managedArtistsResponse?.items || [];
-
   return (
     <div className="artist-management">
       <div className="artist-management__header">
         <div className="artist-management__header-info">
           <h1 className="artist-management__title">
-            <Users size={28} />
+            <Users className='text-white' size={28} />
             Managed Artists
           </h1>
-          <p className="artist-management__subtitle">
+          <p className="artist-management__subtitle text-white">
             Manage artists under {label.labelName}
           </p>
         </div>
@@ -132,14 +192,28 @@ const ArtistManagementPage: React.FC = () => {
       {/* Artists List */}
       <div className="artist-management__content">
         {isLoading ? (
-          <div className="artist-management__loading">Loading artists...</div>
+          <div className="artist-management__loading">
+            <div className="artist-management__spinner"></div>
+            <p>Loading artists...</p>
+          </div>
         ) : managedArtists.length === 0 ? (
-          <div className="artist-management__empty">
-            <Users size={48} />
-            <p>No artists found</p>
+          <div className="artist-management__empty-state">
+            <div className="artist-management__empty-icon">
+              <Users size={64} />
+            </div>
+            <h2>No Artists Found</h2>
             <p className="artist-management__empty-hint">
               {searchQuery ? 'Try a different search term' : 'Add artists to start managing them'}
             </p>
+            {!searchQuery && (
+              <Button
+                onClick={() => setShowAddModal(true)}
+                className="artist-management__empty-cta"
+              >
+                <Plus size={20} />
+                Add Your First Artist
+              </Button>
+            )}
           </div>
         ) : (
           <div className="artist-management__grid">
@@ -150,15 +224,22 @@ const ArtistManagementPage: React.FC = () => {
                     <img src={artist.imageUrl} alt={artist.labelName} />
                   ) : (
                     <div className="artist-card__placeholder">
-                      <Users size={40} />
+                      <Users size={48} />
                     </div>
                   )}
                 </div>
-                <div className="artist-card__info">
+                <div className="artist-card__content">
                   <h3 className="artist-card__name">{artist.labelName}</h3>
-                  <p className="artist-card__stats">
-                    {artist._count.songs} songs • {artist._count.albums} albums
-                  </p>
+                  <div className="artist-card__stats">
+                    <div className="artist-card__stat">
+                      <Music size={16} />
+                      <span>{artist._count.songs} songs</span>
+                    </div>
+                    <div className="artist-card__stat">
+                      <Disc size={16} />
+                      <span>{artist._count.albums} albums</span>
+                    </div>
+                  </div>
                   {artist.user && (
                     <p className="artist-card__email">{artist.user.email}</p>
                   )}
@@ -168,6 +249,7 @@ const ArtistManagementPage: React.FC = () => {
                     variant="destructive"
                     size="sm"
                     onClick={() => handleRemoveArtist(artist.id)}
+                    className="artist-card__remove-btn"
                   >
                     <Trash2 size={16} />
                     Remove
@@ -181,29 +263,131 @@ const ArtistManagementPage: React.FC = () => {
 
       {/* Add Artist Modal */}
       {showAddModal && (
-        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Add Artist to Company</h2>
-            <div className="modal-body">
-              <div className="modal-field">
-                <label htmlFor="artistId">Artist Label ID</label>
-                <Input
-                  id="artistId"
-                  type="number"
-                  placeholder="Enter artist label ID"
-                  value={artistIdToAdd}
-                  onChange={(e) => setArtistIdToAdd(e.target.value)}
-                />
-                <p className="modal-hint">
-                  Enter the label ID of the individual artist you want to manage
+        <div className="artist-modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="artist-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="artist-modal__header">
+              <h2 className="artist-modal__title">Add Artist to Company</h2>
+              <button 
+                className="artist-modal__close"
+                onClick={() => setShowAddModal(false)}
+                aria-label="Close"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="artist-modal__body">
+              <div className="artist-modal__field">
+                <label className="artist-modal__label">
+                  Select Artist
+                </label>
+                
+                {/* Search & Select Dropdown */}
+                <div className="artist-select-wrapper" onClick={(e) => e.stopPropagation()}>
+                  <div 
+                    className="artist-select-trigger"
+                    onClick={() => setShowDropdown(!showDropdown)}
+                  >
+                    {selectedArtist ? (
+                      <div className="artist-select-selected">
+                        {selectedArtist.imageUrl ? (
+                          <img src={selectedArtist.imageUrl} alt={selectedArtist.name} className="artist-select-avatar" />
+                        ) : (
+                          <div className="artist-select-avatar-placeholder">
+                            <Users size={20} />
+                          </div>
+                        )}
+                        <span>{selectedArtist.name}</span>
+                      </div>
+                    ) : (
+                      <span className="artist-select-placeholder">Choose an artist...</span>
+                    )}
+                    <ChevronDown size={20} className={`artist-select-icon ${showDropdown ? 'rotate' : ''}`} />
+                  </div>
+
+                  {/* Dropdown */}
+                  {showDropdown && (
+                    <div className="artist-select-dropdown">
+                      <div className="artist-select-search">
+                        <Search size={16} />
+                        <input
+                          type="text"
+                          placeholder="Search artists..."
+                          value={artistSearchQuery}
+                          onChange={(e) => setArtistSearchQuery(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+
+                      <div className="artist-select-options">
+                        {isLoadingArtists ? (
+                          <div className="artist-select-loading">Loading...</div>
+                        ) : availableArtistsResponse && availableArtistsResponse.length > 0 ? (
+                          availableArtistsResponse.map((artist) => (
+                            <div
+                              key={artist.id}
+                              className={`artist-select-option ${selectedArtist?.id === artist.id ? 'selected' : ''}`}
+                              onClick={() => {
+                                setSelectedArtist({
+                                  id: artist.id,
+                                  name: artist.labelName,
+                                  imageUrl: artist.imageUrl,
+                                });
+                                setShowDropdown(false);
+                              }}
+                            >
+                              {artist.imageUrl ? (
+                                <img src={artist.imageUrl} alt={artist.labelName} className="artist-option-avatar" />
+                              ) : (
+                                <div className="artist-option-avatar-placeholder">
+                                  <Users size={20} />
+                                </div>
+                              )}
+                              <div className="artist-option-info">
+                                <span className="artist-option-name">{artist.labelName}</span>
+                                {artist.user && (
+                                  <span className="artist-option-email">{artist.user.email}</span>
+                                )}
+                              </div>
+                              {selectedArtist?.id === artist.id && (
+                                <Check size={18} className="artist-option-check" />
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="artist-select-empty">
+                            <Users size={32} />
+                            <p>{artistSearchQuery ? 'No artists found' : 'No available artists'}</p>
+                            <span>All individual artists are already managed</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <p className="artist-modal__hint">
+                  Select an individual artist to add to your company management
                 </p>
               </div>
             </div>
-            <div className="modal-actions">
-              <Button variant="outline" onClick={() => setShowAddModal(false)}>
+            <div className="artist-modal__actions">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowAddModal(false);
+                  setSelectedArtist(null);
+                  setArtistSearchQuery('');
+                }}
+                className="artist-modal__cancel text-white"
+              >
                 Cancel
               </Button>
-              <Button onClick={handleAddArtist} disabled={!artistIdToAdd}>
+              <Button 
+                onClick={handleAddArtist} 
+                disabled={!selectedArtist}
+                className="artist-modal__submit"
+              >
+                <Plus size={18} />
                 Add Artist
               </Button>
             </div>
