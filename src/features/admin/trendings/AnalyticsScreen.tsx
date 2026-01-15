@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import AdminTabs, { AdminTab, analyticsTabs } from '../components/AdminTabs';
+import AdminTabs from '../components/AdminTabs';
 import { AnalyticsTab, SubscriptionsTab, AdvertisementTab } from './components';
 import '@/styles/analytics-screen.css';
+import { AdminTab } from '@/features/admin/types';
+import { analyticsTabs } from '@/features/admin/constants/tabs';
 
 type AnalyticsTabType = 'analytics' | 'subscriptions' | 'advertisement';
 

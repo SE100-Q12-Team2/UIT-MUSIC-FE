@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import AdminTabs, { AdminTab, resourceTabs } from '../../components/AdminTabs';
+import AdminTabs from '../../components/AdminTabs';
 import { SongsTab, AlbumsTab, GenresTab } from '../components';
 import '@/styles/resource-screen.css';
+import { resourceTabs } from '@/features/admin/constants/tabs';
+import { AdminTab } from '@/features/admin/types';
 
 type ResourceTabType = 'songs' | 'albums' | 'genres';
 

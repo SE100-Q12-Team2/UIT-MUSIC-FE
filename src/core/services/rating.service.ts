@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // ==================== Types ====================
 
-export type Rating = 'Like' | 'Dislike';
+export type Rating = 'ONE_STAR' | 'TWO_STAR' | 'THREE_STAR' | 'FOUR_STAR' | 'FIVE_STAR';
 
 export interface SongRating {
   userId: number;
@@ -22,17 +22,18 @@ export interface SongRating {
 export interface SongRatingStats {
   songId: number;
   totalRatings: number;
-  likes: number;
-  dislikes: number;
-  likePercentage: number;
-  dislikePercentage: number;
+  averageRating: number;
+  oneStar: number;
+  twoStar: number;
+  threeStar: number;
+  fourStar: number;
+  fiveStar: number;
   userRating: Rating | null;
 }
 
 export interface UserRatingStats {
   totalRatings: number;
-  totalLikes: number;
-  totalDislikes: number;
+  averageRating: number;
   recentlyRated: {
     songId: number;
     songTitle: string;
