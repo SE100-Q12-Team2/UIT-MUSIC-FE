@@ -456,17 +456,44 @@ export const adminApi = {
 
   // Get user by ID
   getUserById: async (id: number): Promise<AdminUser> => {
-    return api.get<AdminUser>(`/admin/users/${id}`);
+    return api.get<AdminUser>(`/users/${id}`);
+  },
+
+  // Get user detail by ID
+  getUserDetailById: async (id: number): Promise<AdminUser> => {
+    return api.get<AdminUser>(`/users/${id}/detail`);
+  },
+
+  // Create new user
+  createUser: async (data: {
+    email: string;
+    password: string;
+    fullName: string;
+    roleId: number;
+    dateOfBirth?: string;
+    gender?: 'Male' | 'Female' | 'Other';
+  }): Promise<AdminUser> => {
+    return api.post<AdminUser>('/users', data);
+  },
+
+  // Update user
+  updateUser: async (id: number, data: {
+    fullName?: string;
+    dateOfBirth?: string;
+    gender?: 'Male' | 'Female' | 'Other';
+    profileImage?: string;
+  }): Promise<AdminUser> => {
+    return api.patch<AdminUser>(`/users/${id}`, data);
   },
 
   // Update user status
   updateUserStatus: async (id: number, data: UpdateUserStatusRequest): Promise<AdminUser> => {
-    return api.patch<AdminUser>(`/admin/users/${id}/status`, data);
+    return api.patch<AdminUser>(`/users/${id}/status`, data);
   },
 
   // Delete user
   deleteUser: async (id: number): Promise<void> => {
-    return api.delete(`/admin/users/${id}`);
+    return api.delete(`/users/${id}`);
   },
 
   // Get label by user ID
@@ -517,7 +544,7 @@ export const adminApi = {
   // Update label status (updates the user's account status)
   updateLabelStatus: async (userId: number, data: UpdateLabelStatusRequest): Promise<AdminLabel> => {
     // Update user account status
-    await api.patch(`/admin/users/${userId}/status`, {
+    await api.patch(`/users/${userId}/status`, {
       accountStatus: data.status,
     });
     // Return the updated label
@@ -526,7 +553,7 @@ export const adminApi = {
 
   // Delete label (deletes the user account)
   deleteLabel: async (userId: number): Promise<void> => {
-    return api.delete(`/admin/users/${userId}`);
+    return api.delete(`/users/${userId}`);
   },
 
   // Get copyright reports for admin

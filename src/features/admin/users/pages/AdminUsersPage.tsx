@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminUsers, useUpdateUserStatus, useDeleteUser } from '@/core/services/admin.service';
-import { Search, Filter, ArrowUpDown, ChevronDown, Check, Mail, MoreHorizontal, Eye, Edit, Ban, Trash2, Shield } from 'lucide-react';
+import { Search, Filter, ArrowUpDown, ChevronDown, Check, Mail, MoreHorizontal, Eye, Edit, Ban, Trash2, Shield, Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import {
@@ -12,6 +12,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AdminUser } from '@/core/api/admin.api';
+import ViewUserModal from '../components/ViewUserModal';
+import EditUserModal from '../components/EditUserModal';
+import CreateUserModal from '../components/CreateUserModal';
 import '@/styles/admin-users-management.css';
 
 /// TODO: Pagination for users list
@@ -29,6 +32,11 @@ const AdminUsersPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortOption>('Latest');
   const [page, setPage] = useState(1);
   const limit = 20;
+
+  // Modal states
+  const [viewUserId, setViewUserId] = useState<number | null>(null);
+  const [editUser, setEditUser] = useState<AdminUser | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Dropdown states
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
@@ -188,6 +196,16 @@ const AdminUsersPage: React.FC = () => {
               />
             </div>
             <div className="admin-users-management__filters">
+              {/* Create User Button */}
+              <Button
+                variant="default"
+                className="admin-users-management__create-btn"
+                onClick={() => setIsCreateModalOpen(true)}
+              >
+                <Plus size={16} />
+                Add User
+              </Button>
+
               {/* Status Filter Dropdown */}
               <div className="admin-users-management__dropdown" ref={statusFilterRef}>
                 <Button
@@ -375,15 +393,13 @@ const AdminUsersPage: React.FC = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" side="left" className="admin-users-management__dropdown-content">
                               <DropdownMenuItem onClick={() => {
-                                // View user details - can be implemented later
-                                console.log('View user:', user.id);
+                                setViewUserId(user.id);
                               }}>
                                 <Eye size={16} />
                                 View Details
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => {
-                                // Edit user - can be implemented later
-                                console.log('Edit user:', user.id);
+                                setEditUser(user);
                               }}>
                                 <Edit size={16} />
                                 Edit User
@@ -439,6 +455,17 @@ const AdminUsersPage: React.FC = () => {
               </tbody>
             </table>
       </div>
+
+      {/* Modals */}
+      {viewUserId && (
+        <ViewUserModal userId={viewUserId} onClose={() => setViewUserId(null)} />
+      )}
+      {editUser && (
+        <EditUserModal user={editUser} onClose={() => setEditUser(null)} />
+      )}
+      {isCreateModalOpen && (
+        <CreateUserModal onClose={() => setIsCreateModalOpen(false)} />
+      )}
     </div>
   );
 };

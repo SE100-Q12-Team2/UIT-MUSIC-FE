@@ -89,6 +89,24 @@ export const useAdminUsers = (page = 1, limit = 20, search?: string) => {
   });
 };
 
+// React Query hook for single user
+export const useAdminUser = (id: number) => {
+  return useQuery({
+    queryKey: ['admin-user', id],
+    queryFn: () => adminApi.getUserById(id),
+    enabled: !!id,
+  });
+};
+
+// React Query hook for user detail
+export const useAdminUserDetail = (id: number) => {
+  return useQuery({
+    queryKey: ['admin-user-detail', id],
+    queryFn: () => adminApi.getUserDetailById(id),
+    enabled: !!id,
+  });
+};
+
 // React Query hook for admin labels
 export const useAdminLabels = (page = 1, limit = 20, search?: string) => {
   return useQuery({
@@ -155,6 +173,59 @@ export const useDeleteUser = () => {
         totalItems: updatedUsers.length,
       }));
       toast.success('User deleted successfully (using mock data)');
+    },
+  });
+};
+
+export const useCreateUser = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (data: {
+      email: string;
+      password: string;
+      fullName: string;
+      roleId: number;
+      dateOfBirth?: string;
+      gender?: 'Male' | 'Female' | 'Other';
+    }) => {
+      return adminApi.createUser(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success('User created successfully');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || 'Failed to create user';
+      toast.error(errorMessage);
+    },
+  });
+};
+
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { 
+      id: number; 
+      data: {
+        fullName?: string;
+        dateOfBirth?: string;
+        gender?: 'Male' | 'Female' | 'Other';
+        profileImage?: string;
+      }
+    }) => {
+      return adminApi.updateUser(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-detail'] });
+      toast.success('User updated successfully');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || 'Failed to update user';
+      toast.error(errorMessage);
     },
   });
 };
