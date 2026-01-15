@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/shared/hooks/auth/useAuth";
 import { useRecordLabels, useLabelAlbums } from "@/core/services/label.service";
+import { useDeleteAlbum } from "@/core/services/album.service";
+import { toast } from "sonner";
 
 import LabelAlbumFilters, {
   FilterKey,
@@ -59,6 +61,8 @@ const LabelAlbumManagementPage: React.FC = () => {
     1,
     50
   );
+
+  const deleteAlbum = useDeleteAlbum();
 
   const useMock = !user?.id || !label?.id;
 
@@ -137,8 +141,28 @@ const LabelAlbumManagementPage: React.FC = () => {
   };
 
   const handleDelete = (albumId: LabelAlbum["id"]) => {
-    const ok = window.confirm("Delete this album?");
+    const album = albums.find((a) => String(a.id) === String(albumId));
+    if (!album) return;
+
+    const confirmMessage = `Bạn có chắc chắn muốn xóa album "${album.albumTitle}"?\nThao tác này không thể hoàn tác.`;
+    const ok = window.confirm(confirmMessage);
     if (!ok) return;
+
+    deleteAlbum.mutate(Number(albumId), {
+      onSuccess: () => {
+        toast.success("Album đã được xóa thành công");
+        if (selectedAlbum?.id === albumId) {
+          closeDetail();
+        }
+        if (editingAlbum?.id === albumId) {
+          closeEdit();
+        }
+      },
+      onError: (error: any) => {
+        const errorMessage = error?.response?.data?.message || error?.message || "Không thể xóa album";
+        toast.error(errorMessage);
+      },
+    });
   };
 
   const showLoading = isLoadingLabels || (!useMock && isLoadingAlbums);

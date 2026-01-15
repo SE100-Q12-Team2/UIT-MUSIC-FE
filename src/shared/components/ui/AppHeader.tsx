@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { User, LogOut } from 'lucide-react';
 
 import logoWithName from '@/assets/logo-name-under.svg';
@@ -17,19 +17,28 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
 import { useProfile } from '@/core/services/profile.service';
+import { useRecordLabels } from '@/core/services/label.service';
 import { toast } from 'sonner';
 import { ROUTES } from '@/core/constants/routes';
 
 const AppHeader: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const location = useLocation();
+  const { user } = useAuth();
   const { data: profile } = useProfile();
+  const { data: labels = [] } = useRecordLabels(user?.id);
+  const label = labels[0];
 
   const { logout } = useAuth();
   const navigate = useNavigate();
   
-  const displayName = profile?.fullName || 'User';
-  const displayEmail = profile?.email || '';
-  const avatarUrl = profile?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=728AAB&color=fff&size=200`;
+  const isLabelRoute = location.pathname.startsWith('/label');
+  
+  const displayName = isLabelRoute && label ? label.labelName : (profile?.fullName || 'User');
+  const displayEmail = isLabelRoute && label ? label.email : (profile?.email || '');
+  const avatarUrl = isLabelRoute && label 
+    ? (label.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(label.labelName)}&background=728AAB&color=fff&size=200`)
+    : (profile?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=728AAB&color=fff&size=200`);
   
   const handleLogout = async() => {
     await logout();
@@ -110,17 +119,22 @@ const AppHeader: React.FC = () => {
 
             <DropdownMenuSeparator className="bg-white/10 my-1" />
 
-            <DropdownMenuItem asChild>
-              <Link
-                to="/settings"
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-white/10"
-              >
-                <User className="h-4 w-4 opacity-80" />
-                Profile
-              </Link>
-            </DropdownMenuItem>
+            {/* Show Profile option only for non-label routes */}
+            {!isLabelRoute && (
+              <>
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/settings"
+                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-white/10"
+                  >
+                    <User className="h-4 w-4 opacity-80" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
 
-            <DropdownMenuSeparator className="bg-white/10 my-1" />
+                <DropdownMenuSeparator className="bg-white/10 my-1" />
+              </>
+            )}
 
             <DropdownMenuItem
               onClick={handleLogout}
