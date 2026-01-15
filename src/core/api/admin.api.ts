@@ -65,19 +65,40 @@ export interface AdminLabelsResponse {
 
 export interface CopyrightReport {
   id: number;
-  songTitle: string;
-  reportedBy: string;
-  reason: string;
-  status: 'Pending' | 'Under Review' | 'Resolved' | 'Rejected';
+  reportedSongId: number;
+  reportReason: string;
+  status: 'Pending' | 'UnderReview' | 'Resolved' | 'Dismissed';
   createdAt: string;
+  updatedAt: string;
+  adminNotes?: string;
+  song?: {
+    id: number;
+    title: string;
+    artist?: string;
+  };
+  reporter?: {
+    id: number;
+    fullName: string;
+    email: string;
+  } | null;
+}
+
+export interface CopyrightReportStats {
+  totalReports: number;
+  pendingReports: number;
+  underReviewReports: number;
+  resolvedReports: number;
+  dismissedReports: number;
 }
 
 export interface CopyrightReportsResponse {
-  items: CopyrightReport[];
-  total: number;
-  pending: number;
-  resolved: number;
-  rejected: number;
+  data: CopyrightReport[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface UpdateUserStatusRequest {
@@ -556,14 +577,31 @@ export const adminApi = {
     return api.delete(`/users/${userId}`);
   },
 
-  // Get copyright reports for admin
-  getCopyrightReports: async (): Promise<CopyrightReportsResponse> => {
-    return api.get<CopyrightReportsResponse>('/admin/copyright-reports');
+  // Get copyright reports for admin (with pagination)
+  getCopyrightReports: async (page = 1, limit = 20, status?: string): Promise<CopyrightReportsResponse> => {
+    return api.get<CopyrightReportsResponse>('/copyright-reports', {
+      params: { page, limit, status },
+    });
+  },
+
+  // Get copyright report statistics
+  getCopyrightReportStats: async (): Promise<CopyrightReportStats> => {
+    return api.get<CopyrightReportStats>('/copyright-reports/stats');
+  },
+
+  // Get copyright report by ID
+  getCopyrightReportById: async (id: number): Promise<CopyrightReport> => {
+    return api.get<CopyrightReport>(`/copyright-reports/${id}`);
   },
 
   // Update copyright report status
   updateCopyrightReportStatus: async (id: number, data: UpdateCopyrightReportStatusRequest): Promise<CopyrightReport> => {
-    return api.patch<CopyrightReport>(`/admin/copyright-reports/${id}/status`, data);
+    return api.patch<CopyrightReport>(`/copyright-reports/${id}/status`, data);
+  },
+
+  // Delete copyright report
+  deleteCopyrightReport: async (id: number): Promise<void> => {
+    return api.delete(`/copyright-reports/${id}`);
   },
 
   // Get all songs for admin
