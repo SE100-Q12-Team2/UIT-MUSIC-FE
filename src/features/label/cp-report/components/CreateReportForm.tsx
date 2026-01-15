@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useCreateReport } from '@/core/services/copyright-report.service';
-import { useLabelSongs } from '@/core/services/label.service';
-import { useProfileStore } from '@/store/profileStore';
+import { useCreateReport, useReportedSongIds } from '@/core/services/copyright-report.service';
+import { useLabelSongs, useRecordLabels } from '@/core/services/label.service';
+import { useAuth } from '@/shared/hooks/auth/useAuth';
 import { toast } from 'sonner';
 
 interface CreateReportFormProps {
@@ -12,13 +12,36 @@ const CreateReportForm: React.FC<CreateReportFormProps> = ({ onSuccess }) => {
   const [selectedSongId, setSelectedSongId] = useState<number | null>(null);
   const [description, setDescription] = useState('');
 
-  const profile = useProfileStore((state) => state.profile);
-  const labelId = profile?.role?.id === 3 ? profile.id : undefined;
+  const { user } = useAuth();
+  const { data: labels = [], isLoading: isLoadingLabels } = useRecordLabels(user?.id);
+  const label = labels[0];
 
-  const { data: songsData, isLoading: isLoadingSongs } = useLabelSongs(labelId, 1, 1000);
+  const { data: songsData, isLoading: isLoadingSongs } = useLabelSongs(label?.id, 1, 100);
+  const { data: reportedSongIds = [], isLoading: isLoadingReportedIds } = useReportedSongIds();
   const { mutate: createReport, isPending } = useCreateReport();
 
-  const songs = songsData?.items || [];
+  const availableSongs = (songsData?.items || []).filter(
+    (song) => !reportedSongIds.includes(song.id)
+  );
+
+  if (isLoadingLabels) {
+    return (
+      <div className="create-report-form">
+        <div className="create-report-form__loading">Đang tải thông tin label...</div>
+      </div>
+    );
+  }
+
+  if (!label) {
+    return (
+      <div className="create-report-form">
+        <div className="create-report-form__error">
+          <p>Không tìm thấy thông tin label của bạn.</p>
+          <p>Vui lòng đảm bảo bạn đã tạo label trước khi tạo báo cáo.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +53,16 @@ const CreateReportForm: React.FC<CreateReportFormProps> = ({ onSuccess }) => {
 
     if (!description.trim()) {
       toast.error('Vui lòng nhập mô tả báo cáo');
+      return;
+    }
+
+    if (description.trim().length < 10) {
+      toast.error('Mô tả báo cáo phải có ít nhất 10 ký tự');
+      return;
+    }
+
+    if (description.trim().length > 2000) {
+      toast.error('Mô tả báo cáo không được vượt quá 2000 ký tự');
       return;
     }
 
@@ -46,7 +79,8 @@ const CreateReportForm: React.FC<CreateReportFormProps> = ({ onSuccess }) => {
           onSuccess?.();
         },
         onError: (error: any) => {
-          toast.error(error?.message || 'Không thể gửi báo cáo');
+          const errorMessage = error?.response?.data?.message || error?.message || 'Không thể gửi báo cáo';
+          toast.error(errorMessage);
         },
       }
     );
@@ -83,15 +117,20 @@ const CreateReportForm: React.FC<CreateReportFormProps> = ({ onSuccess }) => {
               className="create-report-form__select"
               value={selectedSongId || ''}
               onChange={(e) => setSelectedSongId(Number(e.target.value))}
-              disabled={isLoadingSongs || isPending}
+              disabled={isLoadingSongs || isLoadingReportedIds || isPending}
             >
               <option value="">Chọn Bài Hát</option>
-              {songs.map((song) => (
+              {availableSongs.map((song) => (
                 <option key={song.id} value={song.id}>
                   {song.title}
                 </option>
               ))}
             </select>
+            {availableSongs.length === 0 && !isLoadingSongs && !isLoadingReportedIds && (
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px', marginTop: '8px' }}>
+                Tất cả bài hát đã được báo cáo hoặc không có bài hát nào.
+              </p>
+            )}
           </div>
 
           <div className="create-report-form__field">
@@ -101,12 +140,16 @@ const CreateReportForm: React.FC<CreateReportFormProps> = ({ onSuccess }) => {
             <textarea
               id="description"
               className="create-report-form__textarea"
-              placeholder="Short Description"
+              placeholder="Nhập mô tả chi tiết về vi phạm bản quyền (tối thiểu 10 ký tự)..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={isPending}
               rows={8}
+              maxLength={2000}
             />
+            <div style={{ textAlign: 'right', fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '4px' }}>
+              {description.length}/2000
+            </div>
           </div>
         </div>
 

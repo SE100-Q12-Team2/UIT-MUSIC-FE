@@ -80,23 +80,38 @@
 
 .copyright-report-page__filter,
 .copyright-report-page__sort {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   padding: 10px 16px;
   background: rgba(30, 41, 59, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.7)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
 }
 
 .copyright-report-page__filter:hover,
 .copyright-report-page__sort:hover {
-  background: rgba(30, 41, 59, 0.8);
+  background-color: rgba(30, 41, 59, 0.8);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+.copyright-report-page__filter option,
+.copyright-report-page__sort option {
+  background: #1e293b;
+  color: #fff;
+}
+
+.copyright-report-page__filter-dropdown,
+.copyright-report-page__sort-dropdown {
+  position: relative;
 }
 
 /* Report List */
@@ -152,6 +167,12 @@
   margin-bottom: 12px;
 }
 
+.report-item__header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .report-item__song h3 {
   font-size: 18px;
   font-weight: 600;
@@ -204,6 +225,59 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
+/* Report Item Actions */
+.report-item__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.report-item__action-btn {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.report-item__action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.report-item__action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.report-item__action-btn--edit:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #3B82F6;
+}
+
+.report-item__action-btn--delete:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #EF4444;
+}
+
+.report-item__action-btn .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
 /* Create Report Form */
 .create-report-form {
   width: 100%;
@@ -226,6 +300,25 @@
 .create-report-form__warning svg {
   flex-shrink: 0;
   margin-top: 2px;
+}
+
+.create-report-form__loading,
+.create-report-form__error {
+  padding: 40px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.create-report-form__error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+}
+
+.create-report-form__error p {
+  margin: 8px 0;
 }
 
 .create-report-form__content {

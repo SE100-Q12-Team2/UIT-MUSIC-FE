@@ -45,22 +45,46 @@ export interface CreateCopyrightReportDto {
   reportReason: string;
 }
 
+export interface UpdateReportReasonDto {
+  reportReason: string;
+}
+
 export const copyrightReportService = {
-  getMyReports: async (page = 1, limit = 10): Promise<CopyrightReportsResponse> => {
+  getMyReports: async (page = 1, limit = 10, status?: string): Promise<CopyrightReportsResponse> => {
     return api.get<CopyrightReportsResponse>('/copyright-reports/my-reports', {
-      params: { page, limit }
+      params: { page, limit, status }
     });
+  },
+
+  getReportedSongIds: async (): Promise<number[]> => {
+    return api.get<number[]>('/copyright-reports/my-reported-songs');
   },
 
   createReport: async (data: CreateCopyrightReportDto): Promise<CopyrightReport> => {
     return api.post<CopyrightReport>('/copyright-reports', data);
   },
+
+  updateReport: async (id: number, data: UpdateReportReasonDto): Promise<CopyrightReport> => {
+    return api.patch<CopyrightReport>(`/copyright-reports/my-reports/${id}`, data);
+  },
+
+  deleteReport: async (id: number): Promise<void> => {
+    return api.delete(`/copyright-reports/my-reports/${id}`);
+  },
 };
 
-export const useMyReports = (page = 1, limit = 10) => {
+export const useMyReports = (page = 1, limit = 10, status?: string) => {
   return useQuery({
-    queryKey: ['copyright-reports', 'my-reports', page, limit],
-    queryFn: () => copyrightReportService.getMyReports(page, limit),
+    queryKey: ['copyright-reports', 'my-reports', page, limit, status],
+    queryFn: () => copyrightReportService.getMyReports(page, limit, status),
+    enabled: true,
+  });
+};
+
+export const useReportedSongIds = () => {
+  return useQuery({
+    queryKey: ['copyright-reports', 'reported-song-ids'],
+    queryFn: () => copyrightReportService.getReportedSongIds(),
     enabled: true,
   });
 };
@@ -72,6 +96,31 @@ export const useCreateReport = () => {
     mutationFn: (data: CreateCopyrightReportDto) => copyrightReportService.createReport(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['copyright-reports', 'my-reports'] });
+      queryClient.invalidateQueries({ queryKey: ['copyright-reports', 'reported-song-ids'] });
+    },
+  });
+};
+
+export const useUpdateReport = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateReportReasonDto }) => 
+      copyrightReportService.updateReport(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['copyright-reports', 'my-reports'] });
+    },
+  });
+};
+
+export const useDeleteReport = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => copyrightReportService.deleteReport(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['copyright-reports', 'my-reports'] });
+      queryClient.invalidateQueries({ queryKey: ['copyright-reports', 'reported-song-ids'] });
     },
   });
 };
