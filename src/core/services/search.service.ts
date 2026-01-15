@@ -56,10 +56,9 @@ export interface TrendingSearchesResponse {
 }
 
 export interface SearchQueryParams {
-  q: string;
-  type?: 'song' | 'album' | 'artist' | 'playlist' | 'all';
+  query: string;
+  type?: 'songs' | 'ALBUMS' | 'ARTISTS' | 'PLAYLISTS' | 'ALL';
   limit?: number;
-  offset?: number;
   page?: number;
 }
 
@@ -104,7 +103,7 @@ export const useSearch = (params: SearchQueryParams) => {
   return useQuery({
     queryKey: QUERY_KEYS.search.query(params),
     queryFn: () => searchService.search(params),
-    enabled: !!params.q && params.q.length > 0,
+    enabled: !!params.query && params.query.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
