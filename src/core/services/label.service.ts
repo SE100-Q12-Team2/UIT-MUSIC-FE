@@ -37,9 +37,9 @@ export const labelService = {
   },
 
   // Get songs for a label
-  getLabelSongs: async (labelId: number, page = 1, limit = 10): Promise<LabelSongsResponse> => {
+  getLabelSongs: async (page = 1, limit = 10): Promise<LabelSongsResponse> => {
     return api.get<LabelSongsResponse>('/songs', {
-      params: { labelId, page, limit },
+      params: { page, limit },
     });
   },
 

@@ -5,7 +5,7 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   width: 90%;
   max-width: 550px;
-  max-height: 90vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s ease;
@@ -245,6 +245,92 @@
 
 .create-playlist-modal__cancel:disabled,
 .create-playlist-modal__create:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Cover Image Upload */
+.create-playlist-modal__cover-upload {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.create-playlist-modal__cover-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-playlist-modal__cover-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(78, 108, 150, 0.5);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.create-playlist-modal__cover-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.create-playlist-modal__cover-btn span {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.create-playlist-modal__cover-preview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.create-playlist-modal__cover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.create-playlist-modal__cover-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 100, 100, 0.9);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.create-playlist-modal__cover-preview:hover .create-playlist-modal__cover-remove {
+  opacity: 1;
+}
+
+.create-playlist-modal__cover-remove:hover {
+  background: rgba(255, 80, 80, 1);
+  transform: scale(1.1);
+}
+
+.create-playlist-modal__cover-remove:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
